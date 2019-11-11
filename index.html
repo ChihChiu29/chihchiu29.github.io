@@ -26,8 +26,10 @@ function onHavingLocation(position) {
   query_header = 'https://moto.data.socrata.com/resource/wrmr-tdyp.json?$where=';
   param = "(`latitude` > "+ from_latitude + " AND `latitude` < " + to_latitude + " AND `longitude` > " + from_longitude + "AND `longitude` < " + to_longitude + " AND (`parent_incident_type` = 'Theft' OR `parent_incident_type` = 'Property Crime' OR `parent_incident_type` = 'Weapons Offense' OR `parent_incident_type` = 'Assault with Deadly Weapon' OR `parent_incident_type` = 'Breaking & Entering' OR `parent_incident_type` = 'Theft of Vehicle'))";
   query = query_header + escape(param);
+  // Example search_results:
+  // [{"incident_id":"834060383","case_number":"S180400222","incident_datetime":"2018-02-09T13:41:41.000","incident_type_primary":"BURGLARY (460)","incident_description":"Call Type: 459    <br>Description: BURGLARY (460)<br>Final Disposition: R","clearance_type":"","address_1":"16300 Block LAVENDER LN","city":"SANTA CLARA COUNTY","state":"CA","latitude":"37.238507967223796","longitude":"-121.95510804279245","created_at":"2018-02-12T21:37:35.000","updated_at":"2018-02-16T18:03:16.000","location":{"type":"Point","coordinates":[-121.955108042792,37.2385079672238]},"hour_of_day":"13","day_of_week":"Friday","parent_incident_type":"Breaking & Entering"},]
   $.get(query).done(function(search_results) {
-    $('#result').text('Found ' + len(search_results) + 'events.');
+    $('#result').text('Found ' + search_results.length + 'events.');
   });
 }
 </script>
