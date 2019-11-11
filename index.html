@@ -16,7 +16,7 @@ function getLocation() {
 }
 
 function onHavingLocation(position) {
-  distance_factor = $('factor-input').val();
+  distance_factor = $('#factor-input').val();
 
   from_latitude = position.coords.latitude - latitude_delta * distance_factor;
   to_latitude = position.coords.latitude + latitude_delta * distance_factor;
@@ -45,7 +45,7 @@ body {
 Search events within a square of side length
 <input type="number" id="factor-input" value="1" min="1" max="100">
 * 1250 feet.<br/>
-<button>Search / Refresh</button>
+<button onclick="getLocation()">Search / Refresh</button>
 
 </body>
 
