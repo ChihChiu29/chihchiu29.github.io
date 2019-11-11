@@ -5,9 +5,9 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript">
 
-// A square with ~1250 feet each side.
-const latitude_delta = 0.0019;
-const longitude_delta = 0.0024;
+const delta_distance_mile = 0.12;
+const latitude_delta = 0.0019;  // latitude diff = ~delta_distance_mile
+const longitude_delta = 0.0024;  // longitude diff = ~delta_distance_mile
 // Used to enlarge the search area.
 var distance_factor = 1.0;
 
@@ -36,6 +36,8 @@ function onHavingLocation(position) {
       text += 'day_of_week: ' + e.day_of_week + '<br/>';
       text += 'type: ' + e.incident_type_primary + '<br/>';
       text += 'address: ' + e.address_1 + '<br/>';
+      let distance = Math.sqrt(Math.pow(Math.abs(e.latitude - position.coords.latitude) / latitude_delta, 2) + Math.pow(Math.abs(e.longitude - position.coords.longitude) / longitude_delta, 2)) * delta_distance_mile;
+      text += 'distance: ' + distance + ' miles<br/>';
       text += '<hr/>';
     }
     $('#info').html(text);
@@ -54,7 +56,7 @@ function onHavingLocation(position) {
   <div id="result">Click search to start.</div><br/>
   Search events within a square of side length
   <input type="number" id="factor-input" style="font-size:1em;" value="1" min="1" max="100">
-  * 1250 feet.<br/>
+  * 0.12 mile.<br/>
   <button onclick="getLocation()" style="font-size:2em;">Search / Refresh</button>
 </div>
 
