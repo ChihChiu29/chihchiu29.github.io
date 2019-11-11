@@ -1,1 +1,54 @@
-hello
+<!DOCTYPE html>
+<html>
+
+<head>
+<script src="jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+
+// A square with ~1250 feet each side.
+const latitude_delta = 0.0019;
+const longitude_delta = 0.0024;
+// Used to enlarge the search area.
+var distance_factor = 2.0;
+
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(onHavingLocation);
+}
+
+function onHavingLocation(position) {
+  pp = position;
+  from_latitude = position.coords.latitude - latitude_delta * distance_factor;
+  to_latitude = position.coords.latitude + latitude_delta * distance_factor;
+  from_longitude = position.coords.longitude - longitude_delta * distance_factor;
+  to_longitude = position.coords.longitude + longitude_delta * distance_factor;
+
+  query_header = 'https://moto.data.socrata.com/resource/wrmr-tdyp.json?$where=';
+  param = "(`latitude` > "+ from_latitude + " AND `latitude` < " + to_latitude + " AND `longitude` > " + from_longitude + "AND `longitude` < " + to_longitude + " AND (`parent_incident_type` = 'Theft' OR `parent_incident_type` = 'Property Crime' OR `parent_incident_type` = 'Weapons Offense' OR `parent_incident_type` = 'Assault with Deadly Weapon' OR `parent_incident_type` = 'Breaking & Entering' OR `parent_incident_type` = 'Theft of Vehicle'))";
+  query = query_header + escape(param);
+  $.get(query).done(function(search_results) {
+    $('#result').text('Found ' + len(search_results) + 'events.');
+  });
+}
+</script>
+<style>
+button {
+  font-size: 24px;
+}
+.result {
+  font-size: 24px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="result" class="result">Click search to start</div><br/>
+
+Search events within a square of side length
+<input type="number" id="factor-input" value="1" min="1" max="100">
+* 1250 feet.<br/>
+<button>Search / Refresh</button>
+
+</body>
+
+</html>
