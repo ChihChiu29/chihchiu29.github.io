@@ -5,14 +5,10 @@ const latitude_delta_per_mile = 0.014487;
 // Measured between (37.236121, -121.940872) and (37.236185, -121.922646)
 const longitude_delta_per_mile = 0.018226;
 
-var $result_area;
-var $details_area;
-var $info_area;
-var $distance_factor_input;
-var $from_year_input;
+var auto_refresh_timer = null;
 
 function getLocation() {
-  $details_area.hide();
+  $('#details').hide();
   navigator.geolocation.getCurrentPosition(onHavingLocation);
 }
 
@@ -20,8 +16,8 @@ function onHavingLocation(position) {
   DEBUG_position = position;
 
 
-  distance_factor = $distance_factor_input.val();
-  from_year = $from_year_input.val();
+  distance_factor = $('#distance-factor-input').val();
+  from_year = $('#year-input').val();
 
   from_latitude = position.coords.latitude - latitude_delta_per_mile * distance_factor;
   to_latitude = position.coords.latitude + latitude_delta_per_mile * distance_factor;
@@ -36,7 +32,7 @@ function onHavingLocation(position) {
   // Example search_results:
   // [{"incident_id":"834060383","case_number":"S180400222","incident_datetime":"2018-02-09T13:41:41.000","incident_type_primary":"BURGLARY (460)","incident_description":"Call Type: 459    <br>Description: BURGLARY (460)<br>Final Disposition: R","clearance_type":"","address_1":"16300 Block LAVENDER LN","city":"SANTA CLARA COUNTY","state":"CA","latitude":"37.238507967223796","longitude":"-121.95510804279245","created_at":"2018-02-12T21:37:35.000","updated_at":"2018-02-16T18:03:16.000","location":{"type":"Point","coordinates":[-121.955108042792,37.2385079672238]},"hour_of_day":"13","day_of_week":"Friday","parent_incident_type":"Breaking & Entering"},]
   $.get(query).done(function(search_results) {
-    $result_area.text('Found ' + search_results.length + ' events.');
+    $('#result').text('Found ' + search_results.length + ' events.');
 
     // Fill the details section.
     var distance_distribution = [];
@@ -67,18 +63,23 @@ function onHavingLocation(position) {
         x: year_distribution,
         type: 'histogram',
       }]);
-    $info_area.html(text);
+    $('#info').html(text);
 
-    $details_area.show();
+    $('#details').show();
   });
 }
 
-document.addEventListener("load", function() {
-  $result_area = $('#result');
-  $details_area = $('#details');
-  $info_area = $('#info');
-  $distance_factor_input = $('#distance-factor-input');
-  $from_year_input = $('#year-input');
+$(document).ready(function() {
+  $('#details').hide();
 
-  $details_area.hide();
+  $('#auto-refresh-checkbox').change(function() {
+    if (this.checked) {
+      auto_refresh_timer = setInterval(getLocation, 1000 * 30);
+    } else {
+      if (auto_refresh_timer) {
+        clearInterval(auto_refresh_timer);
+      }
+      auto_refresh_timer = null;
+    }
+  });
 });
