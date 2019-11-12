@@ -62,15 +62,21 @@ function onHavingLocation(position) {
       'Found ' + search_results.length + ' events (capped at 5000).<br/>' +
       '<b>Safty score</b> (best 0): ' + safety_score);
     Plotly.newPlot('distance-plot', [{
-        name: 'Distance Distribution',
         x: distance_distribution,
         type: 'histogram',
-      }]);
+      }], {
+        title: {
+          text: 'Distance Distribution',
+        },
+      });
       Plotly.newPlot('year-plot', [{
-        name: 'Year Distribution',
         x: year_distribution,
         type: 'histogram',
-      }]);
+      }], {
+        title: {
+          text: 'Year Distribution',
+        },
+      });
     $('#info').html(info_text);
     $('#details').show();
   });
