@@ -1,4 +1,6 @@
 // For crime search page.
+// Data source:
+// https://moto.data.socrata.com/dataset/Santa-Clara-County-Sheriff-s-Office/wrmr-tdyp
 
 // Measured between (37.250305, -121.913158) and (37.235818, -121.912993)
 const latitude_delta_per_mile = 0.014487;
