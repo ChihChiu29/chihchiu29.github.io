@@ -17,7 +17,6 @@ function getLocation() {
 function onHavingLocation(position) {
   DEBUG_position = position;
 
-
   distance_factor = $('#distance-factor-input').val();
   from_year = $('#year-input').val();
 
@@ -45,7 +44,7 @@ function onHavingLocation(position) {
       let year = e.incident_datetime.slice(0, 4);
 
       let current_year = new Date().getFullYear();
-      safety_score -= Math.exp(-(distance + (current_year - year)));
+      safety_score -= 1.0 / (Math.max(distance, 0.1) + (current_year - year)) / distance_factor;
 
       distance_distribution.push(distance);
       year_distribution.push('Year: ' + year);  // text based histogram looks better.
