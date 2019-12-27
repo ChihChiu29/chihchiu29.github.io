@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Mortgage Calculator</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="jquery-1.js"></script>
+        <script src="chart.js"></script>
+        <script src="plotter.js"></script>
+        <script src="math.js"></script>
+        <script src="brain.js"></script>
+        <style>
+            canvas {
+                width: 80%;
+            }
+            .long {
+                width: 75%;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <span>Period (number of months):
+                <input id="period_input" type="text" value="360">
+            </span>
+            <span>Load value (principle):
+                <input id="principle_input" type="text" value="720000">
+            </span>
+        </div>
+        <div>
+            <span>Annual interest (format: "value: start-end, value: start-end, ..."):
+                <input id="interest_array_input" class="long" type="text" value="0.04: 1-360">
+            </span>
+        </div>
+        <div>
+            <span>Additional pay (format: "value: start-end, value: start-end, ..."):
+                <input id="additional_pay_array_input" class="long" type="text" value="0: 1-360">
+            </span>
+            <br/>
+            <span>Expected annual return rate:
+                <input id="expected_annual_return_rate_input" type="text" value="0.05">
+            </span>
+            <span>Tax rate:
+                <input id="tax_rate_input" type="text" value="0.4">
+            </span>
+        </div>
+        
+        <button id="calculate_button">Calculate</button>
+        <div>
+            <h3>Averaged Monthly Pay (monthly total and interest)</h3>
+            <div id="plot_average"></div>
+        </div>
+        <div>
+            <h3>Accumulated Total Pay (remaining principle and paid interest)</h3>
+            <div id="plot_accumulated"></div>
+        </div>
+        <div>
+            <h3>Expected accumulated return from additional pay:</h3>
+            <div id="plot_return"></div>
+        </div>
+        <div>
+            <h3>After-tax effective return rate:</h3>
+            <div id="plot_effective_return_rate"></div>
+        </div>
+        <script>
+            $('#calculate_button').click(function() {
+                var N = parseInt($('#period_input').val());
+                var P0 = Number($('#principle_input').val());
+                var interestArray = getArrayFromString($('#interest_array_input').val(), N).map(getMonthlyInterestRate);
+                var additionalPayArray = getArrayFromString($('#additional_pay_array_input').val(), N);
+                ps = getPaySeries(P0, interestArray, additionalPayArray, N);
+                psAnnual = ps.getAnnualPaySeries();
+                psAnnual.plot($('#plot_average')[0], true);
+                psAnnual.plotAccumulated($('#plot_accumulated')[0], P0, true);
+                
+                var expectedReturnRate = Number($('#expected_annual_return_rate_input').val());
+                var returnValueArray = calculatePayBack(additionalPayArray, getCompondMonthlyInterestRate(expectedReturnRate));
+                new PaySeries(returnValueArray, zero(N)).getAnnualPaySeries().plot($('#plot_return')[0], true);
+                
+                var taxRate = Number($('#tax_rate_input').val());
+                var afterTaxReturnRate = calculateEffectiveReturnRate(expectedReturnRate, N/12, taxRate);
+                plot2d($('#plot_effective_return_rate')[0], afterTaxReturnRate, null, null, true);
+            });
+//            ps = getPaySeriesForFixedRate(1200000 * 0.6, getMonthlyInterestRate(0.04), 30 * 12);
+//            // ps.plot(document.getElementById('plot_1'));
+//            ps.getAnnualPaySeries().plot(document.getElementById('plot_1'));
+//            ps.getAnnualPaySeries().plotAccumulated(document.getElementById('plot_1'));
+//            
+//            ps = getPaySeriesForArm(
+//                1200000 * 0.6,
+//                getMonthlyInterestRate(0.0325), 7 * 12,
+//                getMonthlyInterestRate(0.08), 23 * 12);
+//            ps.getAnnualPaySeries().plot(document.getElementById('plot_2'));
+//            ps.getAnnualPaySeries().plotAccumulated(document.getElementById('plot_2'));
+//            
+//            ps = getPaySeries(
+//                1200000 * 0.6, 
+//                scalarMultiply(one(30*12), getMonthlyInterestRate(0.04)), 
+//                scalarMultiply(one(30*12), 800));
+//            ps.getAnnualPaySeries().plot(document.getElementById('plot_3'));
+//            
+//            ps = getPaySeries(
+//                1200000 * 0.6,
+//                scalarMultiply(one(7 * 12), getMonthlyInterestRate(0.0325)).concat(scalarMultiply(one(23 * 12), getMonthlyInterestRate(0.08))),
+//                zero(30 * 12));
+//            ps.getAnnualPaySeries().plot(document.getElementById('plot_4'));
+        </script>
+    </body>
+</html>
