@@ -4,7 +4,7 @@ function main() {
     'var bigsize 400 250',
     'rect A hello world',
     'bgcolor A lightblue',
-    'rect B foo bar',
+    'rect B foo bar \n and foo bar again',
     'stack X A B with stacked!',
     'move X 30 30 $bigsize',
     'rect C hello world',
@@ -12,7 +12,7 @@ function main() {
     'tile Y 3 C D with tiled!',
     'move Y 130 450 $bigsize',
     '~> X down Y up',
-    'rect aa some right side box',
+    'rectcentered aa some right side box',
     'move aa 500 50 $bigsize',
     '-> X right aa left',
   ];

@@ -21,6 +21,8 @@ class DiagramLangInterpreter {
       'bgcolor': this.setBgColor.bind(this),
       'move': this.move.bind(this),
       'rect': this.createRect.bind(this),
+      'rectc': this.createRectCenteredText.bind(this),
+      'rectcentered': this.createRectCenteredText.bind(this),
       'stack': this.stackShapes.bind(this),
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
@@ -79,26 +81,48 @@ class DiagramLangInterpreter {
       cmd = cmd.replace(varName, this.vars[varName]);
     }
 
-    const cmdArray = cmd.split(' ');
-    const keyword = cmdArray[0];
-    const params = cmdArray.splice(1);
-    if (this.handlerMap[keyword]) {
-      this.handlerMap[keyword](params);
+    try {
+      const cmdArray = cmd.split(' ');
+      const keyword = cmdArray[0];
+      const params = cmdArray.splice(1);
+      if (this.handlerMap[keyword]) {
+        this.handlerMap[keyword](params);
+      }
+    } catch (err) {
+      alert(`CMD "${cmd}" gives error: "${err}"`);
+      throw err;
     }
   }
 
   /**
-   * Creates a Rect with text.
+   * Creates a Rect with multiline text.
    * 
    * Syntax:
-   *   rect <rect name> <single line text>
+   *   rect <rect name> <multiline text (break line with "\n")>
    */
   createRect(cmdArray) {
     const name = cmdArray[0];
     const text = cmdArray.splice(1).join(' ');
+    const multilineTexts = text.split('\n');
     const rect = new Rect();
     rect.zValue = this._getNextZValue();
-    rect.texts = [text];
+    rect.texts = multilineTexts;
+
+    this._setShape(name, rect);
+  }
+
+  /**
+   * Creates a Rect with centered text.
+   * 
+   * Syntax:
+   *   rect <rect name> <single line text>
+   */
+  createRectCenteredText(cmdArray) {
+    const name = cmdArray[0];
+    const text = cmdArray.splice(1).join(' ');
+    const rect = new Rect();
+    rect.zValue = this._getNextZValue();
+    rect.centeredText = text;
 
     this._setShape(name, rect);
   }
