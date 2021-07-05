@@ -93,25 +93,25 @@ class LinkSmartSingleCurved extends LinkSingleCurved {
     /*Shape*/toShape,
     /*string*/toDirection,  // up/down/left/right
   ) {
-    const error = new Error('not possible to draw single curved link for the chosen directions');
+    const error = `no pretty link from ${fromDirection} to ${toDirection}`;
     const fromP = fromShape.getConnectionPoint(fromDirection);
     const toP = toShape.getConnectionPoint(toDirection);
     if (toP.x > fromP.x) {
       if (fromDirection === 'left' || toDirection === 'right') {
-        throw error;
+        console.log(error);
       }
     } else if (toP.x < fromP.x) {
       if (fromDirection === 'right' || toDirection === 'left') {
-        throw error;
+        console.log(error);
       }
     }
     if (toP.y > fromP.y) {
       if (fromDirection === 'up' || toDirection === 'down') {
-        throw error;
+        console.log(error);
       }
     } else if (toP.y < fromP.y) {
       if (fromDirection === 'down' || toDirection === 'up') {
-        throw error;
+        console.log(error);
       }
     }
 
@@ -119,18 +119,6 @@ class LinkSmartSingleCurved extends LinkSingleCurved {
     this.to = toP;
     this.ctrl1 = {};
     this.ctrl2 = {};
-
-    // const ctrlP = { x: (fromP.x + toP.x) / 2, y: (fromP.y + toP.y) / 2 };
-    // if (fromDirection === 'up' || fromDirection === 'down') {
-    //   ctrlP.x = fromP.x;
-    // } else {
-    //   ctrlP.y = fromP.y;
-    // }
-    // if (toDirection === 'up' || toDirection === 'down') {
-    //   ctrlP.x = toP.x;
-    // } else {
-    //   ctrlP.y = toP.y;
-    // }
 
     if (fromDirection === 'up' || fromDirection === 'down') {
       this.ctrl1.x = fromP.x;
