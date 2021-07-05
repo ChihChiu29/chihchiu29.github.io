@@ -1,0 +1,63 @@
+<head>
+  <script src="/diagramlab/base.js"></script>
+  <script src="/diagramlab/shape.js"></script>
+  <script src="/diagramlab/link.js"></script>
+  <script src="/diagramlab/diagramlang.js"></script>
+</head>
+
+<body>
+  <style>
+    text {
+      font-family: sans-serif;
+    }
+
+    textarea {
+      width: 100%;
+      height: 50vh;
+    }
+  </style>
+  <h2>Welcome to the DiagramLab!</h2>
+  <div>
+    <b>Supported commands:</b>
+    <span id="reference"></span>
+  </div>
+  <textarea id="input"></textarea>
+  <button onclick="draw()">DRAW!</button>
+  <div id="canvas" style="border: solid"></div>
+
+  <script>
+    function draw() {
+      const renderer = new SVGRenderer(document.querySelector('#canvas'));
+      const interpreter = new DiagramLangInterpreter(renderer);
+      for (const cmd of document.querySelector('#input').value.split('\n')) {
+        interpreter.handleSingleCommand(cmd);
+      }
+      interpreter.finish();
+      renderer.draw();
+    }
+
+    function onload() {
+      document.querySelector('#input').value = `viewport 0 0 1000 1000
+var bigsize 400 250
+rect A hello world
+bgcolor A lightblue
+rect B foo bar
+stack X A B with stacked!
+move X 30 30 $bigsize
+rect C hello world
+rect D foo bar
+tile Y 3 C D with tiled!
+move Y 130 450 $bigsize
+~> X down Y up
+rect aa some right side box
+move aa 500 50 $bigsize
+-> X right aa left`;
+
+      const interpreter = new DiagramLangInterpreter(document.querySelector('#canvas'));
+      document.querySelector('#reference').innerText = Object.keys(interpreter.handlerMap).join(', ');
+    }
+
+    document.addEventListener("DOMContentLoaded", onload);
+  </script>
+
+</body>
