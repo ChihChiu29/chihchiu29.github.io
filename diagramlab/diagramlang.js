@@ -31,6 +31,7 @@ class DiagramLangInterpreter {
       'rectc': this.createRectCenteredText.bind(this),
       'rectcentered': this.createRectCenteredText.bind(this),
       'stack': this.stackShapes.bind(this),
+      'text': this.createMultilineText.bind(this),
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
@@ -111,6 +112,21 @@ class DiagramLangInterpreter {
       alert(`CMD "${cmd}" gives error: "${err}"`);
       throw err;
     }
+  }
+
+  /**
+   * Creates an area for multiline texts.
+   * 
+   * Syntax:
+   *   text [name] [multiline text (break line with "\n")]
+   */
+  createMultilineText(cmdArray) {
+    const name = cmdArray[1];
+    const text = cmdArray.splice(2).join(' ');
+    const multilineTexts = text.split('\\n');
+    const elem = new MultilineTexts(multilineTexts);
+
+    this._setShape(name, elem);
   }
 
   /**

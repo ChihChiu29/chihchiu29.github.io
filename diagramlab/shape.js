@@ -1,7 +1,7 @@
 /**
  * Multiline texts, parent is optional.
  */
-class _MultilineTexts extends Shape {
+class MultilineTexts extends Shape {
   GAP_LEFT = 5;  // space to the left of the text.
 
   constructor(lineOfTexts) {
@@ -36,7 +36,7 @@ class _MultilineTexts extends Shape {
 }
 
 /**
- * A single line of text centered in a (mandatory) parent.
+ * A single line of text centered in a region.
  */
 class _CenteredText extends Shape {
   constructor(singleLineOfText) {
@@ -103,7 +103,7 @@ class Rect extends Shape {
     elements.push(...rect.getElements(style));
 
     if (this.texts.length) {
-      const multilineTexts = new _MultilineTexts(this.texts);
+      const multilineTexts = new MultilineTexts(this.texts);
       multilineTexts.copyProperties(this);
       elements.push(...multilineTexts.getElements(style));
     }

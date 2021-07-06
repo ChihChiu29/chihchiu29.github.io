@@ -21,17 +21,24 @@
       width: 100%;
     }
   </style>
-  <h2>Welcome to the DiagramLab!</h2>
+  <h1>Welcome to the DiagramLab!</h1>
   <div>
     <details>
       <summary>
         <b>Supported commands:</b>
         <span id="reference"></span>
       </summary>
-      <p>Details:</p>
+      <h3>Introduction</h3>
+      <div>
+        DiagramLab language treats all created objects either as "shape"s or as "link"s.
+        Shapes are named, and they can be moved, stacked, set background color, etc.
+        Links are unnamed, and can only exist by connecting existing shapes. When
+        shapes are moved/resized, links will adjust automatically.
+      </div>
+      <h3>Reference</h3>
       <ul>
         <li>
-          <p>Common elements:</p>
+          <p>Basic elements:</p>
           <ul>
             <li>
               Rect with multiline texts:
@@ -40,6 +47,10 @@
             <li>
               Rect with single line centered text:
               <pre>rectc [rect name] [single line text]</pre>
+            </li>
+            <li>
+              Multiline texts:
+              <pre>text [name] [multiline text (break line with "\n")]</pre>
             </li>
             <li>
               Create a straight link with text (use "-->" for dashed line):
@@ -206,9 +217,9 @@ move B_tiled 800 200 300 200
 -> B2 right B_tiled left solid straight link
 ~~> A2 down B_stacked up dashed curved link
 --> A1 right B_tiled up dahsed straight link
-rectc link_annotation manuallly added link annotation
-move link_annotation 400 380 300 30
-bgcolor link_annotation white
+// manually create link annotation using text
+text link_annotation manuallly added link annotation \\n blah blah blah
+move link_annotation 450 370 300 30
 
 // use grid layout
 // 10x10 table, with 20 gap between columns and 20 gap between rows
