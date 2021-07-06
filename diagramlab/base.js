@@ -72,7 +72,7 @@ class SVGRenderer {
       svgElement.append(rect);
     }
 
-    for (const element of this.elements) {
+    for (const element of this.elements.sort((e1, e2) => { return e1.zValue - e2.zValue; })) {
       svgElement.append(element);
     }
 

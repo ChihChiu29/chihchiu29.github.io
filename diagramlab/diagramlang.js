@@ -60,6 +60,7 @@ class DiagramLangInterpreter {
     if (this.shapeMap[name]) {
       throw new Error(`shape with name ${name} already exists`);
     }
+    shape.zValue = this._getNextZValue();
     this.shapeMap[name] = shape;
   }
 
@@ -106,7 +107,6 @@ class DiagramLangInterpreter {
     const text = cmdArray.splice(2).join(' ');
     const multilineTexts = text.split('\n');
     const rect = new Rect();
-    rect.zValue = this._getNextZValue();
     rect.texts = multilineTexts;
 
     this._setShape(name, rect);
@@ -122,7 +122,6 @@ class DiagramLangInterpreter {
     const name = cmdArray[1];
     const text = cmdArray.splice(2).join(' ');
     const rect = new Rect();
-    rect.zValue = this._getNextZValue();
     rect.centeredText = text;
 
     this._setShape(name, rect);
