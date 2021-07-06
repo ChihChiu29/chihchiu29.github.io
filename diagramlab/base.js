@@ -4,8 +4,15 @@ function createSvgElement(tagName) {
 
 /*
 interface Point {
-    x: float;
-    y: float;
+  x: float;
+  y: float;
+}
+
+interface BoundingRect {
+  x: float;
+  y: float;
+  width: float;
+  height: float;
 }
 */
 

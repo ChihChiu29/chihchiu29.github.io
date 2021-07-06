@@ -17,8 +17,14 @@ class DiagramLangInterpreter {
     this.links = [];
     this.nextZValue = 0;
 
+    // Can be initialized and used by commands.
+    this.grid = undefined;
+
     this.handlerMap = {
       'bgcolor': this.setBgColor.bind(this),
+      'grid': this.gridInitialize.bind(this),
+      'gmove': this.gridMove.bind(this),
+      'gridmove': this.gridMove.bind(this),
       'move': this.move.bind(this),
       'rect': this.createRect.bind(this),
       'rectc': this.createRectCenteredText.bind(this),
@@ -136,6 +142,61 @@ class DiagramLangInterpreter {
   defineVar(cmdArray) {
     const varName = cmdArray[1];
     this.vars[`$${varName}`] = cmdArray.splice(2).join(' ');
+  }
+
+  /**
+   * Initializes a grid layout. If viewport is changed the current layout would be invalid.
+   * 
+   * Syntax:
+   *   grid [number of columns] [number of rows] [column gap] [row gap]
+   */
+  gridInitialize(cmdArray) {
+    this.grid = new GridLayout();
+    this.grid.viewport.x = this.renderer.left;
+    this.grid.viewport.y = this.renderer.top;
+    this.grid.viewport.width = this.renderer.width;
+    this.grid.viewport.height = this.renderer.height;
+    this.grid.numOfCols = parseInt(cmdArray[1]);
+    this.grid.numOfRows = parseInt(cmdArray[2]);
+    this.grid.colGap = parseInt(cmdArray[3]);
+    this.grid.rowGap = parseInt(cmdArray[4]);
+  }
+
+  /**
+   * Moves and resizes a shape using an initialized grid layout.
+   * 
+   * You should call gridInitialize first.
+   * This function moves and resizes a shape that would span the rectangular area starting from
+   * cell (startColIdx, startRowIdx) to cell (endColIdx, endRowIdx).
+   *
+   * Syntax:
+   *   gridmove/gmove [name] [startColIdx] [startRowIdx] [endColIdx=startColIdx] [endRowIdx=startRowIdx]
+   */
+  gridMove(cmdArray) {
+    if (!this.grid) {
+      throw new Error('grid layout not initialized, or is invalid due to new change of viewport');
+    }
+    const startColIdx = parseInt(cmdArray[2]);
+    const startRowIdx = parseInt(cmdArray[3]);
+    let endColIdx;
+    if (cmdArray[4]) {
+      endColIdx = parseInt(cmdArray[4]);
+    } else {
+      endColIdx = startColIdx;
+    }
+    let endRowIdx;
+    if (cmdArray[5]) {
+      endRowIdx = parseInt(cmdArray[5]);
+    } else {
+      endRowIdx = startRowIdx;
+    }
+    const { x, y, width, height } = this.grid.getBoundingBox(startColIdx, startRowIdx, endColIdx, endRowIdx);
+
+    const shape = this._getShape(cmdArray[1]);
+    shape.x = x;
+    shape.y = y;
+    shape.width = width;
+    shape.height = height;
   }
 
   /**
@@ -281,5 +342,7 @@ class DiagramLangInterpreter {
     this.renderer.top = parseInt(cmdArray[2]);
     this.renderer.width = parseInt(cmdArray[3]);
     this.renderer.height = parseInt(cmdArray[4]);
+    // Changing viewport invalidates grid layout.
+    this.grid = undefined;
   }
 }

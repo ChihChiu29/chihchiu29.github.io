@@ -1,6 +1,6 @@
 function main() {
   const cmds = [
-    'viewport 0 0 1500 800',
+    'viewport 0 0 1500 2000',
     'var bigsize 400 250',
     'rect A hello world',
     'bgcolor A lightblue',
@@ -15,6 +15,15 @@ function main() {
     'rectcentered aa some right side box',
     'move aa 800 50 $bigsize',
     '--> X right aa left straight dahsed link',
+    'grid 5 5 20 20',
+    'rect r1 try out grid layout',
+    'rect r2 try out grid layout',
+    'rect r3 try out grid layout',
+    'gmove r1 0 2',
+    'gmove r2 4 2',
+    'gmove r3 0 4 4 4',
+    '~> r1 down r3 up input 1',
+    '~> r2 down r3 up input 2',
   ];
 
   const renderer = new SVGRenderer(document.querySelector('#canvas'));
