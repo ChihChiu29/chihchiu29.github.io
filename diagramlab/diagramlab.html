@@ -22,8 +22,78 @@
   </style>
   <h2>Welcome to the DiagramLab!</h2>
   <div>
-    <b>Supported commands:</b>
-    <span id="reference"></span>
+    <details>
+      <summary>
+        <b>Supported commands:</b>
+        <span id="reference"></span>
+      </summary>
+      <p>Details:</p>
+      <ul>
+        <li>
+          <p>Common elements:</p>
+          <ul>
+            <li>
+              Rect with multiline texts:
+              <pre>rect [rect name] [multiline text (break line with "\n")]</pre>
+            </li>
+            <li>
+              Rect with single line centered text:
+              <pre>rectc [rect name] [single line text]</pre>
+            </li>
+            <li>
+              Create a straight link with text:
+              <pre>-> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]</pre>
+            </li>
+            <li>
+              Create a Bezier curve (shape guessed from two end points) link with text:
+              <pre>~> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]</pre>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <p>Common tranforms on shapes:</p>
+          <ul>
+            <li>
+              Move and resize a shape (rect etc.):
+              <pre>move [name] [left] [top] [width] [height]</pre>
+            </li>
+            <li>
+              Change background color of a shape (rect etc.):
+              <pre>bgcolor [shape name] [color (single word)]</pre>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <p>Composited elements:</p>
+          <ul>
+            <li>
+              Stack multiple shapes as children to a rect with a title:
+              <pre>stack [name of the stack shape] [list of shapes to stack> with [title text]</pre>
+            </li>
+            <li>
+              Tile multiple shapes as children for a new rect with a title:
+              <pre>tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text]</pre>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <p>Miscellaneous:</p>
+          <ul>
+            <li>
+              Variable/macro (use it with "$[name]"; contents will be blindly replaced):
+              <pre>var [var name] [string values]</pre>
+            </li>
+            <li>
+              Change viewport size:
+              <pre>viewport [left] [top] [width] [height]</pre>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </details>
   </div>
   <textarea id="input" spellcheck="false"></textarea>
   <button onclick="draw()">DRAW!</button>

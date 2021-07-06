@@ -98,7 +98,7 @@ class DiagramLangInterpreter {
    * Creates a Rect with multiline text.
    * 
    * Syntax:
-   *   rect <rect name> <multiline text (break line with "\n")>
+   *   rect [rect name] [multiline text (break line with "\n")]
    */
   createRect(cmdArray) {
     const name = cmdArray[0];
@@ -115,7 +115,7 @@ class DiagramLangInterpreter {
    * Creates a Rect with centered text.
    * 
    * Syntax:
-   *   rect <rect name> <single line text>
+   *   rectc [rect name] [single line text]
    */
   createRectCenteredText(cmdArray) {
     const name = cmdArray[0];
@@ -131,7 +131,7 @@ class DiagramLangInterpreter {
    * Defines a variable for following commands.
    * 
    * Syntax:
-   *   var <var name> <string values>
+   *   var [var name] [string values]
    */
   defineVar(cmdArray) {
     const varName = cmdArray[0];
@@ -139,10 +139,10 @@ class DiagramLangInterpreter {
   }
 
   /**
-   * Creates a smart single curved link between shapes.
+   * Creates a smart single curved (Bezier) link between shapes.
    *
    * Syntax:
-   *   ~> <from shape> <direction (up/down/left/right)> <to shape> <direction> <text along path>
+   *   ~> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]
    */
   linkSingleCurved(cmdArray) {
     const fromShape = this._getShape(cmdArray[0]);
@@ -159,7 +159,7 @@ class DiagramLangInterpreter {
    * Creates a straight link between shapes.
    *
    * Syntax:
-   *   -> <from shape> <direction (up/down/left/right)> <to shape> <direction> <text along path>
+   *   -> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]
    */
   linkStraight(cmdArray) {
     const fromShape = this._getShape(cmdArray[0]);
@@ -177,7 +177,7 @@ class DiagramLangInterpreter {
    * Moves and resizes a shape.
    *
    * Syntax:
-   *   move <name> left top width height
+   *   move [name] [left] [top] [width] [height]
    */
   move(cmdArray) {
     const shape = this._getShape(cmdArray[0]);
@@ -191,7 +191,7 @@ class DiagramLangInterpreter {
    * Sets background color for a shape
    *
    * Syntax:
-   *   bgcolor <shape name> <color (single word)>
+   *   bgcolor [shape name] [color (single word)]
    */
   setBgColor(cmdArray) {
     const shape = this._getShape(cmdArray[0]);
@@ -202,7 +202,7 @@ class DiagramLangInterpreter {
    * Stacks shapes to a new shape.
    *
    * Syntax:
-   *   stack <name of the stack shape> <list of shapes to stack> with <title text>
+   *   stack [name of the stack shape] [list of shapes to stack> with [title text]
    */
   stackShapes(cmdArray) {
     const name = cmdArray[0];
@@ -232,7 +232,7 @@ class DiagramLangInterpreter {
    * Tile shapes to a new shape.
    *
    * Syntax:
-   *   tile <name of the stack shape> <number of shapes per row> <list of shapes to stack> with <title text>
+   *   tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text]
    */
   tileShapes(cmdArray) {
     const name = cmdArray[0];
@@ -264,7 +264,7 @@ class DiagramLangInterpreter {
    * Changes viewport size.
    *
    * Syntax:
-   *   viewport left top width height
+   *   viewport [left] [top] [width] [height]
    */
   viewport(cmdArray) {
     this.renderer.left = parseInt(cmdArray[0]);
