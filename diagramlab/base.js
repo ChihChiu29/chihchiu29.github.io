@@ -13,6 +13,7 @@ class Style {
   borderWidth = 2;
   fillOpacity = 0.9;
   lineColor = '#545961';
+  linkTextGapSize = 5;  // space between text and link.
   linkWidth = 2;
   textFontSize = 15;
   textLineSpace = '1.2em';
@@ -154,9 +155,6 @@ class Link {
 
   addTo(/* SVGRenderer */renderer) {
     for (const elem of this.getElements(renderer.style)) {
-      elem.setAttribute('stroke', renderer.style.lineColor);
-      elem.setAttribute('stroke-width', renderer.style.linkWidth);
-      elem.setAttribute('fill', 'transparent');
       renderer.addElement(elem, this.Z_VALUE);
     }
   }

@@ -2,6 +2,11 @@
  * A generic path-based link.
  */
 class LinkPath extends Link {
+  constructor() {
+    super();
+    this.text = '';
+  }
+
   // @Abstract
   getPathCommand() {
     throw new Error('path command not implemented');
@@ -9,12 +14,37 @@ class LinkPath extends Link {
 
   // @Implement
   getElements(/* Style */style) {
+    const elements = [];
+
     const elem = createSvgElement('path');
-    elem.setAttribute('d', this.getPathCommand());
+    const cmd = this.getPathCommand();
+    elem.setAttribute('d', cmd);
+    const pathId = this.computeUniqueId(cmd);
+    elem.setAttribute('id', pathId);
+    elem.setAttribute('stroke', style.lineColor);
+    elem.setAttribute('stroke-width', style.linkWidth);
+    elem.setAttribute('fill', 'transparent');
+
     if (this.hasArrow) {
       elem.setAttribute('marker-end', 'url(#endarrow)');
     }
-    return [elem];
+    elements.push(elem);
+
+    if (this.text) {
+      const textElement = createSvgElement('text');
+      textElement.setAttribute('text-anchor', 'middle');
+      textElement.setAttribute('dy', -style.linkTextGapSize);
+      textElement.innerHTML = `<textPath href="#${pathId}" startOffset="50%">${this.text}</textPath>`;
+      elements.push(textElement);
+    }
+
+    return elements;
+  }
+
+  // Computes a unique ID from the path string.
+  computeUniqueId(pathCommand) {
+    const cmd = pathCommand.replaceAll(' ', '');
+    return `LinkPath_cmd_${cmd}`;
   }
 }
 
@@ -55,7 +85,7 @@ class LinkDoubleCurved extends LinkPath {
       this.ctrl3 = this.to;
     }
 
-    retur `M ${this.from.x} ${this.from.y}
+    retur`M ${this.from.x} ${this.from.y}
     C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.middle.x} ${this.middle.y}
     S ${this.ctrl3.x} ${this.ctrl3.y}, ${this.to.x} ${this.to.y}`;
   }

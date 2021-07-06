@@ -1,6 +1,6 @@
 function main() {
   const cmds = [
-    'viewport 0 0 1000 1000',
+    'viewport 0 0 1000 1500',
     'var bigsize 400 250',
     'rect A hello world',
     'bgcolor A lightblue',
@@ -11,10 +11,10 @@ function main() {
     'rect D foo bar',
     'tile Y 3 C D with tiled!',
     'move Y 130 450 $bigsize',
-    '~> X down Y up',
+    '~> X down Y up curly link downwards',
     'rectcentered aa some right side box',
-    'move aa 500 50 $bigsize',
-    '-> X right aa left',
+    'move aa 800 50 $bigsize',
+    '-> X right aa left straight link',
   ];
 
   const renderer = new SVGRenderer(document.querySelector('#canvas'));

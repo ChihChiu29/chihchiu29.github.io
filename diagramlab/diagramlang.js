@@ -27,8 +27,8 @@ class DiagramLangInterpreter {
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
-      '->': this.directConnect.bind(this),
-      '~>': this.smartConnect.bind(this),
+      '->': this.linkStraight.bind(this),
+      '~>': this.linkSingleCurved.bind(this),
     }
   }
 
@@ -128,23 +128,6 @@ class DiagramLangInterpreter {
   }
 
   /**
-   * Creates a straight link between shapes.
-   *
-   * Syntax:
-   *   -> <from shape> <direction (up/down/left/right)> <to shape> <direction>
-   */
-  directConnect(cmdArray) {
-    const fromShape = this._getShape(cmdArray[0]);
-    const fromDirection = cmdArray[1];
-    const toShape = this._getShape(cmdArray[2]);
-    const toDirection = cmdArray[3];
-    const link = new LinkStraight();
-    link.from = fromShape.getConnectionPoint(fromDirection);
-    link.to = toShape.getConnectionPoint(toDirection);
-    this._addLink(link);
-  }
-
-  /**
    * Defines a variable for following commands.
    * 
    * Syntax:
@@ -153,6 +136,41 @@ class DiagramLangInterpreter {
   defineVar(cmdArray) {
     const varName = cmdArray[0];
     this.vars[`$${varName}`] = cmdArray.splice(1).join(' ');
+  }
+
+  /**
+   * Creates a smart single curved link between shapes.
+   *
+   * Syntax:
+   *   ~> <from shape> <direction (up/down/left/right)> <to shape> <direction> <text along path>
+   */
+  linkSingleCurved(cmdArray) {
+    const fromShape = this._getShape(cmdArray[0]);
+    const fromDirection = cmdArray[1];
+    const toShape = this._getShape(cmdArray[2]);
+    const toDirection = cmdArray[3];
+    const link = new LinkSmartSingleCurved();
+    link.setParamsFromShapes(fromShape, fromDirection, toShape, toDirection);
+    link.text = cmdArray.splice(4).join(' ');
+    this._addLink(link);
+  }
+
+  /**
+   * Creates a straight link between shapes.
+   *
+   * Syntax:
+   *   -> <from shape> <direction (up/down/left/right)> <to shape> <direction> <text along path>
+   */
+  linkStraight(cmdArray) {
+    const fromShape = this._getShape(cmdArray[0]);
+    const fromDirection = cmdArray[1];
+    const toShape = this._getShape(cmdArray[2]);
+    const toDirection = cmdArray[3];
+    const link = new LinkStraight();
+    link.from = fromShape.getConnectionPoint(fromDirection);
+    link.to = toShape.getConnectionPoint(toDirection);
+    link.text = cmdArray.splice(4).join(' ');
+    this._addLink(link);
   }
 
   /**
@@ -178,22 +196,6 @@ class DiagramLangInterpreter {
   setBgColor(cmdArray) {
     const shape = this._getShape(cmdArray[0]);
     shape.bgColor = cmdArray[1];
-  }
-
-  /**
-   * Creates a smart single curved link between shapes.
-   *
-   * Syntax:
-   *   ~> <from shape> <direction (up/down/left/right)> <to shape> <direction>
-   */
-  smartConnect(cmdArray) {
-    const fromShape = this._getShape(cmdArray[0]);
-    const fromDirection = cmdArray[1];
-    const toShape = this._getShape(cmdArray[2]);
-    const toDirection = cmdArray[3];
-    const link = new LinkSmartSingleCurved();
-    link.setParamsFromShapes(fromShape, fromDirection, toShape, toDirection);
-    this._addLink(link);
   }
 
   /**
