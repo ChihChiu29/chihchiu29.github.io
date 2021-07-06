@@ -219,7 +219,7 @@ class DiagramLangInterpreter {
    */
   linkSingleCurved(cmdArray) {
     const cmd = cmdArray[0];
-    const link = new LinkSmartSingleCurved();
+    const link = new SmartLinkSingleCurved();
     link.fromShape = this._getShape(cmdArray[1]);
     link.fromDirection = cmdArray[2];
     link.toShape = this._getShape(cmdArray[3]);
@@ -240,7 +240,7 @@ class DiagramLangInterpreter {
    */
   linkStraight(cmdArray) {
     const cmd = cmdArray[0];
-    const link = new LinkSmartStraight();
+    const link = new SmartLinkStraight();
     link.fromShape = this._getShape(cmdArray[1]);
     link.fromDirection = cmdArray[2];
     link.toShape = this._getShape(cmdArray[3]);

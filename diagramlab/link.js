@@ -25,7 +25,12 @@ class LinkPath extends Link {
     elem.setAttribute('stroke', style.lineColor);
     elem.setAttribute('stroke-width', style.linkWidth);
     elem.setAttribute('fill', 'transparent');
-    if (this.hasArrow) {
+    if (this.hasArrow === 1) {
+      elem.setAttribute('marker-end', 'url(#endarrow)');
+    } else if (this.hasArrow === 2) {
+      elem.setAttribute('marker-start', 'url(#startarrow)');
+    } else if (this.hasArrow === 3) {
+      elem.setAttribute('marker-start', 'url(#startarrow)');
       elem.setAttribute('marker-end', 'url(#endarrow)');
     }
     if (this.dashed) {
@@ -58,27 +63,6 @@ class LinkStraight extends LinkPath {
   // @Implement
   getPathCommand() {
     return `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`;
-  }
-}
-
-/**
- * A straight link, using postponed coordinates fetched from other shapes.
- */
-class LinkSmartStraight extends LinkStraight {
-  constructor() {
-    super();
-
-    this.fromShape = undefined; /*Shape*/
-    this.fromDirection = undefined;  // up/down/left/right
-    this.toShape = undefined; /*Shape*/
-    this.toDirection = undefined;  // up/down/left/right
-  }
-
-  // @Override
-  getPathCommand() {
-    this.from = this.fromShape.getConnectionPoint(this.fromDirection);
-    this.to = this.toShape.getConnectionPoint(this.toDirection);
-    return super.getPathCommand();
   }
 }
 
@@ -137,7 +121,31 @@ class LinkSingleCurved extends LinkPath {
   }
 }
 
-class LinkSmartSingleCurved extends LinkSingleCurved {
+/**
+ * Possibly change connection direction for other considerations (etc. make text left to right).
+ */
+function _smartReConnection(/*SmartLinkStraight|SmartLinkSingleCurved*/smartLink) {
+  const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection);
+  const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection);
+  if (from.x <= to.x) {
+    return;
+  }
+
+  const oldFromShape = smartLink.fromShape;
+  smartLink.fromShape = smartLink.toShape;
+  smartLink.toShape = oldFromShape;
+  const oldFromDirection = smartLink.fromDirection;
+  smartLink.fromDirection = smartLink.toDirection;
+  smartLink.toDirection = oldFromDirection;
+  if (smartLink.hasArrow === 1) {
+    smartLink.hasArrow = 2;
+  }
+}
+
+/**
+ * A straight link, using postponed coordinates fetched from connected shapes.
+ */
+class SmartLinkStraight extends LinkStraight {
   constructor() {
     super();
 
@@ -149,6 +157,29 @@ class LinkSmartSingleCurved extends LinkSingleCurved {
 
   // @Override
   getPathCommand() {
+    _smartReConnection(this);
+    this.from = this.fromShape.getConnectionPoint(this.fromDirection);
+    this.to = this.toShape.getConnectionPoint(this.toDirection);
+    return super.getPathCommand();
+  }
+}
+
+/**
+ * A singlely curved link, using postponed coordinates fetched from connected shapes.
+ */
+class SmartLinkSingleCurved extends LinkSingleCurved {
+  constructor() {
+    super();
+
+    this.fromShape = undefined; /*Shape*/
+    this.fromDirection = undefined;  // up/down/left/right
+    this.toShape = undefined; /*Shape*/
+    this.toDirection = undefined;  // up/down/left/right
+  }
+
+  // @Override
+  getPathCommand() {
+    _smartReConnection(this);
     this._setParamsFromShapes();
     return super.getPathCommand();
   }

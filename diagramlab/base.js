@@ -56,9 +56,13 @@ class SVGRenderer {
     svgElement = createSvgElement('svg');
     svgElement.setAttribute('viewBox', `${this.left} ${this.top} ${this.width} ${this.height}`);
 
+    // For arrow, see: http://thenewcode.com/1068/Making-Arrows-in-SVG
     // For grid, see: https://stackoverflow.com/questions/14208673/how-to-draw-grid-using-html5-and-canvas-or-svg
     const defsElement = createSvgElement('defs');
     defsElement.innerHTML = `
+      <marker id="startarrow" markerWidth="10" markerHeight="5" refX="0" refY="2.5" orient="auto" markerUnits="strokeWidth">
+        <polygon points="10 0, 10 5, 0 2.5" fill="${this.style.lineColor}" />
+      </marker>
       <marker id="endarrow" markerWidth="10" markerHeight="5" refX="10" refY="2.5" orient="auto" markerUnits="strokeWidth">
         <polygon points="0 0, 10 2.5, 0 5" fill="${this.style.lineColor}" />
       </marker>
@@ -157,7 +161,7 @@ class Link {
   constructor() {
     this.from = { x: 0, y: 0 };
     this.to = { x: 100, y: 100 };
-    this.hasArrow = true;
+    this.hasArrow = 1;  // 0: no arrow, 1: endarrow, 2: startarrow, 3: both
   }
 
   addTo(/* SVGRenderer */renderer) {
