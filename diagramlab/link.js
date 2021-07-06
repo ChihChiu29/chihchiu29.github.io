@@ -10,31 +10,25 @@ class LinkPath extends Link {
   // @Implement
   getElements(/* Style */style) {
     const elem = createSvgElement('path');
-    elem.setAttribute('d', `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`);
+    elem.setAttribute('d', this.getPathCommand());
     if (this.hasArrow) {
       elem.setAttribute('marker-end', 'url(#endarrow)');
     }
     return [elem];
   }
 }
-
 
 /**
  * A straight link.
  */
-class LinkStraight extends Link {
+class LinkStraight extends LinkPath {
   // @Implement
-  getElements(/* Style */style) {
-    const elem = createSvgElement('path');
-    elem.setAttribute('d', `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`);
-    if (this.hasArrow) {
-      elem.setAttribute('marker-end', 'url(#endarrow)');
-    }
-    return [elem];
+  getPathCommand() {
+    return `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`;
   }
 }
 
-class LinkDoubleCurved extends Link {
+class LinkDoubleCurved extends LinkPath {
   constructor() {
     super();
 
@@ -47,7 +41,7 @@ class LinkDoubleCurved extends Link {
   }
 
   // @Implement
-  getElements(/* Style */style) {
+  getPathCommand() {
     if (!this.ctrl1) {
       this.ctrl1 = this.from;
     }
@@ -61,19 +55,13 @@ class LinkDoubleCurved extends Link {
       this.ctrl3 = this.to;
     }
 
-    const elem = createSvgElement('path');
-    elem.setAttribute('d', `
-    M ${this.from.x} ${this.from.y}
+    retur `M ${this.from.x} ${this.from.y}
     C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.middle.x} ${this.middle.y}
-    S ${this.ctrl3.x} ${this.ctrl3.y}, ${this.to.x} ${this.to.y}`);
-    if (this.hasArrow) {
-      elem.setAttribute('marker-end', 'url(#endarrow)');
-    }
-    return [elem];
+    S ${this.ctrl3.x} ${this.ctrl3.y}, ${this.to.x} ${this.to.y}`;
   }
 }
 
-class LinkSingleCurved extends Link {
+class LinkSingleCurved extends LinkPath {
   constructor() {
     super();
 
@@ -83,7 +71,7 @@ class LinkSingleCurved extends Link {
   }
 
   // @Implement
-  getElements(/* Style */style) {
+  getPathCommand() {
     if (!this.ctrl1) {
       this.ctrl1 = this.from;
     }
@@ -91,15 +79,7 @@ class LinkSingleCurved extends Link {
       this.ctrl2 = this.middle;
     }
 
-    const elem = createSvgElement('path');
-    elem.setAttribute('d', `
-      M ${this.from.x} ${this.from.y}
-      C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.to.x} ${this.to.y}
-    `);
-    if (this.hasArrow) {
-      elem.setAttribute('marker-end', 'url(#endarrow)');
-    }
-    return [elem];
+    return `M ${this.from.x} ${this.from.y} C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.to.x} ${this.to.y}`;
   }
 }
 
