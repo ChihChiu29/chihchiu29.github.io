@@ -1,3 +1,23 @@
+/**
+ * A generic path-based link.
+ */
+class LinkPath extends Link {
+  // @Abstract
+  getPathCommand() {
+    throw new Error('path command not implemented');
+  }
+
+  // @Implement
+  getElements(/* Style */style) {
+    const elem = createSvgElement('path');
+    elem.setAttribute('d', `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`);
+    if (this.hasArrow) {
+      elem.setAttribute('marker-end', 'url(#endarrow)');
+    }
+    return [elem];
+  }
+}
+
 
 /**
  * A straight link.
