@@ -13,8 +13,9 @@ class DiagramLangInterpreter {
     this.style = renderer.style;
 
     this.vars = {};  // variables that can be used in commands.
-    this.shapeMap = {};
-    this.links = [];
+    this.shapeMap = {};  // all shapes.
+    this.links = [];  // all links.
+    this.ignoreShapes = [];  // will not draw shapes with these names.
     this.nextZValue = 0;
 
     // Can be initialized and used by commands.
@@ -43,6 +44,9 @@ class DiagramLangInterpreter {
   // SHOULD NOT DO ANYTHING MORE AFTER THIS CALL.
   finish() {
     for (const shapeName of Object.keys(this.shapeMap)) {
+      if (this.ignoreShapes.indexOf(shapeName) >= 0) {
+        continue;
+      }
       this.shapeMap[shapeName].addTo(this.renderer);
     }
     for (const link of this.links) {
@@ -71,7 +75,7 @@ class DiagramLangInterpreter {
   }
 
   _removeShape(name) {
-    delete this.shapeMap[name];
+    this.ignoreShapes.push(name);
   }
 
   _addLink(link) {
@@ -93,6 +97,9 @@ class DiagramLangInterpreter {
     try {
       const cmdArray = cmd.split(' ');
       const keyword = cmdArray[0];
+      if (keyword === '//') {
+        return;  // It's a comment.
+      }
       if (this.handlerMap[keyword]) {
         this.handlerMap[keyword](cmdArray);
       }
@@ -111,7 +118,7 @@ class DiagramLangInterpreter {
   createRect(cmdArray) {
     const name = cmdArray[1];
     const text = cmdArray.splice(2).join(' ');
-    const multilineTexts = text.split('\n');
+    const multilineTexts = text.split('\\n');
     const rect = new Rect();
     rect.texts = multilineTexts;
 
@@ -208,12 +215,11 @@ class DiagramLangInterpreter {
    */
   linkSingleCurved(cmdArray) {
     const cmd = cmdArray[0];
-    const fromShape = this._getShape(cmdArray[1]);
-    const fromDirection = cmdArray[2];
-    const toShape = this._getShape(cmdArray[3]);
-    const toDirection = cmdArray[4];
     const link = new LinkSmartSingleCurved();
-    link.setParamsFromShapes(fromShape, fromDirection, toShape, toDirection);
+    link.fromShape = this._getShape(cmdArray[1]);
+    link.fromDirection = cmdArray[2];
+    link.toShape = this._getShape(cmdArray[3]);
+    link.toDirection = cmdArray[4];
     link.text = cmdArray.splice(5).join(' ');
     if (cmd === '~~>') {
       link.dashed = true;
@@ -230,13 +236,11 @@ class DiagramLangInterpreter {
    */
   linkStraight(cmdArray) {
     const cmd = cmdArray[0];
-    const fromShape = this._getShape(cmdArray[1]);
-    const fromDirection = cmdArray[2];
-    const toShape = this._getShape(cmdArray[3]);
-    const toDirection = cmdArray[4];
-    const link = new LinkStraight();
-    link.from = fromShape.getConnectionPoint(fromDirection);
-    link.to = toShape.getConnectionPoint(toDirection);
+    const link = new LinkSmartStraight();
+    link.fromShape = this._getShape(cmdArray[1]);
+    link.fromDirection = cmdArray[2];
+    link.toShape = this._getShape(cmdArray[3]);
+    link.toDirection = cmdArray[4];
     link.text = cmdArray.splice(5).join(' ');
     if (cmd === '-->') {
       link.dashed = true;

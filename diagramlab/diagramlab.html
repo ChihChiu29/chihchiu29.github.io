@@ -81,6 +81,28 @@
         </li>
 
         <li>
+          <p>Layout:</p>
+          <ul>
+            <li>
+              Initialize a grid layout:
+              <pre>grid [number of columns] [number of rows] [column gap] [row gap]</pre>
+              The grid layout (contains number of columns) * (number of rows) cells, with specified gap between cells.
+            </li>
+            <li>
+              Move and resize a shape using initialized grid layout:
+              <pre>gridmove/gmove [name] [startColIdx] [startRowIdx] [endColIdx=startColIdx] [endRowIdx=startRowIdx]</pre>
+              Move and resize the shape so that it spans the rectangular area covering the cells with specified start
+              and end indices.
+            </li>
+            <li>
+              Change viewport size:
+              <pre>viewport [left] [top] [width] [height]</pre>
+              If you uses grid layout, changing viewport invalidates it and you need to initialize it again.
+            </li>
+          </ul>
+        </li>
+
+        <li>
           <p>Miscellaneous:</p>
           <ul>
             <li>
@@ -88,8 +110,7 @@
               <pre>var [var name] [string values]</pre>
             </li>
             <li>
-              Change viewport size:
-              <pre>viewport [left] [top] [width] [height]</pre>
+              Any line starts with "//" is treated as a comment.
             </li>
           </ul>
         </li>
@@ -97,8 +118,8 @@
     </details>
   </div>
   <textarea id="input" spellcheck="false"></textarea>
-  <button onclick="draw()">DRAW!</button>
-  <button onclick="save()">SAVE!</button>
+  <button onclick="draw()">DRAW</button>
+  <button onclick="save()">SAVE AS PNG</button>
   <div id="drawarea" style="border: solid"></div>
   <div id="save-action"></div>
 
@@ -158,21 +179,48 @@
     }
 
     function onload() {
-      document.querySelector('#input').value = `viewport 0 0 1000 1000
-var bigsize 400 250
-rect A hello world
-bgcolor A lightblue
-rect B foo bar
-stack X A B with stacked!
-move X 30 30 $bigsize
-rect C hello world
-rect D foo bar
-tile Y 3 C D with tiled!
-move Y 130 450 $bigsize
-~> X down Y up
-rect aa some right side box
-move aa 500 50 $bigsize
--> X right aa left`;
+      document.querySelector('#input').value = `
+// set draw area
+viewport 0 0 1200 2000
+
+// simple examples
+rect A1 hello world
+rect A2 foo bar \\n text in new line
+move A1 0 0 200 50
+move A2 500 0 200 50
+-> A1 right A2 left
+
+// using composited shapes
+rect B1 hello world
+rect B2 foo bar
+stack B_stacked B1 B2 with stacked!
+rect B10 hello world
+rect B11 foo bar
+rect B12 whatever
+tile B_tiled 1 B10 B11 B12 with tiled
+move B_stacked 0 200 300 200
+move B_tiled 800 200 300 200
+
+// arrows!
+~> B2 right B12 left 
+-> B2 right B_tiled left
+~~> A2 down B_stacked up dashed curved link
+--> A1 right B_tiled up dahsed straight link
+`;
+
+
+      // var bigsize 400 250
+      // bgcolor A lightblue
+      // stack X A B with stacked!
+      // move X 30 30 $bigsize
+      // rect C hello world
+      // rect D foo bar
+      // tile Y 3 C D with tiled!
+      // move Y 130 450 $bigsize
+      // ~> X down Y up
+      // rect aa some right side box
+      // move aa 500 50 $bigsize
+      // -> X right aa left`;
 
       const interpreter = new DiagramLangInterpreter(document.querySelector('#drawarea'));
       document.querySelector('#reference').innerText = Object.keys(interpreter.handlerMap).join(', ');

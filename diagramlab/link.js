@@ -61,6 +61,27 @@ class LinkStraight extends LinkPath {
   }
 }
 
+/**
+ * A straight link, using postponed coordinates fetched from other shapes.
+ */
+class LinkSmartStraight extends LinkStraight {
+  constructor() {
+    super();
+
+    this.fromShape = undefined; /*Shape*/
+    this.fromDirection = undefined;  // up/down/left/right
+    this.toShape = undefined; /*Shape*/
+    this.toDirection = undefined;  // up/down/left/right
+  }
+
+  // @Override
+  getPathCommand() {
+    this.from = this.fromShape.getConnectionPoint(this.fromDirection);
+    this.to = this.toShape.getConnectionPoint(this.toDirection);
+    return super.getPathCommand();
+  }
+}
+
 class LinkDoubleCurved extends LinkPath {
   constructor() {
     super();
@@ -117,12 +138,27 @@ class LinkSingleCurved extends LinkPath {
 }
 
 class LinkSmartSingleCurved extends LinkSingleCurved {
-  setParamsFromShapes(
-    /*Shape*/fromShape,
-    /*string*/fromDirection,  // up/down/left/right
-    /*Shape*/toShape,
-    /*string*/toDirection,  // up/down/left/right
-  ) {
+  constructor() {
+    super();
+
+    this.fromShape = undefined; /*Shape*/
+    this.fromDirection = undefined;  // up/down/left/right
+    this.toShape = undefined; /*Shape*/
+    this.toDirection = undefined;  // up/down/left/right
+  }
+
+  // @Override
+  getPathCommand() {
+    this._setParamsFromShapes();
+    return super.getPathCommand();
+  }
+
+  _setParamsFromShapes() {
+    const fromShape = this.fromShape;
+    const toShape = this.toShape;
+    const fromDirection = this.fromDirection;
+    const toDirection = this.toDirection;
+
     const error = `no pretty link from ${fromDirection} to ${toDirection}`;
     const fromP = fromShape.getConnectionPoint(fromDirection);
     const toP = toShape.getConnectionPoint(toDirection);
