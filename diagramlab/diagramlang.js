@@ -86,22 +86,26 @@ class DiagramLangInterpreter {
    * Splits keyword from a command string, and call corresponding functions.
    */
   handleSingleCommand(/*string*/cmd) {
-    cmd = cmd.trim();
-    if (!cmd) {
-      return;
+    if (!cmd || cmd.startsWith('//')) {
+      return;  // empty or comment.
     }
+    // For easier var matching implementation, since otherwise it's not easy to mute $foo for the line $foobar.
+    cmd += ' ';
     for (const varName of Object.keys(this.vars)) {
-      cmd = cmd.replace(varName, this.vars[varName]);
+      cmd = cmd.replaceAll(`${varName} `, `${this.vars[varName]} `);
     }
 
     try {
-      const cmdArray = cmd.split(' ');
+      // sanitizing
+      cmd = cmd.trim();
+      let cmdArray = cmd.split(' ');
+      cmdArray = cmdArray.filter(cmd => cmd.length > 0);
+
       const keyword = cmdArray[0];
-      if (keyword === '//') {
-        return;  // It's a comment.
-      }
       if (this.handlerMap[keyword]) {
         this.handlerMap[keyword](cmdArray);
+      } else {
+        throw new Error('command not recoganized')
       }
     } catch (err) {
       alert(`CMD "${cmd}" gives error: "${err}"`);
