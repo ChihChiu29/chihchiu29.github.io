@@ -23,17 +23,51 @@
   </div>
   <textarea id="input" spellcheck="false"></textarea>
   <button onclick="draw()">DRAW!</button>
+  <button onclick="save()">SAVE!</button>
   <div id="canvas" style="border: solid"></div>
+  <div id="save-action"></div>
 
   <script>
-    function draw() {
+    function draw(useGrid = true) {
       const renderer = new SVGRenderer(document.querySelector('#canvas'));
+      renderer.useGrid = useGrid;
       const interpreter = new DiagramLangInterpreter(renderer);
       for (const cmd of document.querySelector('#input').value.split('\n')) {
         interpreter.handleSingleCommand(cmd);
       }
       interpreter.finish();
       renderer.draw();
+    }
+
+    function save() {
+      // References:
+      //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
+      //   - http://bl.ocks.org/biovisualize/8187844
+      draw(/*useGrid*/false);
+      const svgElement = document.querySelector('#canvas svg');
+
+      const { width, height } = svgElement.getBBox();
+      var svgString = new XMLSerializer().serializeToString(svgElement);
+      blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      let URL = window.URL || window.webkitURL || window;
+      let blobURL = URL.createObjectURL(blob);
+      image = new Image();
+      image.onload = () => {
+        let canvas = document.createElement('canvas');
+        canvas.widht = width;
+        canvas.height = height;
+        let context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0, width, height);
+        let png = canvas.toDataURL();
+        var link = document.createElement('a');
+        link.download = 'diagram.png';
+        link.style.opacity = "0";
+        document.querySelector('#save-action').append(link);
+        link.href = png;
+        link.click();
+        link.remove();
+      };
+      image.src = blobURL;
     }
 
     function onload() {
