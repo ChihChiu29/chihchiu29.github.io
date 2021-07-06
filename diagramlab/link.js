@@ -5,11 +5,8 @@
 class LinkStraight extends Link {
   // @Implement
   getElements(/* Style */style) {
-    const elem = createSvgElement('line');
-    elem.setAttribute('x1', this.from.x);
-    elem.setAttribute('y1', this.from.y);
-    elem.setAttribute('x2', this.to.x);
-    elem.setAttribute('y2', this.to.y);
+    const elem = createSvgElement('path');
+    elem.setAttribute('d', `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`);
     if (this.hasArrow) {
       elem.setAttribute('marker-end', 'url(#endarrow)');
     }
