@@ -60,11 +60,11 @@ class SVGRenderer {
     // For grid, see: https://stackoverflow.com/questions/14208673/how-to-draw-grid-using-html5-and-canvas-or-svg
     const defsElement = createSvgElement('defs');
     defsElement.innerHTML = `
-      <marker id="startarrow" markerWidth="10" markerHeight="5" refX="0" refY="2.5" orient="auto" markerUnits="strokeWidth">
-        <polygon points="10 0, 10 5, 0 2.5" fill="${this.style.lineColor}" />
+      <marker id="startarrow" markerWidth="12" markerHeight="7" refX="0" refY="3.5" orient="auto" markerUnits="strokeWidth">
+        <polygon points="12 0, 12 7, 0 3.5" fill="${this.style.lineColor}" />
       </marker>
-      <marker id="endarrow" markerWidth="10" markerHeight="5" refX="10" refY="2.5" orient="auto" markerUnits="strokeWidth">
-        <polygon points="0 0, 10 2.5, 0 5" fill="${this.style.lineColor}" />
+      <marker id="endarrow" markerWidth="12" markerHeight="7" refX="12" refY="3.5" orient="auto" markerUnits="strokeWidth">
+        <polygon points="0 0, 12 3.5, 0 7" fill="${this.style.lineColor}" />
       </marker>
       <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
