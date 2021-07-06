@@ -15,6 +15,10 @@
       width: 100%;
       height: 50vh;
     }
+
+    #canvas-save {
+      width: 100%;
+    }
   </style>
   <h2>Welcome to the DiagramLab!</h2>
   <div>
@@ -24,12 +28,12 @@
   <textarea id="input" spellcheck="false"></textarea>
   <button onclick="draw()">DRAW!</button>
   <button onclick="save()">SAVE!</button>
-  <div id="canvas" style="border: solid"></div>
+  <div id="drawarea" style="border: solid"></div>
   <div id="save-action"></div>
 
   <script>
     function draw(useGrid = true) {
-      const renderer = new SVGRenderer(document.querySelector('#canvas'));
+      const renderer = new SVGRenderer(document.querySelector('#drawarea'));
       renderer.useGrid = useGrid;
       const interpreter = new DiagramLangInterpreter(renderer);
       for (const cmd of document.querySelector('#input').value.split('\n')) {
@@ -37,14 +41,15 @@
       }
       interpreter.finish();
       renderer.draw();
+      return renderer;
     }
 
     function save() {
       // References:
       //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
       //   - http://bl.ocks.org/biovisualize/8187844
-      draw(/*useGrid*/false);
-      const svgElement = document.querySelector('#canvas svg');
+      const renderer = draw(/*useGrid*/false);
+      const svgElement = document.querySelector('#drawarea svg');
 
       const { width, height } = svgElement.getBBox();
       var svgString = new XMLSerializer().serializeToString(svgElement);
@@ -53,11 +58,22 @@
       let blobURL = URL.createObjectURL(blob);
       image = new Image();
       image.onload = () => {
+        // Canvas references:
+        //   - https://stackoverflow.com/questions/38061836/blurry-svg-in-canvas
+        //   - https://stackoverflow.com/questions/24395076/canvas-generated-by-canvg-is-blurry-on-retina-screen
         let canvas = document.createElement('canvas');
-        canvas.widht = width;
-        canvas.height = height;
         let context = canvas.getContext('2d');
-        context.drawImage(image, 0, 0, width, height);
+
+        // In short:
+        //   - devicePixelRatio decises how things are scaled on monitor.
+        //   - to get a similar crisp feeling of the svg image, the canvas needs to be as large as viewport * scale factor.
+        var pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = renderer.width;
+        canvas.height = renderer.height;
+        canvas.width *= pixelRatio;
+        canvas.height *= pixelRatio;
+
+        context.drawImage(image, 0, 0);
         let png = canvas.toDataURL();
         var link = document.createElement('a');
         link.download = 'diagram.png';
@@ -87,7 +103,7 @@ rect aa some right side box
 move aa 500 50 $bigsize
 -> X right aa left`;
 
-      const interpreter = new DiagramLangInterpreter(document.querySelector('#canvas'));
+      const interpreter = new DiagramLangInterpreter(document.querySelector('#drawarea'));
       document.querySelector('#reference').innerText = Object.keys(interpreter.handlerMap).join(', ');
     }
 
