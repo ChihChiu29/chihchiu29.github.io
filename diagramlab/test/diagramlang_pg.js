@@ -1,6 +1,6 @@
 function main() {
   const cmds = [
-    'viewport 0 0 1000 1500',
+    'viewport 0 0 1500 800',
     'var bigsize 400 250',
     'rect A hello world',
     'bgcolor A lightblue',
@@ -14,7 +14,7 @@ function main() {
     '~> X down Y up curly link downwards',
     'rectcentered aa some right side box',
     'move aa 800 50 $bigsize',
-    '-> X right aa left straight link',
+    '--> X right aa left straight dahsed link',
   ];
 
   const renderer = new SVGRenderer(document.querySelector('#canvas'));

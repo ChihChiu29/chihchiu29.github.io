@@ -5,6 +5,7 @@ class LinkPath extends Link {
   constructor() {
     super();
     this.text = '';
+    this.dashed = false;
   }
 
   // @Abstract
@@ -24,9 +25,11 @@ class LinkPath extends Link {
     elem.setAttribute('stroke', style.lineColor);
     elem.setAttribute('stroke-width', style.linkWidth);
     elem.setAttribute('fill', 'transparent');
-
     if (this.hasArrow) {
       elem.setAttribute('marker-end', 'url(#endarrow)');
+    }
+    if (this.dashed) {
+      elem.setAttribute('stroke-dasharray', '5,5');
     }
     elements.push(elem);
 

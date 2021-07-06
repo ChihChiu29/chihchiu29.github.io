@@ -28,7 +28,9 @@ class DiagramLangInterpreter {
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
       '->': this.linkStraight.bind(this),
+      '-->': this.linkStraight.bind(this),
       '~>': this.linkSingleCurved.bind(this),
+      '~~>': this.linkSingleCurved.bind(this),
     }
   }
 
@@ -84,9 +86,8 @@ class DiagramLangInterpreter {
     try {
       const cmdArray = cmd.split(' ');
       const keyword = cmdArray[0];
-      const params = cmdArray.splice(1);
       if (this.handlerMap[keyword]) {
-        this.handlerMap[keyword](params);
+        this.handlerMap[keyword](cmdArray);
       }
     } catch (err) {
       alert(`CMD "${cmd}" gives error: "${err}"`);
@@ -101,8 +102,8 @@ class DiagramLangInterpreter {
    *   rect [rect name] [multiline text (break line with "\n")]
    */
   createRect(cmdArray) {
-    const name = cmdArray[0];
-    const text = cmdArray.splice(1).join(' ');
+    const name = cmdArray[1];
+    const text = cmdArray.splice(2).join(' ');
     const multilineTexts = text.split('\n');
     const rect = new Rect();
     rect.zValue = this._getNextZValue();
@@ -118,8 +119,8 @@ class DiagramLangInterpreter {
    *   rectc [rect name] [single line text]
    */
   createRectCenteredText(cmdArray) {
-    const name = cmdArray[0];
-    const text = cmdArray.splice(1).join(' ');
+    const name = cmdArray[1];
+    const text = cmdArray.splice(2).join(' ');
     const rect = new Rect();
     rect.zValue = this._getNextZValue();
     rect.centeredText = text;
@@ -134,8 +135,8 @@ class DiagramLangInterpreter {
    *   var [var name] [string values]
    */
   defineVar(cmdArray) {
-    const varName = cmdArray[0];
-    this.vars[`$${varName}`] = cmdArray.splice(1).join(' ');
+    const varName = cmdArray[1];
+    this.vars[`$${varName}`] = cmdArray.splice(2).join(' ');
   }
 
   /**
@@ -143,15 +144,20 @@ class DiagramLangInterpreter {
    *
    * Syntax:
    *   ~> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]
+   *   Use ~~> for dashed line.
    */
   linkSingleCurved(cmdArray) {
-    const fromShape = this._getShape(cmdArray[0]);
-    const fromDirection = cmdArray[1];
-    const toShape = this._getShape(cmdArray[2]);
-    const toDirection = cmdArray[3];
+    const cmd = cmdArray[0];
+    const fromShape = this._getShape(cmdArray[1]);
+    const fromDirection = cmdArray[2];
+    const toShape = this._getShape(cmdArray[3]);
+    const toDirection = cmdArray[4];
     const link = new LinkSmartSingleCurved();
     link.setParamsFromShapes(fromShape, fromDirection, toShape, toDirection);
-    link.text = cmdArray.splice(4).join(' ');
+    link.text = cmdArray.splice(5).join(' ');
+    if (cmd === '~~>') {
+      link.dashed = true;
+    }
     this._addLink(link);
   }
 
@@ -160,16 +166,21 @@ class DiagramLangInterpreter {
    *
    * Syntax:
    *   -> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]
+   *   Use --> for dashed line.
    */
   linkStraight(cmdArray) {
-    const fromShape = this._getShape(cmdArray[0]);
-    const fromDirection = cmdArray[1];
-    const toShape = this._getShape(cmdArray[2]);
-    const toDirection = cmdArray[3];
+    const cmd = cmdArray[0];
+    const fromShape = this._getShape(cmdArray[1]);
+    const fromDirection = cmdArray[2];
+    const toShape = this._getShape(cmdArray[3]);
+    const toDirection = cmdArray[4];
     const link = new LinkStraight();
     link.from = fromShape.getConnectionPoint(fromDirection);
     link.to = toShape.getConnectionPoint(toDirection);
-    link.text = cmdArray.splice(4).join(' ');
+    link.text = cmdArray.splice(5).join(' ');
+    if (cmd === '-->') {
+      link.dashed = true;
+    }
     this._addLink(link);
   }
 
@@ -180,22 +191,22 @@ class DiagramLangInterpreter {
    *   move [name] [left] [top] [width] [height]
    */
   move(cmdArray) {
-    const shape = this._getShape(cmdArray[0]);
-    shape.x = parseInt(cmdArray[1]);
-    shape.y = parseInt(cmdArray[2]);
-    shape.width = parseInt(cmdArray[3]);
-    shape.height = parseInt(cmdArray[4]);
+    const shape = this._getShape(cmdArray[1]);
+    shape.x = parseInt(cmdArray[2]);
+    shape.y = parseInt(cmdArray[3]);
+    shape.width = parseInt(cmdArray[4]);
+    shape.height = parseInt(cmdArray[5]);
   }
 
   /**
    * Sets background color for a shape
    *
    * Syntax:
-   *   bgcolor [shape name] [color (single word)]
+   *   bgcolor [shape name] [CSS color (single word)]
    */
   setBgColor(cmdArray) {
-    const shape = this._getShape(cmdArray[0]);
-    shape.bgColor = cmdArray[1];
+    const shape = this._getShape(cmdArray[1]);
+    shape.bgColor = cmdArray[2];
   }
 
   /**
@@ -205,8 +216,8 @@ class DiagramLangInterpreter {
    *   stack [name of the stack shape] [list of shapes to stack> with [title text]
    */
   stackShapes(cmdArray) {
-    const name = cmdArray[0];
-    cmdArray = cmdArray.splice(1);
+    const name = cmdArray[1];
+    cmdArray = cmdArray.splice(2);
     const withKeywordIndex = cmdArray.indexOf('with');
     if (withKeywordIndex < 0) {
       throw new Error('stack shapes "with" keyword not found');
@@ -235,9 +246,9 @@ class DiagramLangInterpreter {
    *   tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text]
    */
   tileShapes(cmdArray) {
-    const name = cmdArray[0];
-    const numOfShapesPerRow = parseInt(cmdArray[1]);
-    cmdArray = cmdArray.splice(2);
+    const name = cmdArray[1];
+    const numOfShapesPerRow = parseInt(cmdArray[2]);
+    cmdArray = cmdArray.splice(3);
     const withKeywordIndex = cmdArray.indexOf('with');
     if (withKeywordIndex < 0) {
       throw new Error('tile shapes "with" keyword not found');
@@ -267,9 +278,9 @@ class DiagramLangInterpreter {
    *   viewport [left] [top] [width] [height]
    */
   viewport(cmdArray) {
-    this.renderer.left = parseInt(cmdArray[0]);
-    this.renderer.top = parseInt(cmdArray[1]);
-    this.renderer.width = parseInt(cmdArray[2]);
-    this.renderer.height = parseInt(cmdArray[3]);
+    this.renderer.left = parseInt(cmdArray[1]);
+    this.renderer.top = parseInt(cmdArray[2]);
+    this.renderer.width = parseInt(cmdArray[3]);
+    this.renderer.height = parseInt(cmdArray[4]);
   }
 }
