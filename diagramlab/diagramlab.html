@@ -27,30 +27,33 @@
       left: 0;
       width: 100%;
     }
-
-    .header {
-      padding: 60px;
-      text-align: center;
-      background: #1abc9c;
-      color: white;
-      font-size: 30px;
-    }
   </style>
-  <h1 class="header">Welcome to the DiagramLab!</h1>
-  <div>
-    <details>
-      <summary>
-        <b>Supported commands:</b>
-        <span id="reference"></span>
-      </summary>
-      <h3>Introduction</h3>
-      <div>
-        DiagramLab language treats all created objects either as "shape"s or as "link"s.
-        Shapes are named, and they can be moved, stacked, set background color, etc.
-        Links are unnamed, and can only exist by connecting existing shapes. When
-        shapes are moved/resized, links will adjust automatically.
-      </div>
-      <h3>Reference</h3>
+  <div class="header">
+    <h1>Welcome to the DiagramLab!</h1>
+  </div>
+  <p>
+    DiagramLab lets you draw relation diagrams using a simple declarative control language.
+  </p>
+  <p>
+    Use the textarea below to type in the code for generating a diagram, then use the buttons
+    below it to draw or save the diagram.
+  </p>
+  <p>
+    Use the example and list of keywords below as a quick start. Clicking on it shows a detailed reference.
+  </p>
+  <details>
+    <summary>
+      <b>Keywords:</b>
+      <span id="reference"></span>
+    </summary>
+    <h3>Concept</h3>
+    <div>
+      All created objects are either "shape"s or as "link"s. Shapes are named, and they can be
+      moved, stacked, set background color, etc. Links are unnamed, and must connect to existing shapes.
+      When shapes are moved/resized, links will adjust automatically.
+    </div>
+    <h3>reference</h3>
+    <div>
       <ul>
         <li>
           <p>Basic elements:</p>
@@ -141,7 +144,7 @@
           </ul>
         </li>
       </ul>
-    </details>
+  </details>
   </div>
   <textarea id="input" spellcheck="false"></textarea>
   <button onclick="draw()">DRAW</button>
@@ -174,10 +177,10 @@
       // But here having a "name" attribute is enough.
       for (const elem of document.querySelectorAll('[name]')) {
         const nameElem = document.querySelector('#report #name');
-        elem.addEventListener('mouseenter', (event)=>{
+        elem.addEventListener('mouseenter', (event) => {
           nameElem.innerText = elem.getAttribute('name');
         });
-        elem.addEventListener('mouseleave', (event)=>{
+        elem.addEventListener('mouseleave', (event) => {
           nameElem.innerText = '';
         });
       }
@@ -227,11 +230,11 @@
       image.src = blobURL;
     }
 
-    function reportLocationListener(evt){
+    function reportLocationListener(evt) {
       const svgElement = document.querySelector('#drawarea svg');
       const pt = svgElement.createSVGPoint();
       pt.x = evt.clientX; pt.y = evt.clientY;
-      const {x, y} = pt.matrixTransform(svgElement.getScreenCTM().inverse());
+      const { x, y } = pt.matrixTransform(svgElement.getScreenCTM().inverse());
       document.querySelector('#report #location').innerText = `(${Math.floor(x)}, ${Math.floor(y)})`;
     }
 
