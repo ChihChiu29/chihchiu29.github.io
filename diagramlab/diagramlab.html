@@ -20,6 +20,13 @@
     #canvas-save {
       width: 100%;
     }
+
+    #report {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+    }
   </style>
   <h1>Welcome to the DiagramLab!</h1>
   <div>
@@ -133,6 +140,7 @@
   <button onclick="save()">SAVE AS PNG</button>
   <span id="report">
     <span id="location"></span>
+    <span id="name"></span>
   </span>
   <div id="drawarea" style="border: solid"></div>
   <div id="save-action"></div>
@@ -148,9 +156,24 @@
       interpreter.finish();
       renderer.draw();
 
+      // Report mouse location when moving.
       const svgElement = document.querySelector('#drawarea svg');
       svgElement.removeEventListener('mousemove', reportLocationListener);
       svgElement.addEventListener('mousemove', reportLocationListener, false);
+
+      // Report name of clicked named shape.
+      // Ref: Fancy way to select elements with non empty attribute values: https://css-tricks.com/select-an-element-with-a-non-empty-attribute/
+      // But here having a "name" attribute is enough.
+      for (const elem of document.querySelectorAll('[name]')) {
+        const nameElem = document.querySelector('#report #name');
+        elem.addEventListener('mouseenter', (event)=>{
+          nameElem.innerText = elem.getAttribute('name');
+        });
+        elem.addEventListener('mouseleave', (event)=>{
+          nameElem.innerText = '';
+        });
+      }
+
       return renderer;
     }
 
@@ -201,7 +224,7 @@
       const pt = svgElement.createSVGPoint();
       pt.x = evt.clientX; pt.y = evt.clientY;
       const {x, y} = pt.matrixTransform(svgElement.getScreenCTM().inverse());
-      document.querySelector('#location').innerText = `(${Math.floor(x)}, ${Math.floor(y)})`;
+      document.querySelector('#report #location').innerText = `(${Math.floor(x)}, ${Math.floor(y)})`;
     }
 
     function onload() {

@@ -99,8 +99,14 @@ class Shape {
     this.height = 30;
     this.bgColor = '#f5f3ed';
     this.zValue = 1;
+
+    // Optional properties.
+    this.name = undefined;
   }
 
+  /**
+   * Copy geometry and style properties.
+   */
   copyProperties(/* Shape */other) {
     this.x = other.x;
     this.y = other.y;

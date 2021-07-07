@@ -125,6 +125,7 @@ class DiagramLangInterpreter {
     const text = cmdArray.splice(2).join(' ');
     const multilineTexts = text.split('\\n');
     const elem = new MultilineTexts(multilineTexts);
+    elem.name = name;
 
     this._setShape(name, elem);
   }
@@ -141,6 +142,7 @@ class DiagramLangInterpreter {
     const multilineTexts = text.split('\\n');
     const rect = new Rect();
     rect.texts = multilineTexts;
+    rect.name = name;
 
     this._setShape(name, rect);
   }
@@ -156,6 +158,7 @@ class DiagramLangInterpreter {
     const text = cmdArray.splice(2).join(' ');
     const rect = new Rect();
     rect.centeredText = text;
+    rect.name = name;
 
     this._setShape(name, rect);
   }
@@ -319,6 +322,7 @@ class DiagramLangInterpreter {
     stackContainer.shapes = shapes;
     titledContainer.title = title;
     titledContainer.childShape = stackContainer;
+    titledContainer.name = name;
 
     this._setShape(name, titledContainer);
   }
@@ -351,6 +355,7 @@ class DiagramLangInterpreter {
     tileContainer.shapes = shapes;
     titledContainer.title = title;
     titledContainer.childShape = tileContainer;
+    titledContainer.name = name;
 
     this._setShape(name, titledContainer);
   }

@@ -23,6 +23,9 @@ class MultilineTexts extends Shape {
     elem.setAttribute('x', this.x);
     elem.setAttribute('y', this.y);
     elem.setAttribute('font-size', style.textFontSize);
+    if (this.name) {
+      elem.setAttribute('name', this.name);
+    }
 
     for (const lineOfText of this.lineOfTexts) {
       const textElement = createSvgElement('tspan');
@@ -54,6 +57,9 @@ class _CenteredText extends Shape {
     elem.setAttribute('dominant-baseline', 'middle');
     elem.setAttribute('text-anchor', 'middle');
     elem.textContent = this.text;
+    if (this.name) {
+      elem.setAttribute('name', this.name);
+    }
     return [elem];
   }
 }
@@ -78,6 +84,10 @@ class _Rect extends Shape {
     elem.setAttribute('stroke-width', style.borderWidth);
     elem.setAttribute('fill', this.bgColor);
     elem.setAttribute('fill-opacity', style.fillOpacity);
+
+    if (this.name) {
+      elem.setAttribute('name', this.name);
+    }
     return [elem];
   }
 }
@@ -100,6 +110,10 @@ class Rect extends Shape {
 
     const rect = new _Rect();
     rect.copyProperties(this);
+    if (this.name) {
+      // Pass the name to the actual rect element.
+      rect.name = this.name;
+    }
     elements.push(...rect.getElements(style));
 
     if (this.texts.length) {
@@ -119,7 +133,7 @@ class Rect extends Shape {
 }
 
 /**
- * Stack multiple shapes by providing a x and y shift for background shapes.
+ * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
  */
 class StackContainer extends Shape {
   constructor() {
@@ -160,7 +174,7 @@ class StackContainer extends Shape {
 }
 
 /**
- * Show multiple shapes in tile layout.
+ * Borderless container to show multiple shapes in tile layout.
  */
 class TileContainer extends Shape {
   constructor() {
@@ -227,6 +241,9 @@ class TitledContainer extends Shape {
     const rect = new Rect();
     rect.copyProperties(this);
     rect.texts = [this.title];
+    if (this.name) {
+      rect.name = this.name;
+    }
     elements.push(...rect.getElements(style));
 
     this.childShape.x = this.x + this.childGapX;
