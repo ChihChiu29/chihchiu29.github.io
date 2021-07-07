@@ -1,9 +1,9 @@
 <head>
-  <script src="/diagramlab/base.js"></script>
-  <script src="/diagramlab/shape.js"></script>
-  <script src="/diagramlab/link.js"></script>
-  <script src="/diagramlab/layout.js"></script>
-  <script src="/diagramlab/diagramlang.js"></script>
+  <script src="base.js"></script>
+  <script src="shape.js"></script>
+  <script src="link.js"></script>
+  <script src="layout.js"></script>
+  <script src="diagramlang.js"></script>
 </head>
 
 <body>
@@ -131,6 +131,9 @@
   <textarea id="input" spellcheck="false"></textarea>
   <button onclick="draw()">DRAW</button>
   <button onclick="save()">SAVE AS PNG</button>
+  <span id="report">
+    <span id="location"></span>
+  </span>
   <div id="drawarea" style="border: solid"></div>
   <div id="save-action"></div>
 
@@ -144,6 +147,10 @@
       }
       interpreter.finish();
       renderer.draw();
+
+      const svgElement = document.querySelector('#drawarea svg');
+      svgElement.removeEventListener('mousemove', reportLocationListener);
+      svgElement.addEventListener('mousemove', reportLocationListener, false);
       return renderer;
     }
 
@@ -187,6 +194,14 @@
         link.remove();
       };
       image.src = blobURL;
+    }
+
+    function reportLocationListener(evt){
+      const svgElement = document.querySelector('#drawarea svg');
+      const pt = svgElement.createSVGPoint();
+      pt.x = evt.clientX; pt.y = evt.clientY;
+      const {x, y} = pt.matrixTransform(svgElement.getScreenCTM().inverse());
+      document.querySelector('#location').innerText = `(${Math.floor(x)}, ${Math.floor(y)})`;
     }
 
     function onload() {
@@ -253,8 +268,8 @@ bgcolor E1 lightblue
 move E2 400 $common_y_and_size
 bgcolor E2 pink
 move E3 800 $common_y_and_size
-bgcolor E3 #7d4a91
-`;
+bgcolor E3 #7d4a91`;
+
       const interpreter = new DiagramLangInterpreter(document.querySelector('#drawarea'));
       document.querySelector('#reference').innerText = Object.keys(interpreter.handlerMap).join(', ');
     }
