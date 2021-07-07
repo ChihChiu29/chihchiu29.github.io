@@ -22,9 +22,11 @@
     }
 
     #report {
+      background-color: yellow;
       position: fixed;
       bottom: 0;
       left: 0;
+      padding-left: 5px;
       width: 100%;
     }
   </style>
@@ -32,14 +34,14 @@
     <h1>Welcome to the DiagramLab!</h1>
   </div>
   <p>
-    DiagramLab lets you draw relation diagrams using a simple declarative control language.
+    DiagramLab lets you draw relation diagrams using a simple declarative language.
   </p>
   <p>
     Use the textarea below to type in the code for generating a diagram, then use the buttons
-    below it to draw or save the diagram.
+    to draw or save the diagram.
   </p>
   <p>
-    Use the example and list of keywords below as a quick start. Clicking on it shows a detailed reference.
+    Use the example and list of keywords as a quick start. Expanding the keyword line for detailed references.
   </p>
   <details>
     <summary>
@@ -178,7 +180,7 @@
       for (const elem of document.querySelectorAll('[name]')) {
         const nameElem = document.querySelector('#report #name');
         elem.addEventListener('mouseenter', (event) => {
-          nameElem.innerText = elem.getAttribute('name');
+          nameElem.innerText = `Element name: ${elem.getAttribute('name')}`;
         });
         elem.addEventListener('mouseleave', (event) => {
           nameElem.innerText = '';
@@ -235,7 +237,7 @@
       const pt = svgElement.createSVGPoint();
       pt.x = evt.clientX; pt.y = evt.clientY;
       const { x, y } = pt.matrixTransform(svgElement.getScreenCTM().inverse());
-      document.querySelector('#report #location').innerText = `(${Math.floor(x)}, ${Math.floor(y)})`;
+      document.querySelector('#report #location').innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
     }
 
     function onload() {
