@@ -263,11 +263,11 @@ tile B_tiled 1 B10 B11 B12 with tiled
 move B_stacked 0 200 300 200
 move B_tiled 800 200 300 200
 
-// links!
-~> B2 right B12 left solid curved link
--> B2 right B_tiled left solid straight link
-~~> A2 down B_stacked up dashed curved link
---> A1 right B_tiled up dahsed straight link
+// links! straight/curved: -/~, solid/dash: -/--, ~/~~, start/end/double arrow: </>/<*>
+~> B2 right B12 left solid curved link with ending arrow
+- B2 right B_tiled left solid straight link without arrow
+<~~ A2 down B_stacked up dashed curved link
+<--> A1 right B_tiled up dahsed straight link with double arrows
 // manually create link annotation using text
 text link_annotation manuallly added link annotation \\n blah blah blah
 move link_annotation 450 370 300 30

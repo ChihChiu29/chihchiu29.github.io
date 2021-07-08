@@ -139,6 +139,8 @@ function _smartReConnection(/*SmartLinkStraight|SmartLinkSingleCurved*/smartLink
   smartLink.toDirection = oldFromDirection;
   if (smartLink.hasArrow === 1) {
     smartLink.hasArrow = 2;
+  } else if (smartLink.hasArrow === 2) {
+    smartLink.hasArrow = 1;
   }
 }
 

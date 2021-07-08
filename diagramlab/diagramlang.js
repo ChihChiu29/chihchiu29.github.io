@@ -35,10 +35,22 @@ class DiagramLangInterpreter {
       'tile': this.tileShapes.bind(this),
       'var': this.defineVar.bind(this),
       'viewport': this.viewport.bind(this),
+      '-': this.linkStraight.bind(this),
       '->': this.linkStraight.bind(this),
+      '<-': this.linkStraight.bind(this),
+      '<->': this.linkStraight.bind(this),
+      '--': this.linkStraight.bind(this),
       '-->': this.linkStraight.bind(this),
+      '<--': this.linkStraight.bind(this),
+      '<-->': this.linkStraight.bind(this),
+      '~': this.linkSingleCurved.bind(this),
       '~>': this.linkSingleCurved.bind(this),
+      '<~': this.linkSingleCurved.bind(this),
+      '<~>': this.linkSingleCurved.bind(this),
+      '~~': this.linkSingleCurved.bind(this),
       '~~>': this.linkSingleCurved.bind(this),
+      '<~~': this.linkSingleCurved.bind(this),
+      '<~~>': this.linkSingleCurved.bind(this),
     }
   }
 
@@ -244,7 +256,18 @@ class DiagramLangInterpreter {
     link.toShape = this._getShape(cmdArray[3]);
     link.toDirection = cmdArray[4];
     link.text = cmdArray.splice(5).join(' ');
-    if (cmd === '~~>') {
+    if (cmd.endsWith('>')) {
+      if (cmd.startsWith('<')) {
+        link.hasArrow = 3;
+      } else {
+        link.hasArrow = 1;
+      }
+    } else if (cmd.startsWith('<')) {
+      link.hasArrow = 2;
+    } else {
+      link.hasArrow = 0;
+    }
+    if (cmd.indexOf('~~') >= 0) {
       link.dashed = true;
     }
     this._addLink(link);
@@ -265,7 +288,18 @@ class DiagramLangInterpreter {
     link.toShape = this._getShape(cmdArray[3]);
     link.toDirection = cmdArray[4];
     link.text = cmdArray.splice(5).join(' ');
-    if (cmd === '-->') {
+    if (cmd.endsWith('>')) {
+      if (cmd.startsWith('<')) {
+        link.hasArrow = 3;
+      } else {
+        link.hasArrow = 1;
+      }
+    } else if (cmd.startsWith('<')) {
+      link.hasArrow = 2;
+    } else {
+      link.hasArrow = 0;
+    }
+    if (cmd.indexOf('--') >= 0) {
       link.dashed = true;
     }
     this._addLink(link);
