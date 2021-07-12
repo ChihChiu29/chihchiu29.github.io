@@ -7,30 +7,17 @@ const WIDTH = 600;
 const IMAGEY = 20;
 
 function updateViewers() {
-  // return;
-  // $.ajax({
-  //   dataType: "jsonp",
-  //   jsonp: "callback",
-  //   url: "",
-  //   success: function viewera(data) {
-  //     //seeing the result in the console
-  //     console.log(data);
-  //   }
-  // });
-  // return;
-  // $.ajax({
-  //   url: `https://tmi.twitch.tv/group/user/{channel}/chatters`,
-  //   dataType: 'jsonp',
-  //   jsonpCallback: 'photos',
-  //   jsonp: false,
-  // });
-  // `https://tmi.twitch.tv/group/user/{channel}/chatters`
+  // From: `https://tmi.twitch.tv/group/user/{channel}/chatters`
+  // Example response: {"_links":{},"chatter_count":2,"chatters":{"broadcaster":[],"vips":[],"moderators":[],"staff":[],"admins":[],"global_mods":[],"viewers":["anotherttvviewer","mslenity"]}}
+  // Here the response data is simply a list of viewer IDs.
   $.get(`/viewers`).done((data) => {
-    // Example response: {"_links":{},"chatter_count":2,"chatters":{"broadcaster":[],"vips":[],"moderators":[],"staff":[],"admins":[],"global_mods":[],"viewers":["anotherttvviewer","mslenity"]}}
     const newViewers = viewers;
     const previousViewers = Object.keys(viewers);
+    playground = document.querySelector('#playground');
+
     for (const viewer of previousViewers) {
       if (!newViewers.includes(viewers)) {
+        viewers[viewer].remove();
         delete viewers[viewer];
       }
     }
@@ -47,17 +34,9 @@ function updateViewers() {
           </g>
         `;
         viewers[viewer] = groupElement;
-
+        playground.append(viewer);
       }
     }
-    for (const viewer of Object.keys(viewers)) {
-      if (newViewers.includes(viewer)) {
-
-      }
-    }
-
-
-    playground = document.querySelector('#playground');
   });
 }
 
