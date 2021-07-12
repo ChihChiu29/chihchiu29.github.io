@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 var fs = require('fs');
 
-var viewers = ['aa', 'bb'];
+var viewers = [];
 const port = 8080;
 
 function updateViewers() {
