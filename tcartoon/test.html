@@ -6,17 +6,38 @@
     }
 
     image {
-      width: 50px;
-      height: 50px;
+      width: 80px;
+      height: 80px;
       filter: invert(16%) sepia(100%) saturate(6973%) hue-rotate(323deg) brightness(97%) contrast(106%);
+    }
+    
+    text {
+      width: 100;
     }
   </style>
 
 </head>
 
 <body>
-  <svg id="playground" viewPort="0 0 1280 720">
-    <image xlink:href="data/pussycat.svg"></image>
+  <svg id="playground" viewPort="0 0 600 80">
+    <g>
+      <text font-size="24" text-anchor="start" x="5">hello</text>
+      <animateTransform attributeName="transform" attributeType="XML" type="translate" values="0 20; 560 20; 0 20" dur="10s" repeatCount="indefinite" additive="sum" />
+        <g>
+            <image xlink:href="data/pussycat.svg"></image>
+            <animateTransform attributeName="transform" attributeType="XML" type="scale" values="1; 1.05; 1" repeatCount="indefinite" dur="0.5s" fill="freeze" additive="sum"/>
+        </g>
+
+   <!--<animateTransform attributeName="transform" attributeType="XML"-->
+   <!--                   type="translate" values="0 0; 100 10; 0 0" repeatCount="indefinite" dur="0.35s" fill="freeze" additive="sum"/>-->
+
+      <!--<animateTransform-->
+      <!--    attributeName="transform" attributeType="XML"-->
+      <!--    type="translate" values="0 20; 560 20; 0 20" dur="10s"-->
+      <!--    repeatCount="indefinite" />-->
+      <!--<animateTransform attributeName="transform" type="scale" values="1; 1.2; 1" dur="10s" repeatCount="indefinite" />-->
+        <!--<animate attributeName="x" values="50;100;0;50" dur="10s" repeatCount="indefinite" />-->
+    </g>
   </svg>
   <script src="main.js"></script>
 </body>
