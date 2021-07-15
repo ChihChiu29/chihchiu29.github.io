@@ -255,3 +255,85 @@ class TitledContainer extends Shape {
     return elements;
   }
 }
+
+/**
+ * A raw polygon with border etc., no text.
+ */
+class _Polygon extends Shape {
+
+  // Returns a list of vertices as one string like polygon element's points
+  // attribute.
+  // @Abstract
+  getPoints() {
+    throw new Error('not implemented');
+  }
+
+  // @Implement
+  getElements(/* Style */style) {
+    const elem = createSvgElement('polygon');
+    elem.setAttribute('points', this.getPoints());
+
+    elem.setAttribute('stroke', style.lineColor);
+    elem.setAttribute('stroke-width', style.borderWidth);
+    elem.setAttribute('fill', this.bgColor);
+    elem.setAttribute('fill-opacity', style.fillOpacity);
+
+    if (this.name) {
+      elem.setAttribute('name', this.name);
+    }
+    return [elem];
+  }
+}
+
+/**
+ * A polygon with centered text support.
+ */
+class ShapeWithCenteredText extends Shape {
+  constructor() {
+    super();
+
+    this.getShape = undefined;  // function that returns a shape without text.
+    this.text = '';  // centered single line of text.
+  }
+
+  // @Implement
+  getElements(/* Style */style) {
+    if (!this.getShape) {
+      throw new Error('you need to set getShape function first');
+    }
+    const elements = [];
+
+    const shape = this.getShape();
+    shape.copyProperties(this);
+    if (this.name) {
+      // Pass the name to the actual rect element.
+      shape.name = this.name;
+    }
+    elements.push(...shape.getElements(style));
+
+    if (this.text) {
+      const centeredText = new _CenteredText(this.text);
+      centeredText.copyProperties(this);
+      elements.push(...centeredText.getElements(style));
+    }
+
+    return elements;
+  }
+}
+
+/**
+ * A raw diamond shape without text. Use WithCenteredText to add text to it.
+ */
+class Diamond extends _Polygon {
+
+  // @Implement
+  getPoints() {
+    const left = this.x;
+    const right = this.x + this.width;
+    const top = this.y;
+    const bottom = this.y + this.height;
+    const midX = this.x + this.width / 2;
+    const midY = this.y + this.height / 2;
+    return `${midX} ${top} ${right} ${midY} ${midX} ${bottom} ${left} ${midY}`;
+  }
+}

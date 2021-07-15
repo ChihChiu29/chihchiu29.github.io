@@ -23,6 +23,7 @@ class DiagramLangInterpreter {
 
     this.handlerMap = {
       'bgcolor': this.setBgColor.bind(this),
+      'diamond': this.createDiamond.bind(this),
       'grid': this.gridInitialize.bind(this),
       'gmove': this.gridMove.bind(this),
       'gridmove': this.gridMove.bind(this),
@@ -127,6 +128,16 @@ class DiagramLangInterpreter {
   }
 
   /**
+   * Creates a Diamond shape with centered text.
+   * 
+   * Syntax:
+   *   diamond [name] [single line text]
+   */
+  createDiamond(cmdArray) {
+    this.createPolygon(cmdArray, () => { return new Diamond(); });
+  }
+
+  /**
    * Creates an area for multiline texts.
    * 
    * Syntax:
@@ -140,6 +151,23 @@ class DiagramLangInterpreter {
     elem.name = name;
 
     this._setShape(name, elem);
+  }
+
+  /**
+   * Creates a Polygon shape with centered text.
+   * 
+   * To help to create syntax:
+   *   [polygon type] [name] [single line text]
+   */
+  createPolygon(cmdArray, getShapeFunction) {
+    const name = cmdArray[1];
+    const text = cmdArray.splice(2).join(' ');
+    const shape = new ShapeWithCenteredText();
+    shape.getShape = getShapeFunction;
+    shape.text = text;
+    shape.name = name;
+
+    this._setShape(name, shape);
   }
 
   /**
