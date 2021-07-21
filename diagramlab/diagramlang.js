@@ -105,7 +105,11 @@ class DiagramLangInterpreter {
     }
 
     try {
-      cmd = this._preprocessCmd(cmd);
+      cmd = cmd.trim();
+      if (!cmd.startsWith('var')) {
+        // Only process non-var commands.
+        cmd = this._preprocessCmd(cmd);
+      }
       console.log(`Processing cmd: "${cmd}"`);
       let cmdArray = cmd.split(' ');
       cmdArray = cmdArray.filter(cmd => cmd.length > 0);
@@ -154,8 +158,6 @@ class DiagramLangInterpreter {
    * Performs various pre-processing on the commands.
    */
   _preprocessCmd(cmd) {
-    cmd = cmd.trim();
-
     // Replace special syntax: "${name.property}" or "${var}"
     // Supports property: left, right, up, down, width, height
     while (true) {
