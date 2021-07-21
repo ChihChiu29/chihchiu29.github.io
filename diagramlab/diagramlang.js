@@ -217,7 +217,7 @@ class DiagramLangInterpreter {
       if (!result.right) {
         break;
       }
-      const midResult = MATH_PARSER.parse(result.middle);
+      const midResult = math.evaluate(result.middle);
       if (isNaN(midResult)) {
         break;  // not math expression, no change on cmd.
       }
