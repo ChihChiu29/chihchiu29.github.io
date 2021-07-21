@@ -65,7 +65,9 @@ bgcolor E1 lightblue
 move E2 400 \${common_y_and_size}
 bgcolor E2 pink
 move E3 800 \${common_y_and_size}
-bgcolor E3 #7d4a91`;
+bgcolor E3 #7d4a91
+// finally, change all shapes starting with "D" to green!
+bgcolor D* green`;
 
 const INPUT_ELEMENT_CSS = '#input';
 

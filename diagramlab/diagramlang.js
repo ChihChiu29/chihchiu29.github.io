@@ -448,14 +448,23 @@ class DiagramLangInterpreter {
   }
 
   /**
-   * Sets background color for a shape
+   * Sets background color for a shape or shapes.
    *
    * Syntax:
-   *   bgcolor [shape name] [CSS color (single word)]
+   *   bgcolor [shape name, can ends with * for a partial match] [CSS color (single word)]
    */
   setBgColor(cmdArray) {
-    const shape = this._getShape(cmdArray[1]);
-    shape.bgColor = cmdArray[2];
+    if (cmdArray[1].endsWith('*')) {
+      const matchName = cmdArray[1].slice(0, cmdArray[1].length - 1);
+      for (const shapeName of Object.keys(this.shapeMap)) {
+        if (shapeName.startsWith(matchName)) {
+          this._getShape(shapeName).bgColor = cmdArray[2];
+        }
+      }
+    } else {
+      const shape = this._getShape(cmdArray[1]);
+      shape.bgColor = cmdArray[2];
+    }
   }
 
   /**

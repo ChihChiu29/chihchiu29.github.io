@@ -92,8 +92,9 @@
               <pre>move [name] [left] [top] [width] [height]</pre>
             </li>
             <li>
-              Change background color of a shape (rect etc.):
-              <pre>bgcolor [shape name] [CSS color (single word)]</pre>
+              Change background color of a shape (rect etc.) or shapes:
+              <pre>bgcolor [shape name, or name*] [CSS color (single word)]</pre>
+              If shape name ends with a "*", all shape with names matching the string before "*" are colored.
             </li>
           </ul>
         </li>
