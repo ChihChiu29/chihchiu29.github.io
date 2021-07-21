@@ -103,11 +103,6 @@ class DiagramLangInterpreter {
     if (!cmd || cmd.startsWith('//')) {
       return;  // empty or comment.
     }
-    // For easier var matching implementation, since otherwise it's not easy to mute $foo for the line $foobar.
-    cmd += ' ';
-    for (const varName of Object.keys(this.vars)) {
-      cmd = cmd.replaceAll(`${varName} `, `${this.vars[varName]} `);
-    }
 
     try {
       cmd = this._preprocessCmd(cmd);
@@ -161,41 +156,50 @@ class DiagramLangInterpreter {
   _preprocessCmd(cmd) {
     cmd = cmd.trim();
 
-    // Replace special syntax: "${name.property}"
+    // Replace special syntax: "${name.property}" or "${var}"
     // Supports property: left, right, up, down, width, height
     while (true) {
       const result = this._splitStringForParsing(cmd, '${', '}');
-      if (!result.right) {
+      if (result.middle === undefined) {
         break;
       }
-      const midPair = result.middle.trim().split('.');
-      if (midPair.length != 2) {
+      const midStrSeg = result.middle.trim().split('.');
+
+      let midResult;
+      if (midStrSeg.length == 1) {
+        // try variable replacement
+        midResult = this.vars[midStrSeg[0]];
+        if (!midResult) {
+          throw new Error(`cannot find value for var "${midStrSeg[0]}"`);
+        }
+      } else if (midStrSeg.length == 2) {
+        const shape = this._getShape(midStrSeg[0]);
+        switch (midStrSeg[1]) {
+          case 'left':
+            midResult = shape.x;
+            break;
+          case 'right':
+            midResult = shape.x + shape.width;
+            break;
+          case 'up':
+            midResult = shape.y;
+            break;
+          case 'down':
+            midResult = shape.y + shape.height;
+            break;
+          case 'width':
+            midResult = shape.width;
+            break;
+          case 'height':
+            midResult = shape.height;
+            break;
+          default:
+            throw new Error(`does not understand property "${midStrSeg[1]}" of shape "${midStrSeg[0]}"`);
+        }
+      } else {
         throw new Error(`does not know how to interprete ${result.middle}`);
       }
-      const shape = this._getShape(midPair[0]);
-      let midResult;
-      switch (midPair[1]) {
-        case 'left':
-          midResult = shape.x;
-          break;
-        case 'right':
-          midResult = shape.x + shape.width;
-          break;
-        case 'up':
-          midResult = shape.y;
-          break;
-        case 'down':
-          midResult = shape.y + shape.height;
-          break;
-        case 'width':
-          midResult = shape.width;
-          break;
-        case 'height':
-          midResult = shape.height;
-          break;
-        default:
-          throw new Error(`does not understand property "${midPair[1]}" of shape "${midPair[0]}"`);
-      }
+
       cmd = `${result.left}${midResult}${result.right}`;
     }
 
@@ -301,7 +305,7 @@ class DiagramLangInterpreter {
    */
   defineVar(cmdArray) {
     const varName = cmdArray[1];
-    this.vars[`$${varName}`] = cmdArray.splice(2).join(' ');
+    this.vars[`${varName}`] = cmdArray.splice(2).join(' ');
   }
 
   /**
