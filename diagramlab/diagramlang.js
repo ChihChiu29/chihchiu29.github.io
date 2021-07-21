@@ -178,10 +178,16 @@ class DiagramLangInterpreter {
           case 'left':
             midResult = shape.x;
             break;
+          case 'x':
+            midResult = shape.x;
+            break;
           case 'right':
             midResult = shape.x + shape.width;
             break;
           case 'up':
+            midResult = shape.y;
+            break;
+          case 'y':
             midResult = shape.y;
             break;
           case 'down':

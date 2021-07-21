@@ -32,6 +32,14 @@ move B_tiled 800 200 300 200
 text link_annotation manuallly added link annotation \\n blah blah blah
 move link_annotation 450 370 300 30
 
+// use variables and properties "(\${...})", and math expressions "(...)"
+var commonsize 300 50
+// now use \${var} to create new rects with same size
+rect D1 rect at some position with some size
+rect D2 x value +500 relative to the one to the left,\\nsame y and same size
+move D1 0 1000 \${commonsize}
+move D2 (\${D1.x}+500) \${D1.y} \${commonsize}
+
 // use grid layout
 // 10x10 table, with 20 gap between columns and 20 gap between rows
 grid 10 10 20 20
@@ -43,27 +51,18 @@ rect C2 multi-cell \\n rect
 gmove C2 5 5 6 6
 // links still work
 ~> C1 right C2 left
-// finally, if you use stack or tile, (like normal rect) you need to gmove the stacked or tiled shape
-
-// use variables
-var commonsize 300 50
-var common_y 1000
-// now use $var to create new rects with same size
-rect D1 new rect of same size and y 1
-rect D2 new rect of same size and y 2
-move D1 0 $common_y $commonsize
-move D2 500 $common_y $commonsize
+// finally, if you use stack or tile, (like normal rect) you can gmove the stacked or tiled shape
 
 // change background color
 var common_y_and_size 1100 300 50
 rect E1 color: "lightblue"
 rect E2 color: "pink"
 rect E3 color: "#7d4a91"
-move E1 0 $common_y_and_size
+move E1 0 \${common_y_and_size}
 bgcolor E1 lightblue
-move E2 400 $common_y_and_size
+move E2 400 \${common_y_and_size}
 bgcolor E2 pink
-move E3 800 $common_y_and_size
+move E3 800 \${common_y_and_size}
 bgcolor E3 #7d4a91`;
 
 const INPUT_ELEMENT_CSS = '#input';
