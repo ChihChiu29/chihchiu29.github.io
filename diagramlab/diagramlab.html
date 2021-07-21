@@ -138,7 +138,7 @@
           <p>Advanced Usage:</p>
           <ul>
             <li>
-              Variable/macro (use it with "$[name]"; contents will be blindly replaced):
+              Variable/macro (use it with "${name}"; contents will be blindly replaced):
               <pre>var [var name] [string values]</pre>
             </li>
             <li>
@@ -147,8 +147,9 @@
               Supports properties: left, right, up, down, width, height.
             </li>
             <li>
-              Inline math evaluations:
+              Inline simple math evaluations:
               <pre>([math expression])</pre>
+              Only "+", "-", "*" can be used. It cannot be nested.
               You can use "()" for non-math expression, but all math expression to the right of it will be ignored.
             </li>
             <li>
