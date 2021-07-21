@@ -32,13 +32,15 @@ move B_tiled 800 200 300 200
 text link_annotation manuallly added link annotation \\n blah blah blah
 move link_annotation 450 370 300 30
 
-// use variables and properties "(\${...})", and math expressions "(...)"
+// use variables and properties "(\${...})", and math expressions "[...]"
 var commonsize 300 50
 // now use \${var} to create new rects with same size
-rect D1 rect at some position with some size
-rect D2 x value +500 relative to the one to the left,\\nsame y and same size
+rect D1 D1: rect at some position with some size
+rect D2 D2: x value +500 relative to the one to the left,\\nsame y and same size
 move D1 0 1000 \${commonsize}
-move D2 (\${D1.x}+500) \${D1.y} \${commonsize}
+move D2 [\${D1.x}+500] \${D1.y} \${commonsize}
+rect D3 put this between D1 and D2, shift it up
+move D3 [(\${D1.left} + \${D2.left})/2] [\${D1.y}-\${D1.height}] \${commonsize}
 
 // use grid layout
 // 10x10 table, with 20 gap between columns and 20 gap between rows

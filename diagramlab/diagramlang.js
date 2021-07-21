@@ -209,11 +209,11 @@ class DiagramLangInterpreter {
       cmd = `${result.left}${midResult}${result.right}`;
     }
 
-    // Replace special syntax: "(math expression)"
-    // Note that it's ok to use "( )" for non-math expression, but doing so
+    // Replace special syntax: "[math expression]"
+    // Note that it's ok to use "[]" for non-math expression, but doing so
     // will prevents all math expression to the right of it being processed.
     while (true) {
-      const result = this._splitStringForParsing(cmd, '(', ')');
+      const result = this._splitStringForParsing(cmd, '[', ']');
       if (!result.right) {
         break;
       }

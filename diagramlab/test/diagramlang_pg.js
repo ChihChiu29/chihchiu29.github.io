@@ -14,7 +14,7 @@ function main() {
     'rect C hello world',
     'rect D foo bar',
     'tile Y 3 C D with tiled!',
-    'move Y (${X.right}+50) (${X.down} + ${gap})  ${bigsize}',
+    'move Y [${X.right}+50] [${X.down} + ${gap}]  ${bigsize}',
 
     '~> X down Y up curly link downwards',
     'rectcentered aa some right side box',
