@@ -3,6 +3,7 @@
   <script src="shape.js"></script>
   <script src="link.js"></script>
   <script src="layout.js"></script>
+  <script src="mathparser.js"></script>
   <script src="diagramlang.js"></script>
 </head>
 
@@ -134,11 +135,21 @@
         </li>
 
         <li>
-          <p>Miscellaneous:</p>
+          <p>Advanced Usage:</p>
           <ul>
             <li>
               Variable/macro (use it with "$[name]"; contents will be blindly replaced):
               <pre>var [var name] [string values]</pre>
+            </li>
+            <li>
+              Inline quote a property of a shape (must be known at the line):
+              <pre>${[shape name].[property]}</pre>
+              Supports properties: left, right, up, down, width, height.
+            </li>
+            <li>
+              Inline math evaluations:
+              <pre>([math expression])</pre>
+              You can use "()" for non-math expression, but all math expression to the right of it will be ignored.
             </li>
             <li>
               Any line starts with "//" is treated as a comment.

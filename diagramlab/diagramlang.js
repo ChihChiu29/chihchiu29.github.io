@@ -110,8 +110,8 @@ class DiagramLangInterpreter {
     }
 
     try {
-      // sanitizing
-      cmd = cmd.trim();
+      cmd = this._preprocessCmd(cmd);
+      console.log(`Processing cmd: "${cmd}"`);
       let cmdArray = cmd.split(' ');
       cmdArray = cmdArray.filter(cmd => cmd.length > 0);
 
@@ -125,6 +125,96 @@ class DiagramLangInterpreter {
       alert(`CMD "${cmd}" gives error: "${err}"`);
       throw err;
     }
+  }
+
+  /**
+   * Returns:
+   *   {
+   *      left: string to the left of leftDelimiter | original string
+   *      right: string to the right of rightDelimiter | undefined
+   *      middle: string between left and right delimiters | undefined
+   *   }
+   * right and middle are undefined if leftDelimiter is not found.
+   * If leftDelimiter is found but not rightDelimiter, raise error.
+   */
+  _splitStringForParsing = (str, leftDelimiter, rightDelimiter) => {
+    const leftIdx = str.indexOf(leftDelimiter);
+    if (leftIdx < 0) {
+      return { left: str };
+    }
+    const rightIdx = str.indexOf(rightDelimiter);
+    if (rightIdx < 0) {
+      throw new Error(
+        `leftDelimiter ("${leftDelimiter}") and rightDelimiter ("${rightDelimiter}") does not match in "${str}"`);
+    }
+
+    return {
+      left: str.slice(0, leftIdx),
+      right: str.slice(rightIdx + rightDelimiter.length),
+      middle: str.slice(leftIdx + leftDelimiter.length, rightIdx),
+    };
+  }
+
+  /**
+   * Performs various pre-processing on the commands.
+   */
+  _preprocessCmd(cmd) {
+    cmd = cmd.trim();
+
+    // Replace special syntax: "${name.property}"
+    // Supports property: left, right, up, down, width, height
+    while (true) {
+      const result = this._splitStringForParsing(cmd, '${', '}');
+      if (!result.right) {
+        break;
+      }
+      const midPair = result.middle.trim().split('.');
+      if (midPair.length != 2) {
+        throw new Error(`does not know how to interprete ${result.middle}`);
+      }
+      const shape = this._getShape(midPair[0]);
+      let midResult;
+      switch (midPair[1]) {
+        case 'left':
+          midResult = shape.x;
+          break;
+        case 'right':
+          midResult = shape.x + shape.width;
+          break;
+        case 'up':
+          midResult = shape.y;
+          break;
+        case 'down':
+          midResult = shape.y + shape.height;
+          break;
+        case 'width':
+          midResult = shape.width;
+          break;
+        case 'height':
+          midResult = shape.height;
+          break;
+        default:
+          throw new Error(`does not understand property "${midPair[1]}" of shape "${midPair[0]}"`);
+      }
+      cmd = `${result.left}${midResult}${result.right}`;
+    }
+
+    // Replace special syntax: "(math expression)"
+    // Note that it's ok to use "( )" for non-math expression, but doing so
+    // will prevents all math expression to the right of it being processed.
+    while (true) {
+      const result = this._splitStringForParsing(cmd, '(', ')');
+      if (!result.right) {
+        break;
+      }
+      const midResult = MATH_PARSER.parse(result.middle);
+      if (isNaN(midResult)) {
+        break;  // not math expression, no change on cmd.
+      }
+      cmd = `${result.left}${midResult}${result.right}`;
+    }
+
+    return cmd;
   }
 
   /**

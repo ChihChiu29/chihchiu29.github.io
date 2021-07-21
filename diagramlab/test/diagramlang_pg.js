@@ -1,20 +1,26 @@
 function main() {
   const cmds = [
     'viewport 0 0 1500 2000',
+
     'var bigsize 400 250',
+    'var gap 200',
+
     'rect A hello world',
     'bgcolor A lightblue',
     'rect B foo bar \n and foo bar again',
     'stack X A B with stacked!',
     'move X 30 30 $bigsize',
+
     'rect C hello world',
     'rect D foo bar',
     'tile Y 3 C D with tiled!',
-    'move Y 130 450 $bigsize',
+    'move Y (${X.right}+50) (${X.down} + $gap )  $bigsize',
+
     '~> X down Y up curly link downwards',
     'rectcentered aa some right side box',
     'move aa 800 50 $bigsize',
     '--> X right aa left straight dahsed link',
+
     'grid 5 5 20 20',
     'rect r1 try out grid layout',
     'rect r2 try out grid layout',
