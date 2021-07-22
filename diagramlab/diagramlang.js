@@ -272,10 +272,10 @@ class DiagramLangInterpreter {
    *   grid [startX] [startY] [gapX] [gapY]
    */
   createGrid(cmdArray) {
-    const startX = parseInt(cmdArray[1]);
-    const startY = parseInt(cmdArray[2]);
-    const gapX = parseInt(cmdArray[3]);
-    const gapY = parseInt(cmdArray[4]);
+    const startX = parseFloat(cmdArray[1]);
+    const startY = parseFloat(cmdArray[2]);
+    const gapX = parseFloat(cmdArray[3]);
+    const gapY = parseFloat(cmdArray[4]);
 
     let i;
 
@@ -387,8 +387,8 @@ class DiagramLangInterpreter {
    *   centeredgridmove/cgmove [name] [gridXIndex] [gridYIndex] width height
    */
   gridMove(cmdArray) {
-    const xIdx = parseInt(cmdArray[2]);
-    const yIdx = parseInt(cmdArray[3]);
+    const xIdx = parseFloat(cmdArray[2]);
+    const yIdx = parseFloat(cmdArray[3]);
     cmdArray[2] = this.vars[`X${xIdx}`];
     cmdArray[3] = this.vars[`Y${yIdx}`];
     if (cmdArray[0] === 'gmove' || cmdArray[0] === 'gridmove') {
@@ -468,17 +468,30 @@ class DiagramLangInterpreter {
    *
    * Syntax:
    *   move [name] [left] [top] [width] [height]
+   *   cmove [name] [centerX] [centerY] [width] [height]
+   * 
+   * If width and height is not given, it will assume there is a var ${defaultsize}.
    */
   move(cmdArray) {
     const shape = this._getShape(cmdArray[1]);
-    shape.width = parseInt(cmdArray[4]);
-    shape.height = parseInt(cmdArray[5]);
+    if (cmdArray.length <= 4) {
+      const defaultSize = this.vars['defaultsize'];
+      if (defaultSize) {
+        shape.width = parseFloat(defaultSize.split(' ')[0]);
+        shape.height = parseFloat(defaultSize.split(' ')[1]);
+      } else {
+        throw new Error('move is called without width and height, but var ${defaultsize} is not defined');
+      }
+    } else {
+      shape.width = parseFloat(cmdArray[4]);
+      shape.height = parseFloat(cmdArray[5]);
+    }
     if (cmdArray[0] === 'move') {
-      shape.x = parseInt(cmdArray[2]);
-      shape.y = parseInt(cmdArray[3]);
+      shape.x = parseFloat(cmdArray[2]);
+      shape.y = parseFloat(cmdArray[3]);
     } else if (cmdArray[0] === 'cmove' || cmdArray[0] === 'centeredmove') {
-      shape.x = parseInt(cmdArray[2]) - shape.width / 2;
-      shape.y = parseInt(cmdArray[3]) - shape.height / 2;
+      shape.x = parseFloat(cmdArray[2]) - shape.width / 2;
+      shape.y = parseFloat(cmdArray[3]) - shape.height / 2;
     }
   }
 
@@ -541,7 +554,7 @@ class DiagramLangInterpreter {
    */
   tileShapes(cmdArray) {
     const name = cmdArray[1];
-    const numOfShapesPerRow = parseInt(cmdArray[2]);
+    const numOfShapesPerRow = parseFloat(cmdArray[2]);
     cmdArray = cmdArray.splice(3);
     const withKeywordIndex = cmdArray.indexOf('with');
     if (withKeywordIndex < 0) {
@@ -573,9 +586,9 @@ class DiagramLangInterpreter {
    *   viewport [left] [top] [width] [height]
    */
   viewport(cmdArray) {
-    this.renderer.left = parseInt(cmdArray[1]);
-    this.renderer.top = parseInt(cmdArray[2]);
-    this.renderer.width = parseInt(cmdArray[3]);
-    this.renderer.height = parseInt(cmdArray[4]);
+    this.renderer.left = parseFloat(cmdArray[1]);
+    this.renderer.top = parseFloat(cmdArray[2]);
+    this.renderer.width = parseFloat(cmdArray[3]);
+    this.renderer.height = parseFloat(cmdArray[4]);
   }
 }

@@ -42,20 +42,21 @@ move D2 [\${D1.x}+500] \${D1.y} \${commonsize}
 rect D3 put this between D1 and D2, shift it up
 move D3 [(\${D1.left} + \${D2.left})/2] [\${D1.y}-\${D1.height}] \${commonsize}
 
-// use grid layout
+// use grid layout and the special \${defaultsize} variable
 // create a grid starting from (100, 500), with gap (200, 100)
-var size 200 50
+var defaultsize 200 50
 grid 100 500 200 100
 rect C1 Rect cornered at grid (1, 1)
-gmove C1 1 1 \${size}
+// use grid move, with default size (you don't have to use default size)
+gmove C1 1 1
 rect C2 Rect cornered at grid (3, 1)
-gmove C2 3 1 \${size}
+gmove C2 3 1
 ~> C1 right C2 left
 // next use centered grid move: cgmove
 rect C3 Rect centered at grid (1, 2)
-cgmove C3 1 2 \${size}
+cgmove C3 1 2
 rect C4 Rect centered at grid (3, 2)
-cgmove C4 3 2 \${size}
+cgmove C4 3 2
 
 // change background color
 var common_y_and_size 800 300 50
