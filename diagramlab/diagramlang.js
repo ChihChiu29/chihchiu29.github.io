@@ -57,16 +57,38 @@ class DiagramLangInterpreter {
   }
 
   // SHOULD NOT DO ANYTHING MORE AFTER THIS CALL.
+  // Optionally returns a report with metadata about the rendering.
   finish() {
+    const report = {
+      minX: this.renderer.left + this.renderer.width,
+      maxX: this.renderer.left,
+      minY: this.renderer.top + this.renderer.height,
+      maxY: this.renderer.top,
+    };
+
     for (const shapeName of Object.keys(this.shapeMap)) {
       if (this.ignoreShapes.indexOf(shapeName) >= 0) {
         continue;
       }
-      this.shapeMap[shapeName].addTo(this.renderer);
+      const shape = this.shapeMap[shapeName];
+      if (shape.x < report.minX) {
+        report.minX = shape.x;
+      }
+      if (shape.x + shape.width > report.maxX) {
+        report.maxX = shape.x + shape.width;
+      }
+      if (shape.y < report.minY) {
+        report.minY = shape.y;
+      }
+      if (shape.y + shape.height > report.maxY) {
+        report.maxY = shape.y + shape.height;
+      }
+      shape.addTo(this.renderer);
     }
     for (const link of this.links) {
       link.addTo(this.renderer);
     }
+    return report;
   }
 
   _getNextZValue() {

@@ -37,7 +37,7 @@ var commonsize 300 50
 // now use \${var} to create new rects with same size
 rect D1 D1: rect at some position with some size
 rect D2 D2: x value +500 relative to the one to the left,\\nsame y and same size
-move D1 0 1000 \${commonsize}
+move D1 0 700 \${commonsize}
 move D2 [\${D1.x}+500] \${D1.y} \${commonsize}
 rect D3 put this between D1 and D2, shift it up
 move D3 [(\${D1.left} + \${D2.left})/2] [\${D1.y}-\${D1.height}] \${commonsize}
@@ -58,7 +58,7 @@ rect C4 Rect centered at grid (3, 2)
 cgmove C4 3 2 \${size}
 
 // change background color
-var common_y_and_size 1100 300 50
+var common_y_and_size 800 300 50
 rect E1 color: "lightblue"
 rect E2 color: "pink"
 rect E3 color: "#7d4a91"
@@ -81,7 +81,7 @@ function draw(useGrid = true) {
   for (const cmd of graphData.split('\n')) {
     interpreter.handleSingleCommand(cmd);
   }
-  interpreter.finish();
+  const report = interpreter.finish();
   renderer.draw();
 
   // Since drawing has no error, safe to update URL.
@@ -109,15 +109,21 @@ function draw(useGrid = true) {
     });
   }
 
-  return renderer;
+  return {
+    renderer: renderer,
+    report: report,
+  }
 }
 
 function save() {
   // References:
   //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
   //   - http://bl.ocks.org/biovisualize/8187844
-  const renderer = draw(/*useGrid*/false);
+  const drawResult = draw(/*useGrid*/false);
+  const renderer = drawResult.renderer;
+  const report = drawResult.report;
   const svgElement = document.querySelector('#drawarea svg');
+  svgElement.setAttribute('viewBox', `${report.minX} ${report.minY} ${report.maxX - report.minX} ${report.maxY - report.minY}`);
 
   const { width, height } = svgElement.getBBox();
   var svgString = new XMLSerializer().serializeToString(svgElement);
@@ -136,8 +142,8 @@ function save() {
     //   - devicePixelRatio decises how things are scaled on monitor.
     //   - to get a similar crisp feeling of the svg image, the canvas needs to be as large as viewport * scale factor.
     var pixelRatio = window.devicePixelRatio || 1;
-    canvas.width = renderer.width;
-    canvas.height = renderer.height;
+    canvas.width = width;
+    canvas.height = height;
     canvas.width *= pixelRatio;
     canvas.height *= pixelRatio;
 
