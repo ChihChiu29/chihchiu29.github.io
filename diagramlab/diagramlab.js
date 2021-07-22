@@ -16,18 +16,22 @@ cmove A2 500 25 200 50
 rect B1 hello world
 rect B2 foo bar
 stack B_stacked B1 B2 with stacked!
+move B_stacked 0 200 300 200
 rect B10 hello world
 rect B11 foo bar
 rect B12 whatever
-tile B_tiled 1 B10 B11 B12 with tiled
-move B_stacked 0 200 300 200
-move B_tiled 800 200 300 200
+tile B_tiled1 1 B10 B11 B12 with tiled
+move B_tiled1 600 200 300 200
+rect B20 hello world
+rect B21 foo bar
+tile B_tiled2 1 B20 B21 with tiled using custom gap size usinggap 0 100
+move B_tiled2 950 100 200 400
 
 // links! straight/curved: -/~, solid/dash: -/--, ~/~~, start/end/double arrow: </>/<*>
 ~> B2 right B12 left solid curved link with ending arrow
-- B2 right B_tiled left solid straight link without arrow
+- B2 right B_tiled1 left solid straight link without arrow
 <~~ A2 down B_stacked up dashed curved link
-<--> A1 right B_tiled up dahsed straight link with double arrows
+<--> A1 right B_tiled1 up dahsed straight link with double arrows
 // manually create link annotation using text
 text link_annotation manuallly added link annotation \\n blah blah blah
 move link_annotation 450 370 300 30

@@ -550,7 +550,7 @@ class DiagramLangInterpreter {
    * Tile shapes to a new shape.
    *
    * Syntax:
-   *   tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text]
+   *   tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text] [usinggap [gapX] [gapY]]
    */
   tileShapes(cmdArray) {
     const name = cmdArray[1];
@@ -561,6 +561,19 @@ class DiagramLangInterpreter {
       throw new Error('tile shapes "with" keyword not found');
     }
     const shapeNames = cmdArray.slice(0, withKeywordIndex);
+
+    const usinggapKeywordIndex = cmdArray.indexOf('usinggap');
+    let gapX = undefined;
+    let gapY = undefined;
+    if (usinggapKeywordIndex >= 0) {
+      if (cmdArray[usinggapKeywordIndex + 1]) {
+        gapX = parseFloat(cmdArray[usinggapKeywordIndex + 1]);
+      }
+      if (cmdArray[usinggapKeywordIndex + 2]) {
+        gapY = parseFloat(cmdArray[usinggapKeywordIndex + 2]);
+      }
+      cmdArray = cmdArray.slice(0, usinggapKeywordIndex);
+    }
     const title = cmdArray.slice(withKeywordIndex + 1).join(' ');
 
     const shapes = [];
@@ -572,6 +585,12 @@ class DiagramLangInterpreter {
     const tileContainer = new TileContainer();
     tileContainer.numOfShapesPerRow = numOfShapesPerRow;
     tileContainer.shapes = shapes;
+    if (gapX) {
+      tileContainer.gapX = gapX;
+    }
+    if (gapY) {
+      tileContainer.gapY = gapY;
+    }
     titledContainer.title = title;
     titledContainer.childShape = tileContainer;
     titledContainer.name = name;
