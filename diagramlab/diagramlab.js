@@ -6,10 +6,10 @@ const DEFAULT_GRAPH = `// set draw area
 viewport 0 0 1200 1200
 
 // simple examples
-rect A1 hello world
-rect A2 foo bar \\n text in new line
+rect A1 Rect at (0, 0)
 move A1 0 0 200 50
-move A2 500 0 200 50
+rect A2 Rect centered (500, 25) \\n can use multi-line!
+cmove A2 500 25 200 50
 -> A1 right A2 left
 
 // using composited shapes
