@@ -111,7 +111,7 @@ class DiagramLangInterpreter {
         // Only process non-var commands.
         cmd = this._preprocessCmd(cmd);
       }
-      console.log(`Processing cmd: "${cmd}"`);
+      // console.log(`Processing cmd: "${cmd}"`);
       let cmdArray = cmd.split(' ');
       cmdArray = cmdArray.filter(cmd => cmd.length > 0);
 
