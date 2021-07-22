@@ -25,6 +25,8 @@ class DiagramLangInterpreter {
       'bgcolor': this.setBgColor.bind(this),
       'diamond': this.createDiamond.bind(this),
       'grid': this.gridInitialize.bind(this),
+      'cmove': this.move.bind(this),
+      'centeredmove': this.move.bind(this),
       'gmove': this.gridMove.bind(this),
       'gridmove': this.gridMove.bind(this),
       'move': this.move.bind(this),
@@ -443,10 +445,15 @@ class DiagramLangInterpreter {
    */
   move(cmdArray) {
     const shape = this._getShape(cmdArray[1]);
-    shape.x = parseInt(cmdArray[2]);
-    shape.y = parseInt(cmdArray[3]);
     shape.width = parseInt(cmdArray[4]);
     shape.height = parseInt(cmdArray[5]);
+    if (cmdArray[0] === 'move') {
+      shape.x = parseInt(cmdArray[2]);
+      shape.y = parseInt(cmdArray[3]);
+    } else if (cmdArray[0] === 'cmove' || cmdArray[0] === 'centeredmove') {
+      shape.x = parseInt(cmdArray[2]) - shape.width / 2;
+      shape.y = parseInt(cmdArray[3]) - shape.height / 2;
+    }
   }
 
   /**
