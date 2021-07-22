@@ -43,17 +43,19 @@ rect D3 put this between D1 and D2, shift it up
 move D3 [(\${D1.left} + \${D2.left})/2] [\${D1.y}-\${D1.height}] \${commonsize}
 
 // use grid layout
-// 10x10 table, with 20 gap between columns and 20 gap between rows
-grid 10 10 20 20
-rect C1 single cell \\n rect
-// move C1 to column 0 and row 6, it has the size of a single cell
-gmove C1 0 6
-rect C2 multi-cell \\n rect
-// move C2 to column 5 and row 5, and makes it to span till column 6 and row 6
-gmove C2 5 5 6 6
-// links still work
+// create a grid starting from (100, 500), with gap (200, 100)
+var size 200 50
+grid 100 500 200 100
+rect C1 Rect cornered at grid (1, 1)
+gmove C1 1 1 \${size}
+rect C2 Rect cornered at grid (3, 1)
+gmove C2 3 1 \${size}
 ~> C1 right C2 left
-// finally, if you use stack or tile, (like normal rect) you can gmove the stacked or tiled shape
+// next use centered grid move: cgmove
+rect C3 Rect centered at grid (1, 2)
+cgmove C3 1 2 \${size}
+rect C4 Rect centered at grid (3, 2)
+cgmove C4 3 2 \${size}
 
 // change background color
 var common_y_and_size 1100 300 50
@@ -83,9 +85,11 @@ function draw(useGrid = true) {
   renderer.draw();
 
   // Since drawing has no error, safe to update URL.
-  window.history.pushState(
-    'updated diagram', 'Diagramlab',
-    `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
+  if (graphData !== DEFAULT_GRAPH) {
+    window.history.pushState(
+      'updated diagram', 'Diagramlab',
+      `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
+  }
 
   // Report mouse location when moving.
   const svgElement = document.querySelector('#drawarea svg');

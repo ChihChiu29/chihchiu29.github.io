@@ -117,20 +117,25 @@
           <p>Layout:</p>
           <ul>
             <li>
-              Initialize a grid layout:
-              <pre>grid [number of columns] [number of rows] [column gap] [row gap]</pre>
-              The grid layout (contains number of columns) * (number of rows) cells, with specified gap between cells.
+              Using a grid:
+              <pre>grid [startX] [startY] [gapX] [gapY]</pre>
+              Creates variables "X1", "Y1", "X2", "Y2" etc. for coordinates on the grid, computed as:
+              X1 = startX, X2 = X1 + gapX, etc.
             </li>
             <li>
-              Move and resize a shape using initialized grid layout:
-              <pre>gridmove/gmove [name] [startColIdx] [startRowIdx] [endColIdx=startColIdx] [endRowIdx=startRowIdx]</pre>
-              Move and resize the shape so that it spans the rectangular area covering the cells with specified start
-              and end indices.
+              Move and resize a shape using a grid:
+              <pre>gridmove/gmove [name] [gridXIndex] [gridYIndex] width height</pre>
+              <pre>centeredgridmove/cgmove [name] [gridXIndex] [gridYIndex] width height</pre>
+              The syntax is like move and cmove, except that for the first two arguments, the index is
+              replaced by the corresponding var value. For example:
+              "gmove 1 2 200 50"
+              is equivalent to:
+              "move ${X1} ${Y1} 200 50"
             </li>
             <li>
               Change viewport size:
               <pre>viewport [left] [top] [width] [height]</pre>
-              If you uses grid layout, changing viewport invalidates it and you need to initialize it again.
+              The viewport affects the layout (margin etc.) of the generated png file.
             </li>
           </ul>
         </li>

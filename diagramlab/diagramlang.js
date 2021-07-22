@@ -18,9 +18,6 @@ class DiagramLangInterpreter {
     this.ignoreShapes = [];  // will not draw shapes with these names.
     this.nextZValue = 0;
 
-    // Can be initialized and used by commands.
-    this.grid = undefined;
-
     this.handlerMap = {
       'bgcolor': this.setBgColor.bind(this),
       'diamond': this.createDiamond.bind(this),
@@ -558,7 +555,5 @@ class DiagramLangInterpreter {
     this.renderer.top = parseInt(cmdArray[2]);
     this.renderer.width = parseInt(cmdArray[3]);
     this.renderer.height = parseInt(cmdArray[4]);
-    // Changing viewport invalidates grid layout.
-    this.grid = undefined;
   }
 }
