@@ -24,12 +24,14 @@ class DiagramLangInterpreter {
     this.handlerMap = {
       'bgcolor': this.setBgColor.bind(this),
       'diamond': this.createDiamond.bind(this),
-      'grid': this.gridInitialize.bind(this),
+      'grid': this.createGrid.bind(this),
+      'move': this.move.bind(this),
       'cmove': this.move.bind(this),
       'centeredmove': this.move.bind(this),
       'gmove': this.gridMove.bind(this),
       'gridmove': this.gridMove.bind(this),
-      'move': this.move.bind(this),
+      'cgmove': this.gridMove.bind(this),
+      'centeredgridmove': this.gridMove.bind(this),
       'rect': this.createRect.bind(this),
       'crect': this.createRectCenteredText.bind(this),
       'centeredrect': this.createRectCenteredText.bind(this),
@@ -242,6 +244,40 @@ class DiagramLangInterpreter {
   }
 
   /**
+   * Creates a grid.
+   * 
+   * This creates special variables "X1", "Y1", "X2", "Y2" etc. computed as:
+   * X1 = startX, X2 = X1 + gapX, etc.
+   * 
+   * Syntax:
+   *   grid [startX] [startY] [gapX] [gapY]
+   */
+  createGrid(cmdArray) {
+    const startX = parseInt(cmdArray[1]);
+    const startY = parseInt(cmdArray[2]);
+    const gapX = parseInt(cmdArray[3]);
+    const gapY = parseInt(cmdArray[4]);
+
+    let i;
+
+    i = 1;
+    let x = startX;
+    while (x <= this.renderer.left + this.renderer.width * 2 || i <= 10) {
+      this.vars[`X${i}`] = x;
+      x += gapX;
+      i++;
+    }
+
+    i = 1;
+    let y = startY;
+    while (y <= this.renderer.top + this.renderer.height * 2 || i <= 10) {
+      this.vars[`Y${i}`] = y;
+      y += gapY;
+      i++;
+    }
+  }
+
+  /**
    * Creates an area for multiline texts.
    * 
    * Syntax:
@@ -319,58 +355,29 @@ class DiagramLangInterpreter {
   }
 
   /**
-   * Initializes a grid layout. If viewport is changed the current layout would be invalid.
+   * Moves and resizes a shape using grid variables.
    * 
-   * Syntax:
-   *   grid [number of columns] [number of rows] [column gap] [row gap]
-   */
-  gridInitialize(cmdArray) {
-    this.grid = new GridLayout();
-    this.grid.viewport.x = this.renderer.left;
-    this.grid.viewport.y = this.renderer.top;
-    this.grid.viewport.width = this.renderer.width;
-    this.grid.viewport.height = this.renderer.height;
-    this.grid.numOfCols = parseInt(cmdArray[1]);
-    this.grid.numOfRows = parseInt(cmdArray[2]);
-    this.grid.colGap = parseInt(cmdArray[3]);
-    this.grid.rowGap = parseInt(cmdArray[4]);
-  }
-
-  /**
-   * Moves and resizes a shape using an initialized grid layout.
-   * 
-   * You should call gridInitialize first.
-   * This function moves and resizes a shape that would span the rectangular area starting from
-   * cell (startColIdx, startRowIdx) to cell (endColIdx, endRowIdx).
+   * The syntax is like move and cmove, except that for the first two arguments,
+   * the index is replaced by the corresponding var value. For example:
+   *   gmove 1 2 200 50
+   * is equivalent to:
+   *   move ${X1} ${Y1} 200 50
    *
    * Syntax:
-   *   gridmove/gmove [name] [startColIdx] [startRowIdx] [endColIdx=startColIdx] [endRowIdx=startRowIdx]
+   *   gridmove/gmove [name] [gridXIndex] [gridYIndex] width height
+   *   centeredgridmove/cgmove [name] [gridXIndex] [gridYIndex] width height
    */
   gridMove(cmdArray) {
-    if (!this.grid) {
-      throw new Error('grid layout not initialized, or is invalid due to new change of viewport');
+    const xIdx = parseInt(cmdArray[2]);
+    const yIdx = parseInt(cmdArray[3]);
+    cmdArray[2] = this.vars[`X${xIdx}`];
+    cmdArray[3] = this.vars[`Y${yIdx}`];
+    if (cmdArray[0] === 'gmove' || cmdArray[0] === 'gridmove') {
+      cmdArray[0] = 'move';
+    } else if (cmdArray[0] === 'cgmove' || cmdArray[0] === 'centeredgridmove') {
+      cmdArray[0] = 'cmove';
     }
-    const startColIdx = parseInt(cmdArray[2]);
-    const startRowIdx = parseInt(cmdArray[3]);
-    let endColIdx;
-    if (cmdArray[4]) {
-      endColIdx = parseInt(cmdArray[4]);
-    } else {
-      endColIdx = startColIdx;
-    }
-    let endRowIdx;
-    if (cmdArray[5]) {
-      endRowIdx = parseInt(cmdArray[5]);
-    } else {
-      endRowIdx = startRowIdx;
-    }
-    const { x, y, width, height } = this.grid.getBoundingBox(startColIdx, startRowIdx, endColIdx, endRowIdx);
-
-    const shape = this._getShape(cmdArray[1]);
-    shape.x = x;
-    shape.y = y;
-    shape.width = width;
-    shape.height = height;
+    this.move(cmdArray);
   }
 
   /**

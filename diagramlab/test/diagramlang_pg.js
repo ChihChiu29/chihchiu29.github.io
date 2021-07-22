@@ -22,13 +22,14 @@ function main() {
     'move aa 800 50 ${bigsize}',
     '--> X right aa left straight dahsed link',
 
-    'grid 5 5 20 20',
+    'grid 150 700 400 100',
+    'var size 200 50',
     'rect r1 try out grid layout',
+    'cmove r1 ${X1} ${Y3} ${size}',
     'rect r2 try out grid layout',
     'rect r3 try out grid layout',
-    'gmove r1 0 2',
-    'gmove r2 4 2',
-    'gmove r3 0 4 4 4',
+    'cgmove r2 2 3 ${size}',
+    'cgmove r3 2 5 ${size}',
     '~> r1 down r3 up input 1',
     '~> r2 down r3 up input 2',
   ];
