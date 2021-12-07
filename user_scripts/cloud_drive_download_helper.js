@@ -3,7 +3,7 @@
 // @author       Chih Chiu
 // @description  NOT SET
 // @namespace    ChihChiu29@github.io
-// @version      1.11
+// @version      1.12
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
@@ -49,7 +49,7 @@
     } else if (hostname === 'letsupload.io') {
         runUntil(function() {
             for (const button of document.querySelectorAll('button')) { 
-                if (button.innerText.toLowerCase() === 'download') {
+                if (button.innerText.toLowerCase().indexOf('download') >= 0) {
                     GM_log('Start download!');
                     button.click();
                 }
