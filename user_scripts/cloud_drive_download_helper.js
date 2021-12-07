@@ -3,7 +3,7 @@
 // @author       Chih Chiu
 // @description  NOT SET
 // @namespace    ChihChiu29@github.io
-// @version      1.0
+// @version      1.1
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
@@ -24,12 +24,6 @@
     const hostname = window.location.hostname;
     if (hostname === 'bluemediafiles.com') {
         runUntil(function() {
-            // const adsRight = document.querySelector('#ads-right');
-            // const button = adsRight.nextElementSibling;
-            // if (button && button.tagName === 'DIV') {
-            //    GM_log('Goodbye redirect page!');
-            //    document.querySelector('form').submit();
-            //}
             const button = document.querySelector('#nut');
             if (button) {
                 GM_log('Goodbye redirect page!');
