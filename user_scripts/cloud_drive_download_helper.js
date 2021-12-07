@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         Cloud Drive Download Helper
-// @namespace    nobody
-// @version      0.1
+// @author       Chih Chiu
+// @namespace    ChihChiu29@github.io
+// @version      1.0
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
