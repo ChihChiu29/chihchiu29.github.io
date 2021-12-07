@@ -185,6 +185,8 @@ function onload() {
 
   const interpreter = new DiagramLangInterpreter(document.querySelector('#drawarea'));
   document.querySelector('#reference').innerText = Object.keys(interpreter.handlerMap).join(', ');
+
+  draw();
 }
 
 document.addEventListener("DOMContentLoaded", onload);
