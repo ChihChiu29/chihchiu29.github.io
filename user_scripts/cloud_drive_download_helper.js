@@ -3,7 +3,7 @@
 // @author       Chih Chiu
 // @description  NOT SET
 // @namespace    ChihChiu29@github.io
-// @version      1.1
+// @version      1.11
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
@@ -48,10 +48,11 @@
         }, 5, 30);
     } else if (hostname === 'letsupload.io') {
         runUntil(function() {
-            const button = document.querySelector('.btn--primary');
-            if (button) {
-                GM_log('Start download!');
-                button.click();
+            for (const button of document.querySelectorAll('button')) { 
+                if (button.innerText.toLowerCase() === 'download') {
+                    GM_log('Start download!');
+                    button.click();
+                }
             }
         }, 5, 30);
     }
