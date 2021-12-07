@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         Cloud Drive Download Helper
 // @author       Chih Chiu
+// @description  NOT SET
 // @namespace    ChihChiu29@github.io
 // @version      1.0
 // @match        http://bluemediafiles.com/*
