@@ -9,6 +9,7 @@
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
 // @match        https://letsupload.io/*
+// @match        https://send.cm/*
 // @grant        GM_log
 // ==/UserScript==
 
@@ -50,6 +51,16 @@
         runUntil(function() {
             for (const button of document.querySelectorAll('button')) {
                 if (button.innerText.toLowerCase().indexOf('download') >= 0) {
+                    GM_log('Start download!');
+                    button.click();
+                }
+            }
+        }, 5, 30);
+    } else if (hostname === 'send.cm') {
+        runUntil(function() {
+            for (const elem of document.querySelectorAll('script')) {
+                if (scrip.src.toLowerCase().indexOf('clipboard.min.js') >= 0) {
+                    const button elem.nextSibling.nextSibling.nextSibling.nextSibling;
                     GM_log('Start download!');
                     button.click();
                 }
