@@ -3,7 +3,7 @@
 // @author       Chih Chiu
 // @description  NOT SET
 // @namespace    ChihChiu29@github.io
-// @version      1.14
+// @version      1.15
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
