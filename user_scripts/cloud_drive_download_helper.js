@@ -3,7 +3,7 @@
 // @author       Chih Chiu
 // @description  NOT SET
 // @namespace    ChihChiu29@github.io
-// @version      1.13
+// @version      1.14
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
@@ -60,7 +60,7 @@
         runUntil(function() {
             for (const elem of document.querySelectorAll('script')) {
                 if (scrip.src.toLowerCase().indexOf('clipboard.min.js') >= 0) {
-                    const button elem.nextSibling.nextSibling.nextSibling.nextSibling;
+                    const button = elem.nextSibling.nextSibling.nextSibling.nextSibling;
                     GM_log('Start download!');
                     button.click();
                 }
