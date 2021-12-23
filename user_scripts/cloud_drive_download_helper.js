@@ -1,15 +1,17 @@
 // ==UserScript==
-// @name         Cloud Drive Download Helper
-// @author       Chih Chiu
+// @name         CloudDriveDownloadHelper
+// @author       Unknown
 // @description  NOT SET
-// @namespace    ChihChiu29@github.io
-// @version      1.15
+// @namespace    unknown.unknown@github.io
+// @version      1.20
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
 // @match        https://letsupload.io/*
+// @match        https://igg-games.com/*
 // @grant        GM_log
+// @grant        GM_setClipboard
 // ==/UserScript==
 
 // Useful:
@@ -58,5 +60,12 @@
                 }
             }
         }, 5, 30);
+    } else if (hostname === 'igg-games.com') {
+        // For igg games, copy links to clipboard (use jdownloader).
+        const links = [];
+        for (const link of document.querySelectorAll('a')) {
+            links.push(link.href);
+        }
+        GM_setClipboard(links.join('\n'));
     }
 })();
