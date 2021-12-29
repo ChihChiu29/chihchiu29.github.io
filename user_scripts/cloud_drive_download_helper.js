@@ -3,13 +3,14 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.20
+// @version      1.30
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
 // @match        https://letsupload.io/*
 // @match        https://igg-games.com/*
+// @match        https://steamunlocked.net/*
 // @grant        GM_log
 // @grant        GM_setClipboard
 // ==/UserScript==
@@ -67,5 +68,7 @@
             links.push(link.href);
         }
         GM_setClipboard(links.join('\n'));
+    } else if (hostname === 'steamunlocked.net') {
+        GM_setClipboard(window.location.href);
     }
 })();
