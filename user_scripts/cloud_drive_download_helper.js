@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.30
+// @version      1.31
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
@@ -27,7 +27,16 @@
         }, untilSec * 1000);
     }
 
+    function contains(str, subStr) {
+        return str.indexOf(subStr) >= 0;
+    }
+
+    function isRoot() {
+        return window.location.pathname === '/';
+    }
+
     const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
     if (hostname === 'bluemediafiles.com') {
         runUntil(function() {
             const button = document.querySelector('#nut');
@@ -62,6 +71,9 @@
             }
         }, 5, 30);
     } else if (hostname === 'igg-games.com') {
+        if (isRoot() || contains(pathname, 'page')) {
+            return;
+        }
         // For igg games, copy links to clipboard (use jdownloader).
         const links = [];
         for (const link of document.querySelectorAll('a')) {
@@ -69,6 +81,9 @@
         }
         GM_setClipboard(links.join('\n'));
     } else if (hostname === 'steamunlocked.net') {
+        if (isRoot()) {
+            return;
+        }
         GM_setClipboard(window.location.href);
     }
 })();
