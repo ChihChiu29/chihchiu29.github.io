@@ -78,6 +78,8 @@ bgcolor D* green`;
 
 const INPUT_ELEMENT_CSS = '#input';
 
+const SAVE_SVG_MARGIN = 5;
+
 function draw(useGrid = true) {
   const renderer = new SVGRenderer(document.querySelector('#drawarea'));
   renderer.useGrid = useGrid;
@@ -128,7 +130,7 @@ function save() {
   const renderer = drawResult.renderer;
   const report = drawResult.report;
   const svgElement = document.querySelector('#drawarea svg');
-  svgElement.setAttribute('viewBox', `${report.minX} ${report.minY} ${report.maxX - report.minX} ${report.maxY - report.minY}`);
+  svgElement.setAttribute('viewBox', `${report.minX - SAVE_SVG_MARGIN} ${report.minY - SAVE_SVG_MARGIN} ${report.maxX - report.minX + SAVE_SVG_MARGIN * 2} ${report.maxY - report.minY + SAVE_SVG_MARGIN * 2}`);
 
   const { width, height } = svgElement.getBBox();
   var svgString = new XMLSerializer().serializeToString(svgElement);
