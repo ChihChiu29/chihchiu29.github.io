@@ -130,7 +130,12 @@ function save() {
   const renderer = drawResult.renderer;
   const report = drawResult.report;
   const svgElement = document.querySelector('#drawarea svg');
-  svgElement.setAttribute('viewBox', `${report.minX - SAVE_SVG_MARGIN} ${report.minY - SAVE_SVG_MARGIN} ${report.maxX - report.minX + SAVE_SVG_MARGIN * 2} ${report.maxY - report.minY + SAVE_SVG_MARGIN * 2}`);
+  svgElement.setAttribute(
+    'viewBox',
+    `${report.minX - SAVE_SVG_MARGIN} 
+      ${report.minY - SAVE_SVG_MARGIN}
+      ${report.maxX - report.minX + SAVE_SVG_MARGIN * 2}
+      ${report.maxY - report.minY + SAVE_SVG_MARGIN * 2}`);
 
   const { width, height } = svgElement.getBBox();
   var svgString = new XMLSerializer().serializeToString(svgElement);
