@@ -71,6 +71,18 @@
             }
         }, 5, 30);
     } else if (hostname === 'igg-games.com') {
+        // Remove ads and spam.
+        // The two "notification" to the top-right.
+        document.querySelector('.notranslate').remove();
+        // Add open button next to title to avoid triggering ads.
+        for (const fakeLink of document.querySelectorAll('.uk-link-reset')) {
+            const linkButton = document.createElement('a');
+            linkButton.href = fakeLink.href;
+            linkButton.innerHTML = '<button>OPEN HERE</button>';
+            fakeLink.append(linkButton);
+        }
+
+        // For downloading.
         if (isRoot() || contains(pathname, 'page')) {
             return;
         }
