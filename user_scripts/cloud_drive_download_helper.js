@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.8
+// @version      1.9
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -34,6 +34,12 @@
 
     function isRoot() {
         return window.location.pathname === '/';
+    }
+
+    function removeIframes() {
+        for (const iframeElem of document.querySelectorAll('iframe')) {
+            iframeElem.remove();
+        }
     }
 
     const hostname = window.location.hostname;
@@ -79,10 +85,7 @@
             if (elem) {
                 elem.remove();
             }
-            const iframeElem = document.querySelector('iframe');
-            if (iframeElem) {
-                iframeElem.remove();
-            }
+            removeIframes();
         }, 5, 30);
         // Add open button next to title to avoid triggering ads.
         GM_log('start log check');
