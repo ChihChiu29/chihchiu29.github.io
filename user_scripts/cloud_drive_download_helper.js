@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.6
+// @version      1.7
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -74,7 +74,12 @@
     } else if (hostname === 'igg-games.com') {
         // Remove ads and spam.
         // The two "notification" to the top-right.
-        document.querySelector('.notranslate').remove();
+        runUntil(function() {
+            const elem = document.querySelector('.notranslate');
+            if (elem) {
+                elem.remove();
+            }
+        }, 5, 30);
         // Add open button next to title to avoid triggering ads.
         GM_log('start log check');
         for (const fakeLink of document.querySelectorAll('.uk-link-reset')) {
