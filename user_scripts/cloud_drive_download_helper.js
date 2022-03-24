@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.7
+// @version      1.8
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -78,6 +78,10 @@
             const elem = document.querySelector('.notranslate');
             if (elem) {
                 elem.remove();
+            }
+            const iframeElem = document.querySelector('iframe');
+            if (iframeElem) {
+                iframeElem.remove();
             }
         }, 5, 30);
         // Add open button next to title to avoid triggering ads.
