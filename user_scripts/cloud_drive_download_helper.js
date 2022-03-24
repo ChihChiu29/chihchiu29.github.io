@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.9
+// @version      1.10
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -90,7 +90,6 @@
         // Add open button next to title to avoid triggering ads.
         GM_log('start log check');
         for (const fakeLink of document.querySelectorAll('.uk-link-reset')) {
-            GM_log(fakeLink);
             const linkButton = document.createElement('a');
             linkButton.href = fakeLink.href;
             linkButton.innerHTML = '<button>OPEN HERE</button>';
