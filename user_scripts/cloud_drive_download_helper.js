@@ -87,14 +87,9 @@
             }
             removeIframes();
         }, 5, 30);
-        // Add open button next to title to avoid triggering ads.
-        GM_log('start log check');
-        for (const fakeLink of document.querySelectorAll('.uk-link-reset')) {
-            const linkButton = document.createElement('a');
-            linkButton.href = fakeLink.href;
-            linkButton.innerHTML = '<button>OPEN HERE</button>';
-            fakeLink.append(linkButton);
-        }
+        // Remove all event listeners on the page.
+        const newBody = document.body.cloneNode(true);
+        document.body.parentNode.replaceChild(newBody, document.body);
 
         // For downloading.
         if (isRoot() || contains(pathname, 'page')) {
