@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.13
+// @version      1.14
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -46,6 +46,7 @@
         // Remove all event listeners on the page.
         const newBody = document.body.cloneNode(true);
         document.body.parentNode.replaceChild(newBody, document.body);
+        GM_log('removed all listeners');
     }
 
     const hostname = window.location.hostname;
@@ -93,7 +94,7 @@
             }
             removeIframes();
         }, 5, 30);
-        setTimeout(removeAllListeners, 5 * 1000);
+        removeAllListeners();
 
         // For downloading.
         if (isRoot() || contains(pathname, 'page')) {
@@ -111,6 +112,6 @@
         }
         GM_setClipboard(window.location.href);
     } else if (hostname === 'www.ziperto.com') {
-        removeAllListeners();
+        setTimeout(removeAllListeners, 5 * 1000);
     }
 })();
