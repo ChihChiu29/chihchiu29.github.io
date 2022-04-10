@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.12
+// @version      1.13
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -93,7 +93,7 @@
             }
             removeIframes();
         }, 5, 30);
-        removeAllListeners();
+        setTimeout(removeAllListeners, 5 * 1000);
 
         // For downloading.
         if (isRoot() || contains(pathname, 'page')) {
