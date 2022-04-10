@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.15
+// @version      1.16
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -113,6 +113,9 @@
         }
         GM_setClipboard(window.location.href);
     } else if (hostname === 'www.ziperto.com') {
+        runUntil(function() {
+            removeIframes();
+        }, 5, 30);
         setTimeout(removeAllListeners, 5 * 1000);
     }
 })();
