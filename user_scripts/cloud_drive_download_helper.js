@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.14
+// @version      1.15
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://mega.nz/*
@@ -12,6 +12,7 @@
 // @match        https://letsupload.io/*
 // @match        https://igg-games.com/*
 // @match        https://steamunlocked.net/*
+// @match        https://www.ziperto.com/*
 // @grant        GM_log
 // @grant        GM_setClipboard
 // ==/UserScript==
