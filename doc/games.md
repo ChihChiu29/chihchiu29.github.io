@@ -24,3 +24,16 @@ REGEDIT4
 ```
 
 * Use compatibility > change high DPI > override DPI (application)
+
+
+# Yuzu apply mod
+
+From: https://www.reddit.com/r/yuzu/comments/gml5gw/where_to_place_the_mods/
+
+Right click "open mod location", then put it under `<location itself> - <mod folder> - <exefs>`, examples:
+
+```
+...\AppData\Roaming\yuzu\load\0100ABF008968000\Pokemon-Sword-Wifi-Fix\exeFS\wifi-fix.pchtxt
+...\AppData\Roaming\yuzu\load\0100ABF008968000\No Outlines\romfs\system_resource\shader\outline.bnsh
+...\AppData\Roaming\yuzu\load\0100ABF008968000\force-max-resolution\exefs\1.0.0.pchtxt
+```
