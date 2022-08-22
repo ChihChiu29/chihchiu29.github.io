@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.17
+// @version      1.18
 // @run-at       document-end
 // @match        https://bluemediafiles.com/*
 // @match        https://mega.nz/*
