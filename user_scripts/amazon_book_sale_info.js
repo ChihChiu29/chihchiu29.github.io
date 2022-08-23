@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         New Userscript
-// @namespace    http://tampermonkey.net/
-// @description  NOT SET
+// @name         Amazon Royalties Estimator Extraction Helper
+// @namespace    unknown.unknown@github.io
+// @description  Good luck Amazon
 // @version      0.1
 // @run-at       document-end
 // @match        https://kdpreports.amazon.com/*
@@ -13,19 +13,14 @@
     'use strict';
 
     GM_log('Welcome to Amazon Royalties Estimator User Improvement Program!');
-    function runUntil(fn, intervalSec, untilSec) {
-        const intervalId = setInterval(fn, intervalSec * 1000);
-        setTimeout(function() {
-            clearInterval(intervalId);
-        }, untilSec * 1000);
-    }
 
     function parseBookSalesTable() {
         let csvData = '';
         const bookElements = document.querySelectorAll(
             'div.ui.vertically > div.panel-title-new.header-height');
+        const bookElementArray = [...bookElements];
         let processSuccessful = false;
-        for (const bookElement of bookElements.slice(1)) {
+        for (const bookElement of bookElementArray.slice(1)) {
             const saleInfo = bookElement.innerText.split('\n');
             if (saleInfo.length < 6) {
                 continue;
@@ -37,5 +32,5 @@
         return processSuccessful;
     }
 
-    runUntil(parseBookSalesTable, 5, 30);
+    setInterval(parseBookSalesTable, 2000);
 })();
