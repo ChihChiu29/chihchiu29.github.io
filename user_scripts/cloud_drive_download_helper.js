@@ -5,6 +5,7 @@
 // @namespace    unknown.unknown@github.io
 // @version      1.18
 // @run-at       document-end
+// @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
