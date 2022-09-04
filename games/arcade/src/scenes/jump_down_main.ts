@@ -13,7 +13,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   public platformSpawnDelayMin = 3500;
   public platformSpawnDelayMax = 6000;
   public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
-  public platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
+  public platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
 
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
   private spikes?: Phaser.Physics.Arcade.StaticGroup;

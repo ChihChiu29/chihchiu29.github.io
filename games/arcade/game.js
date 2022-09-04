@@ -429,7 +429,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     platformSpawnDelayMin = 3500;
     platformSpawnDelayMax = 6000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
-    platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
+    platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
     player;
     spikes;
     topBorder;
