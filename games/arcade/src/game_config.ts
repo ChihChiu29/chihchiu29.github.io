@@ -1,4 +1,4 @@
-const TESTING: boolean = true;
+const TESTING: boolean = false;
 
 const SCENE_KEYS = {
   JumpDownStart: 'JumpDownStart',

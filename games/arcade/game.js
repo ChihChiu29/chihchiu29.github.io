@@ -59,7 +59,7 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = true;
+const TESTING = false;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
