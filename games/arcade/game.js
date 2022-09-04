@@ -660,17 +660,19 @@ class SceneJumpDown extends QPhaser.Scene {
     }
     createPlatform(x, y) {
         const platform = this.physics.add.image(x, y, 'platform');
-        // platform.setImmovable(true);
-        platform.setPushable(false);
+        // Use 
+        platform.setImmovable(true);
+        // platform.setPushable(false);
         platform.body.allowGravity = false;
         this.physics.add.collider(this.player, platform);
         this.platforms.push(platform);
         return platform;
     }
     createPlayer() {
-        const player = this.physics.add.image(100, 450, 'dragon');
-        player.setBounce(0.2);
+        const player = this.physics.add.image(500, 200, 'dragon');
         player.setCollideWorldBounds(true);
+        player.setBounce(0.2);
+        player.setFrictionX(1);
         this.player = player;
     }
     handleInput(cursors) {
