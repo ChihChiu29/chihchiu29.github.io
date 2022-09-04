@@ -286,8 +286,8 @@ class SceneJumpDown extends Phaser.Scene {
     platformSpawnLengthFactorMin = 0.1;
     platformSpawnLengthFactorMax = 2;
     player;
-    platforms = [];
     spikes;
+    topBorder;
     survivalTimeText;
     survivalTime = 0;
     cursors;
@@ -297,7 +297,7 @@ class SceneJumpDown extends Phaser.Scene {
         //   CONST.GAME_WIDTH / 2,
         //   CONST.GAME_WIDTH,
         //   CONST.GAME_HEIGHT);
-        this.createSpikes();
+        this.createBoundaries();
         this.createPlayer();
         this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
             .setVelocityY(-this.platformMoveUpSpeed);
@@ -314,7 +314,7 @@ class SceneJumpDown extends Phaser.Scene {
             this.survivalTime = time;
         }
     }
-    createSpikes() {
+    createBoundaries() {
         const spikes = this.physics.add.staticGroup();
         const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
         // This makes the collision box to be shorter than the spike:
@@ -338,6 +338,9 @@ class SceneJumpDown extends Phaser.Scene {
         // top.body.allowGravity = false;
         spikes.setDepth(CONST.LAYERS.FRONT);
         this.spikes = spikes;
+        const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
+        this.physics.add.existing(topBorder, true);
+        this.topBorder = topBorder;
     }
     // Needs to be called after createSpikes.
     createPlayer() {
@@ -388,7 +391,10 @@ class SceneJumpDown extends Phaser.Scene {
         platform.setImmovable(true);
         platform.body.allowGravity = false;
         this.physics.add.collider(this.player, platform);
-        this.platforms.push(platform);
+        this.physics.add.overlap(platform, this.topBorder, () => {
+            console.log('destroyed');
+            platform.destroy();
+        });
         return platform;
     }
     handleInput(cursors) {

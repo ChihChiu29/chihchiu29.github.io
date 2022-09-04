@@ -11,8 +11,8 @@ class SceneJumpDown extends Phaser.Scene {
   public platformSpawnLengthFactorMax = 2;
 
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
-  private platforms: Phaser.Types.Physics.Arcade.ImageWithDynamicBody[] = [];
   private spikes?: Phaser.Physics.Arcade.StaticGroup;
+  private topBorder?: Phaser.GameObjects.Rectangle;
   private survivalTimeText?: Phaser.GameObjects.Text;
   private survivalTime = 0;
 
@@ -25,7 +25,7 @@ class SceneJumpDown extends Phaser.Scene {
     //   CONST.GAME_WIDTH,
     //   CONST.GAME_HEIGHT);
 
-    this.createSpikes();
+    this.createBoundaries();
     this.createPlayer();
     this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
       .setVelocityY(-this.platformMoveUpSpeed);
@@ -46,7 +46,7 @@ class SceneJumpDown extends Phaser.Scene {
     }
   }
 
-  private createSpikes() {
+  private createBoundaries() {
     const spikes = this.physics.add.staticGroup();
     const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
     // This makes the collision box to be shorter than the spike:
@@ -72,6 +72,10 @@ class SceneJumpDown extends Phaser.Scene {
 
     spikes.setDepth(CONST.LAYERS.FRONT);
     this.spikes = spikes;
+
+    const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
+    this.physics.add.existing(topBorder, true);
+    this.topBorder = topBorder;
   }
 
   // Needs to be called after createSpikes.
@@ -126,6 +130,7 @@ class SceneJumpDown extends Phaser.Scene {
         this.platformSpawnLengthFactorMin, this.platformSpawnLengthFactorMax),
     );
     platform.setVelocityY(-this.platformMoveUpSpeed);
+
     return platform;
   }
 
@@ -139,7 +144,10 @@ class SceneJumpDown extends Phaser.Scene {
     platform.body.allowGravity = false;
 
     this.physics.add.collider(this.player!, platform);
-    this.platforms.push(platform);
+    this.physics.add.overlap(platform, this.topBorder!, () => {
+      console.log('destroyed');
+      platform.destroy();
+    });
 
     return platform;
   }
