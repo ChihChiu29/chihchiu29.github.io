@@ -637,32 +637,50 @@ class StartScene extends Phaser.Scene {
         // this.scene.start("TestScene");
     }
 }
-var DEBUG_SCENE;
 class SceneJumpDown extends QPhaser.Scene {
-    PLAYER_LEFT_RIGHT_SPEED = 160;
+    // Use these parameters to change difficulty.
+    platformMoveUpSpeed = 30;
+    playerLeftRightSpeed = 160;
+    // For platform spawn.
+    // A new platform will be spawn randomly with this delay.
+    platformSpawnDelayMin = 2000;
+    platformSpawnDelayMax = 5000;
+    platformSpawnLengthFactorMin = 0.1;
+    platformSpawnLengthFactorMax = 2;
     player;
     platforms = [];
     cursors;
     create() {
+        // this.cameras.main.setViewport(CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH, CONST.GAME_HEIGHT);
         this.createPlayer();
-        this.createPlatforms();
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2).setVelocityY(-this.platformMoveUpSpeed);
+        this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
-        DEBUG_SCENE = this;
     }
     update() {
         if (this.cursors) {
             this.handleInput(this.cursors);
         }
     }
-    createPlatforms() {
-        this.createPlatform(400, 568).setScale(2);
-        this.createPlatform(400, 400).setVelocityX(10);
+    startPlatformSpawnActions() {
+        const saveThis = this;
+        setTimeout(function () {
+            saveThis.spawnPlatform();
+            saveThis.startPlatformSpawnActions();
+        }, Phaser.Math.FloatBetween(this.platformSpawnDelayMin, this.platformSpawnDelayMax));
     }
-    createPlatform(x, y) {
+    // Spawn a new platform from bottom.
+    spawnPlatform() {
+        const platform = this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnLengthFactorMin, this.platformSpawnLengthFactorMax));
+        platform.setVelocityY(-this.platformMoveUpSpeed);
+        return platform;
+    }
+    // Lowest level function to create a platform.
+    createPlatform(x, y, widthScale) {
         const platform = this.physics.add.image(x, y, 'platform');
-        // Use 
+        platform.setScale(widthScale, 1);
+        // Use setImmovable instead setPushable so it can give friction on player.
         platform.setImmovable(true);
-        // platform.setPushable(false);
         platform.body.allowGravity = false;
         this.physics.add.collider(this.player, platform);
         this.platforms.push(platform);
@@ -670,18 +688,19 @@ class SceneJumpDown extends QPhaser.Scene {
     }
     createPlayer() {
         const player = this.physics.add.image(500, 200, 'dragon');
+        player.setScale(0.5, 0.5);
         player.setCollideWorldBounds(true);
-        player.setBounce(0.2);
+        player.setBounce(0);
         player.setFrictionX(1);
         this.player = player;
     }
     handleInput(cursors) {
         if (cursors.left.isDown) {
-            this.player?.setVelocityX(-this.PLAYER_LEFT_RIGHT_SPEED);
+            this.player?.setVelocityX(-this.playerLeftRightSpeed);
             this.player?.setFlipX(false);
         }
         else if (cursors.right.isDown) {
-            this.player?.setVelocityX(this.PLAYER_LEFT_RIGHT_SPEED);
+            this.player?.setVelocityX(this.playerLeftRightSpeed);
             this.player?.setFlipX(true);
         }
         else {
