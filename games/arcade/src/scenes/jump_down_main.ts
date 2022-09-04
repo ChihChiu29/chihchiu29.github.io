@@ -187,8 +187,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
     if ((this.keys.W.isDown || cursors.up.isDown)
       && this.player?.body.touching.down) {
       this.player?.setVelocityY(-this.playerJumpSpeed);
-    } else if (this.keys.S.isDown || cursors.down.isDown) {
-      this.player?.setVelocityY(this.playerFallSpeed);
     }
   }
 }

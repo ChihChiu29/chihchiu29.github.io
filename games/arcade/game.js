@@ -245,7 +245,7 @@ var QUI;
     }
     QUI.createKeyMap = createKeyMap;
     // Create texts suitable as title, centered at the given position.
-    function createTextTitle(scene, content, x, y, fontSize) {
+    function createTextTitle(scene, content, x, y, fontSize = 60) {
         return scene.add.text(x, y, content, {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
             fontSize: '1.5em',
@@ -381,19 +381,8 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         this.lastScore = data.score;
     }
     create() {
-        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, [
-            `You survived for ${this.lastScore.toFixed(1)} seconds !!!`,
-            'Press "Y" to try again!',
-        ], {
-            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-            fontSize: '1.5em',
-            color: '#8c085a',
-            strokeThickness: 4,
-            stroke: '#a8f7bd',
-            align: 'center',
-        });
-        statusText.setFontSize(60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, statusText.y + 400, 'goodjob');
+        const title = QUI.createTextTitle(this, [`You survived for ${this.lastScore.toFixed(1)} seconds !!!`], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, title.y + 200, 'goodjob');
         congrats.scale = 2;
         this.add.tween({
             targets: congrats,
@@ -415,7 +404,10 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
-        this.input.keyboard.once('keyup-Y', () => {
+        QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, congrats.y + 250, () => {
+            this.scene.start(SCENE_KEYS.JumpDownMain);
+        });
+        this.input.keyboard.once('keyup-ENTER', () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
         }, this);
     }
@@ -576,9 +568,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
             && this.player?.body.touching.down) {
             this.player?.setVelocityY(-this.playerJumpSpeed);
         }
-        else if (this.keys.S.isDown || cursors.down.isDown) {
-            this.player?.setVelocityY(this.playerFallSpeed);
-        }
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {
@@ -594,8 +583,11 @@ class SceneJumpDownStart extends QPhaser.Scene {
             yoyo: true,
             loop: -1,
         });
-        QUI.createButton(this, 'Start game', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
+        QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
         });
+        this.input.keyboard.once('keyup-ENTER', () => {
+            this.scene.start(SCENE_KEYS.JumpDownMain);
+        }, this);
     }
 }

@@ -6,24 +6,11 @@ class SceneJumpDownEnd extends QPhaser.Scene {
   }
 
   create(): void {
-    const statusText = this.add.text(
-      CONST.GAME_WIDTH / 2 - 400,
-      CONST.GAME_HEIGHT / 2 - 250,
-      [
-        `You survived for ${this.lastScore.toFixed(1)} seconds !!!`,
-        'Press "Y" to try again!',
-      ],
-      {
-        fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-        fontSize: '1.5em',
-        color: '#8c085a',
-        strokeThickness: 4,
-        stroke: '#a8f7bd',
-        align: 'center',
-      });
-    statusText.setFontSize(60);
+    const title = QUI.createTextTitle(this,
+      [`You survived for ${this.lastScore.toFixed(1)} seconds !!!`],
+      CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, statusText.y + 400, 'goodjob');
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, title.y + 200, 'goodjob');
     congrats.scale = 2;
     this.add.tween({
       targets: congrats,
@@ -48,7 +35,11 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     rotatingText.textArea?.setFontSize(40);
     this.addPrefab(rotatingText);
 
-    this.input.keyboard.once('keyup-Y', () => {
+    QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, congrats.y + 250, () => {
+      this.scene.start(SCENE_KEYS.JumpDownMain);
+    });
+
+    this.input.keyboard.once('keyup-ENTER', () => {
       this.scene.start(SCENE_KEYS.JumpDownMain);
     }, this);
   }
