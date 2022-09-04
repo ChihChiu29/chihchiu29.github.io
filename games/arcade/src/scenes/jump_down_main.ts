@@ -2,6 +2,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // Use these parameters to change difficulty.
   public platformMoveUpSpeed = 30;
   public playerLeftRightSpeed = 160;
+  public playerJumpSpeed = 350;
+  public playerFallSpeed = 100;
 
   // For platform spawn.
   // A new platform will be spawn randomly with this delay.
@@ -17,6 +19,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   private survivalTime = 0;
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
 
   private timer?: Phaser.Time.TimerEvent;
 
@@ -36,6 +39,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     this.startPlatformSpawnActions();
 
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.keys = QInput.createKeyMap(this);
 
     this.timer = this.time.addEvent({
       delay: 3600 * 1000,
@@ -109,22 +113,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
       loop: -1,
     });
 
-    this.input.keyboard.on('keydown-A', () => {
-      this.player?.setVelocityX(-this.playerLeftRightSpeed);
-      this.player?.setFlipX(false);
-    });
-
-    this.input.keyboard.on('keydown-D', () => {
-      this.player?.setVelocityX(this.playerLeftRightSpeed);
-      this.player?.setFlipX(true);
-    });
-
-    this.input.keyboard.on('keydown-W', () => {
-      if (this.player?.body.touching.down) {
-        this.player?.setVelocityY(-330);
-      }
-    });
-
     this.player = player;
   }
 
@@ -186,18 +174,21 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   private handleInput(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-    if (cursors.left.isDown) {
+    if (this.keys.A.isDown || cursors.left.isDown) {
       this.player?.setVelocityX(-this.playerLeftRightSpeed);
       this.player?.setFlipX(false);
-    } else if (cursors.right.isDown) {
+    } else if (this.keys.D.isDown || cursors.right.isDown) {
       this.player?.setVelocityX(this.playerLeftRightSpeed);
       this.player?.setFlipX(true);
     } else {
       this.player?.setVelocityX(0);
     }
 
-    if (cursors.up.isDown && this.player?.body.touching.down) {
-      this.player?.setVelocityY(-330);
+    if ((this.keys.W.isDown || cursors.up.isDown)
+      && this.player?.body.touching.down) {
+      this.player?.setVelocityY(-this.playerJumpSpeed);
+    } else if (this.keys.S.isDown || cursors.down.isDown) {
+      this.player?.setVelocityY(this.playerFallSpeed);
     }
   }
 }

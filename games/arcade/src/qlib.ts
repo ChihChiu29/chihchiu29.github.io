@@ -171,3 +171,14 @@ namespace QString {
     return str.indexOf(substring) >= 0;
   }
 }
+
+namespace QInput {
+  export function createKeyMap(scene: Phaser.Scene) {
+    const keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
+    keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    return keys;
+  }
+}

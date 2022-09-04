@@ -228,6 +228,18 @@ var QString;
     }
     QString.stringContains = stringContains;
 })(QString || (QString = {}));
+var QInput;
+(function (QInput) {
+    function createKeyMap(scene) {
+        const keys = {};
+        keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        return keys;
+    }
+    QInput.createKeyMap = createKeyMap;
+})(QInput || (QInput = {}));
 class ChatPopup extends Phaser.GameObjects.Container {
     text;
     border;
@@ -385,6 +397,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Use these parameters to change difficulty.
     platformMoveUpSpeed = 30;
     playerLeftRightSpeed = 160;
+    playerJumpSpeed = 350;
+    playerFallSpeed = 100;
     // For platform spawn.
     // A new platform will be spawn randomly with this delay.
     platformSpawnDelayMin = 2500;
@@ -397,6 +411,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     survivalTimeText;
     survivalTime = 0;
     cursors;
+    keys = {};
     timer;
     create() {
         // this.cameras.main.setViewport(
@@ -411,6 +426,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.keys = QInput.createKeyMap(this);
         this.timer = this.time.addEvent({
             delay: 3600 * 1000,
             loop: true,
@@ -474,19 +490,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
             yoyo: true,
             loop: -1,
         });
-        this.input.keyboard.on('keydown-A', () => {
-            this.player?.setVelocityX(-this.playerLeftRightSpeed);
-            this.player?.setFlipX(false);
-        });
-        this.input.keyboard.on('keydown-D', () => {
-            this.player?.setVelocityX(this.playerLeftRightSpeed);
-            this.player?.setFlipX(true);
-        });
-        this.input.keyboard.on('keydown-W', () => {
-            if (this.player?.body.touching.down) {
-                this.player?.setVelocityY(-330);
-            }
-        });
         this.player = player;
     }
     createSurvivalTimer() {
@@ -531,19 +534,23 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return platform;
     }
     handleInput(cursors) {
-        if (cursors.left.isDown) {
+        if (this.keys.A.isDown || cursors.left.isDown) {
             this.player?.setVelocityX(-this.playerLeftRightSpeed);
             this.player?.setFlipX(false);
         }
-        else if (cursors.right.isDown) {
+        else if (this.keys.D.isDown || cursors.right.isDown) {
             this.player?.setVelocityX(this.playerLeftRightSpeed);
             this.player?.setFlipX(true);
         }
         else {
             this.player?.setVelocityX(0);
         }
-        if (cursors.up.isDown && this.player?.body.touching.down) {
-            this.player?.setVelocityY(-330);
+        if ((this.keys.W.isDown || cursors.up.isDown)
+            && this.player?.body.touching.down) {
+            this.player?.setVelocityY(-this.playerJumpSpeed);
+        }
+        else if (this.keys.S.isDown || cursors.down.isDown) {
+            this.player?.setVelocityY(this.playerFallSpeed);
         }
     }
 }
