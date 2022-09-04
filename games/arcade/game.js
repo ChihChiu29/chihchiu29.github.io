@@ -413,6 +413,8 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
+    TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
+    TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     // Use these parameters to change difficulty.
     platformMoveUpSpeed = 30;
     playerLeftRightSpeed = 160;
@@ -433,11 +435,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
     keys = {};
     timer;
     create() {
-        // this.cameras.main.setViewport(
-        //   CONST.GAME_WIDTH / 2,
-        //   CONST.GAME_WIDTH / 2,
-        //   CONST.GAME_WIDTH,
-        //   CONST.GAME_HEIGHT);
         this.createBoundaries();
         this.createPlayer();
         this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
@@ -446,6 +443,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keys = QUI.createKeyMap(this);
+        this.input.addPointer(3); // needs at most 3 touch points (most 2 are valid).
         this.timer = this.time.addEvent({
             delay: 3600 * 1000,
             loop: true,
@@ -475,14 +473,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
         bottom.setFlipY(true);
         bottom.setSize(CONST.GAME_WIDTH, 120);
         bottom.setDisplaySize(CONST.GAME_WIDTH, 180);
-        // const top = this.physics.add.image(CONST.GAME_WIDTH / 2, 0, 'spike');
-        // top.setImmovable(true);
-        // This makes the collision box to be shorter than the spike:
-        //  - setDisplaySize changes collision box and the image
-        //  - setSize only changes the collsion box
-        // top.setDisplaySize(CONST.GAME_WIDTH, 180);
-        // top.setSize(CONST.GAME_WIDTH, 90);
-        // top.body.allowGravity = false;
         spikes.setDepth(CONST.LAYERS.FRONT);
         this.spikes = spikes;
         const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
@@ -502,13 +492,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 score: this.survivalTime,
             });
         });
-        // this.add.tween({
-        //   targets: player,
-        //   scale: 0.6,
-        //   duration: 300,
-        //   yoyo: true,
-        //   loop: -1,
-        // });
         this.player = player;
     }
     createSurvivalTimer() {
@@ -553,19 +536,38 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return platform;
     }
     handleInput(cursors) {
-        if (this.keys.A.isDown || cursors.left.isDown) {
+        const ptr = this.input.activePointer;
+        // First get user intention.
+        // Keyboard based control.
+        let moveLeft = this.keys.A.isDown || cursors.left.isDown;
+        let moveRight = this.keys.D.isDown || cursors.right.isDown;
+        let moveUp = this.keys.W.isDown || cursors.up.isDown;
+        // Touch screen based control.
+        for (const ptr of [this.input.pointer1, this.input.pointer2]) {
+            if (ptr.isDown) {
+                if (ptr.downX < this.TOUCH_LEFT_BOUNDARY) {
+                    moveLeft = true;
+                }
+                if (ptr.downX > this.TOUCH_RIGHT_BOUNDARY) {
+                    moveRight = true;
+                }
+                if (this.TOUCH_LEFT_BOUNDARY <= ptr.downX && this.TOUCH_RIGHT_BOUNDARY >= ptr.downX) {
+                    moveUp = true;
+                }
+            }
+        }
+        if (moveLeft) {
             this.player?.setVelocityX(-this.playerLeftRightSpeed);
             this.player?.setFlipX(false);
         }
-        else if (this.keys.D.isDown || cursors.right.isDown) {
+        else if (moveRight) {
             this.player?.setVelocityX(this.playerLeftRightSpeed);
             this.player?.setFlipX(true);
         }
         else {
             this.player?.setVelocityX(0);
         }
-        if ((this.keys.W.isDown || cursors.up.isDown)
-            && this.player?.body.touching.down) {
+        if (moveUp && this.player?.body.touching.down) {
             this.player?.setVelocityY(-this.playerJumpSpeed);
         }
     }
