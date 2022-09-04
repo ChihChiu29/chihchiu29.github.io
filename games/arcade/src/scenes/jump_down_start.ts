@@ -32,7 +32,10 @@ class SceneJumpDownStart extends QPhaser.Scene {
   private startNewGame() {
     document.documentElement.requestFullscreen();
     //@ts-ignore
-    document.documentElement.webkitRequestFullScreen();
+    if (document.documentElement.webkitRequestFullScreen) {
+      //@ts-ignore
+      document.documentElement.webkitRequestFullScreen();
+    }
     this.scene.start(SCENE_KEYS.JumpDownMain);
   }
 }
