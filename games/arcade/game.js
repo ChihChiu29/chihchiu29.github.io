@@ -24,6 +24,7 @@ window.addEventListener('load', function () {
     game.scene.add("Boot", Boot, true);
     game.scene.add("StartScene", StartScene);
     game.scene.add("JumpDown", SceneJumpDown);
+    game.scene.add("EndGame", SceneEndGame);
 });
 class Boot extends Phaser.Scene {
     preload() {
@@ -59,6 +60,10 @@ var CONST;
 })(CONST || (CONST = {}));
 const TESTING = true;
 const GAME_CHOICE = 'JumpDown';
+var GLOBAL;
+(function (GLOBAL) {
+    bestScores: [0, 0, 0];
+})(GLOBAL || (GLOBAL = {}));
 ;
 // My enhancement on top of native Phaser objects.
 var QPhaser;
@@ -637,6 +642,55 @@ class StartScene extends Phaser.Scene {
         // this.scene.start("TestScene");
     }
 }
+class SceneEndGame extends Phaser.Scene {
+    score = 0;
+    init(data) {
+        this.score = data.score;
+    }
+    create() {
+        const statusText = this.add.text(150, 100, `You survived for ${this.score} seconds !!!`, {
+            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+            fontSize: '1.5em',
+            color: '#8c085a',
+            strokeThickness: 4,
+            stroke: '#a8f7bd',
+            align: 'center',
+        });
+        statusText.setFontSize(60);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'goodjob');
+        congrats.scale = 2;
+        this.add.tween({
+            targets: congrats,
+            scale: 2.5,
+            duration: 300,
+            yoyo: true,
+            loop: -1,
+        });
+        // let viewerWithMostDamage = Object.keys(GLOBAL.mostDamage).reduce((a, b) => GLOBAL.mostDamage[a] > GLOBAL.mostDamage[b] ? a : b);
+        // let viewerWithMostShots = Object.keys(GLOBAL.mostShots).reduce((a, b) => GLOBAL.mostShots[a] > GLOBAL.mostShots[b] ? a : b);
+        // const statistics = this.add.text(
+        //   300,
+        //   500,
+        //   [
+        //     `${viewerWithMostDamage} did most (${GLOBAL.mostDamage[viewerWithMostDamage]}) damage!`,
+        //     `${viewerWithMostShots} had most (${GLOBAL.mostShots[viewerWithMostShots]}) shots!`,
+        //     `${GLOBAL.lastHitViewer} did the last shot!`,
+        //   ],
+        //   {
+        //     fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+        //     fontSize: '1.5em',
+        //     color: '#a83248',
+        //     strokeThickness: 4,
+        //     stroke: '#a8f7bd',
+        //     align: 'center',
+        //   });
+        // statistics.setFontSize(40);
+        // const saveThis = this;
+        // setTimeout(() => {
+        //   saveThis.scene.stop('CongratsScene');
+        // }, 10000);
+    }
+}
 class SceneJumpDown extends QPhaser.Scene {
     // Use these parameters to change difficulty.
     platformMoveUpSpeed = 30;
@@ -649,11 +703,18 @@ class SceneJumpDown extends QPhaser.Scene {
     platformSpawnLengthFactorMax = 2;
     player;
     platforms = [];
+    spikes;
     cursors;
     create() {
-        // this.cameras.main.setViewport(CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH, CONST.GAME_HEIGHT);
+        // this.cameras.main.setViewport(
+        //   CONST.GAME_WIDTH / 2,
+        //   CONST.GAME_WIDTH / 2,
+        //   CONST.GAME_WIDTH,
+        //   CONST.GAME_HEIGHT);
+        this.createSpikes();
         this.createPlayer();
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2).setVelocityY(-this.platformMoveUpSpeed);
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
+            .setVelocityY(-this.platformMoveUpSpeed);
         this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
     }
@@ -662,6 +723,40 @@ class SceneJumpDown extends QPhaser.Scene {
             this.handleInput(this.cursors);
         }
     }
+    createSpikes() {
+        const spikes = this.physics.add.staticGroup();
+        const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
+        // This makes the collision box to be shorter than the spike:
+        //  - setDisplaySize changes collision box and the image
+        //  - setSize only changes the collsion box
+        //  - setSize needs to called first otherwise that causes a shift in X somehow.
+        top.setSize(CONST.GAME_WIDTH, 120);
+        top.setDisplaySize(CONST.GAME_WIDTH, 180);
+        top.setDepth(CONST.LAYERS.FRONT);
+        const bottom = spikes.create(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT, 'spike');
+        bottom.setFlipY(true);
+        bottom.setSize(CONST.GAME_WIDTH, 120);
+        bottom.setDisplaySize(CONST.GAME_WIDTH, 180);
+        // const top = this.physics.add.image(CONST.GAME_WIDTH / 2, 0, 'spike');
+        // top.setImmovable(true);
+        // This makes the collision box to be shorter than the spike:
+        //  - setDisplaySize changes collision box and the image
+        //  - setSize only changes the collsion box
+        // top.setDisplaySize(CONST.GAME_WIDTH, 180);
+        // top.setSize(CONST.GAME_WIDTH, 90);
+        // top.body.allowGravity = false;
+        spikes.setDepth(CONST.LAYERS.FRONT);
+        this.spikes = spikes;
+    }
+    // Needs to be called after createSpikes.
+    createPlayer() {
+        const player = this.physics.add.image(500, 200, 'dragon');
+        player.setScale(0.5, 0.5);
+        player.setCollideWorldBounds(true);
+        player.setBounce(0);
+        player.setFrictionX(1);
+        this.player = player;
+    }
     startPlatformSpawnActions() {
         const saveThis = this;
         setTimeout(function () {
@@ -669,7 +764,7 @@ class SceneJumpDown extends QPhaser.Scene {
             saveThis.startPlatformSpawnActions();
         }, Phaser.Math.FloatBetween(this.platformSpawnDelayMin, this.platformSpawnDelayMax));
     }
-    // Spawn a new platform from bottom.
+    // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
         const platform = this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnLengthFactorMin, this.platformSpawnLengthFactorMax));
         platform.setVelocityY(-this.platformMoveUpSpeed);
@@ -685,14 +780,6 @@ class SceneJumpDown extends QPhaser.Scene {
         this.physics.add.collider(this.player, platform);
         this.platforms.push(platform);
         return platform;
-    }
-    createPlayer() {
-        const player = this.physics.add.image(500, 200, 'dragon');
-        player.setScale(0.5, 0.5);
-        player.setCollideWorldBounds(true);
-        player.setBounce(0);
-        player.setFrictionX(1);
-        this.player = player;
     }
     handleInput(cursors) {
         if (cursors.left.isDown) {

@@ -7,9 +7,19 @@
                 "key": "dragon"
             },
             {
+                "url": "assets/goodjob.png",
+                "type": "image",
+                "key": "goodjob"
+            },
+            {
                 "url": "assets/platform.png",
                 "type": "image",
                 "key": "platform"
+            },
+            {
+                "url": "assets/spike.png",
+                "type": "image",
+                "key": "spike"
             }
         ]
     },

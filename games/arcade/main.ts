@@ -27,6 +27,7 @@ window.addEventListener('load', function () {
   game.scene.add("StartScene", StartScene);
 
   game.scene.add("JumpDown", SceneJumpDown);
+  game.scene.add("EndGame", SceneEndGame);
 });
 
 class Boot extends Phaser.Scene {

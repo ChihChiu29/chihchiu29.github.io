@@ -12,14 +12,21 @@ class SceneJumpDown extends QPhaser.Scene {
 
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
   private platforms: Phaser.Types.Physics.Arcade.ImageWithDynamicBody[] = [];
+  private spikes?: Phaser.Physics.Arcade.StaticGroup;
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
 
   create(): void {
-    // this.cameras.main.setViewport(CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH / 2, CONST.GAME_WIDTH, CONST.GAME_HEIGHT);
+    // this.cameras.main.setViewport(
+    //   CONST.GAME_WIDTH / 2,
+    //   CONST.GAME_WIDTH / 2,
+    //   CONST.GAME_WIDTH,
+    //   CONST.GAME_HEIGHT);
 
+    this.createSpikes();
     this.createPlayer();
-    this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2).setVelocityY(-this.platformMoveUpSpeed);
+    this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
+      .setVelocityY(-this.platformMoveUpSpeed);
 
     this.startPlatformSpawnActions();
 
@@ -32,6 +39,45 @@ class SceneJumpDown extends QPhaser.Scene {
     }
   }
 
+  private createSpikes() {
+    const spikes = this.physics.add.staticGroup();
+    const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
+    // This makes the collision box to be shorter than the spike:
+    //  - setDisplaySize changes collision box and the image
+    //  - setSize only changes the collsion box
+    //  - setSize needs to called first otherwise that causes a shift in X somehow.
+    top.setSize(CONST.GAME_WIDTH, 120);
+    top.setDisplaySize(CONST.GAME_WIDTH, 180);
+    top.setDepth(CONST.LAYERS.FRONT);
+    const bottom = spikes.create(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT, 'spike');
+    bottom.setFlipY(true);
+    bottom.setSize(CONST.GAME_WIDTH, 120);
+    bottom.setDisplaySize(CONST.GAME_WIDTH, 180);
+
+    // const top = this.physics.add.image(CONST.GAME_WIDTH / 2, 0, 'spike');
+    // top.setImmovable(true);
+    // This makes the collision box to be shorter than the spike:
+    //  - setDisplaySize changes collision box and the image
+    //  - setSize only changes the collsion box
+    // top.setDisplaySize(CONST.GAME_WIDTH, 180);
+    // top.setSize(CONST.GAME_WIDTH, 90);
+    // top.body.allowGravity = false;
+
+    spikes.setDepth(CONST.LAYERS.FRONT);
+    this.spikes = spikes;
+  }
+
+  // Needs to be called after createSpikes.
+  private createPlayer() {
+    const player = this.physics.add.image(500, 200, 'dragon');
+    player.setScale(0.5, 0.5);
+    player.setCollideWorldBounds(true);
+    player.setBounce(0);
+    player.setFrictionX(1);
+
+    this.player = player;
+  }
+
   private startPlatformSpawnActions() {
     const saveThis = this;
     setTimeout(function () {
@@ -41,7 +87,7 @@ class SceneJumpDown extends QPhaser.Scene {
       this.platformSpawnDelayMin, this.platformSpawnDelayMax));
   }
 
-  // Spawn a new platform from bottom.
+  // Spawn a new platform from bottom, needs to be called after createPlayer.
   private spawnPlatform(): Phaser.Types.Physics.Arcade.ImageWithDynamicBody {
     const platform = this.createPlatform(
       Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH),
@@ -66,16 +112,6 @@ class SceneJumpDown extends QPhaser.Scene {
     this.platforms.push(platform);
 
     return platform;
-  }
-
-  private createPlayer() {
-    const player = this.physics.add.image(500, 200, 'dragon');
-    player.setScale(0.5, 0.5);
-    player.setCollideWorldBounds(true);
-    player.setBounce(0);
-    player.setFrictionX(1);
-
-    this.player = player;
   }
 
   private handleInput(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
