@@ -1,6 +1,6 @@
 namespace CONST {
   export const GAME_WIDTH: number = 400;
-  export const GAME_HEIGHT: number = 800;
+  export const GAME_HEIGHT: number = 720;
 
   export const LAYERS = {
     DEFAULT: 0,

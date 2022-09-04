@@ -37,7 +37,7 @@ class Boot extends Phaser.Scene {
 var CONST;
 (function (CONST) {
     CONST.GAME_WIDTH = 400;
-    CONST.GAME_HEIGHT = 800;
+    CONST.GAME_HEIGHT = 720;
     CONST.LAYERS = {
         DEFAULT: 0,
         BACKGROUND: -10,
