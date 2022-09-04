@@ -426,8 +426,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     playerFallSpeed = 100;
     // For platform spawn.
     // A new platform will be spawn randomly with this delay.
-    platformSpawnDelayMin = 2500;
-    platformSpawnDelayMax = 5000;
+    platformSpawnDelayMin = 3500;
+    platformSpawnDelayMax = 6000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
     platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
     player;
@@ -529,7 +529,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Lowest level function to create a platform.
     createPlatform(x, y, width) {
         const platform = this.physics.add.image(x, y, 'platform');
-        platform.setDisplaySize(width, 40);
+        platform.setDisplaySize(width, 20);
         // Use setImmovable instead setPushable so it can give friction on player.
         platform.setImmovable(true);
         platform.body.allowGravity = false;

@@ -10,8 +10,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // For platform spawn.
   // A new platform will be spawn randomly with this delay.
-  public platformSpawnDelayMin = 2500;
-  public platformSpawnDelayMax = 5000;
+  public platformSpawnDelayMin = 3500;
+  public platformSpawnDelayMax = 6000;
   public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
   public platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
 
@@ -142,7 +142,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   private createPlatform(x: number, y: number, width: number):
     Phaser.Types.Physics.Arcade.ImageWithDynamicBody {
     const platform = this.physics.add.image(x, y, 'platform');
-    platform.setDisplaySize(width, 40);
+    platform.setDisplaySize(width, 20);
     // Use setImmovable instead setPushable so it can give friction on player.
     platform.setImmovable(true);
     platform.body.allowGravity = false;
