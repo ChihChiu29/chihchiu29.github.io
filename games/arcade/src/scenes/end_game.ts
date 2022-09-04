@@ -7,8 +7,8 @@ class SceneEndGame extends Phaser.Scene {
 
   create(): void {
     const statusText = this.add.text(
-      150,
-      100,
+      CONST.GAME_WIDTH / 2 - 400,
+      CONST.GAME_HEIGHT / 2 - 250,
       `You survived for ${this.score} seconds !!!`,
       {
         fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',

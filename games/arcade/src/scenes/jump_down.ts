@@ -1,4 +1,4 @@
-class SceneJumpDown extends QPhaser.Scene {
+class SceneJumpDown extends Phaser.Scene {
   // Use these parameters to change difficulty.
   public platformMoveUpSpeed = 30;
   public playerLeftRightSpeed = 160;
@@ -13,6 +13,8 @@ class SceneJumpDown extends QPhaser.Scene {
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
   private platforms: Phaser.Types.Physics.Arcade.ImageWithDynamicBody[] = [];
   private spikes?: Phaser.Physics.Arcade.StaticGroup;
+  private survivalTimeText?: Phaser.GameObjects.Text;
+  private survivalTime = 0;
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
 
@@ -27,15 +29,20 @@ class SceneJumpDown extends QPhaser.Scene {
     this.createPlayer();
     this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
       .setVelocityY(-this.platformMoveUpSpeed);
+    this.createSurvivalTimer();
 
     this.startPlatformSpawnActions();
 
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
-  update(): void {
+  update(time: number, delta: number): void {
     if (this.cursors) {
       this.handleInput(this.cursors);
+    }
+    if (this.survivalTimeText) {
+      this.survivalTimeText.setText(`${(time / 1000).toFixed(2)}`);
+      this.survivalTime = time;
     }
   }
 
@@ -75,14 +82,37 @@ class SceneJumpDown extends QPhaser.Scene {
     player.setBounce(0);
     player.setFrictionX(1);
 
+    this.physics.add.overlap(player, this.spikes!, () => {
+      this.scene.start('EndGame', {
+        score: (this.survivalTime / 1000).toFixed(2),
+      });
+    });
+
     this.player = player;
+  }
+
+  private createSurvivalTimer() {
+    const statusText = this.add.text(
+      20, 100, 'Good luck!',
+      {
+        fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+        fontSize: '1.5em',
+        color: '#8c085a',
+        strokeThickness: 4,
+        stroke: '#a8f7bd',
+        align: 'center',
+      });
+    statusText.setFontSize(60);
+    this.survivalTimeText = statusText;
   }
 
   private startPlatformSpawnActions() {
     const saveThis = this;
     setTimeout(function () {
-      saveThis.spawnPlatform();
-      saveThis.startPlatformSpawnActions();
+      if (saveThis.scene.manager.isActive(saveThis)) {
+        saveThis.spawnPlatform();
+        saveThis.startPlatformSpawnActions();
+      }
     }, Phaser.Math.FloatBetween(
       this.platformSpawnDelayMin, this.platformSpawnDelayMax));
   }
