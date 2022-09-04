@@ -1,0 +1,103 @@
+{
+    "section1": {
+        "files": [
+            {
+                "url": "assets/Artboard.png",
+                "type": "image",
+                "key": "Artboard"
+            },
+            {
+                "url": "assets/fight.png",
+                "type": "image",
+                "key": "fight"
+            },
+            {
+                "url": "assets/goodjob.png",
+                "type": "image",
+                "key": "goodjob"
+            },
+            {
+                "url": "assets/heartcat.png",
+                "type": "image",
+                "key": "heartcat"
+            },
+            {
+                "url": "assets/hi.png",
+                "type": "image",
+                "key": "hi"
+            },
+            {
+                "url": "assets/jl_blue.png",
+                "type": "image",
+                "key": "jl_blue"
+            },
+            {
+                "url": "assets/jl_blue2.png",
+                "type": "image",
+                "key": "jl_blue2"
+            },
+            {
+                "url": "assets/jl_cat.png",
+                "type": "image",
+                "key": "jl_cat"
+            },
+            {
+                "url": "assets/jl_cat_eating.png",
+                "type": "image",
+                "key": "jl_cat_eating"
+            },
+            {
+                "url": "assets/jl_pink.png",
+                "type": "image",
+                "key": "jl_pink"
+            },
+            {
+                "url": "assets/jl_yellow.png",
+                "type": "image",
+                "key": "jl_yellow"
+            },
+            {
+                "url": "assets/jl_yellow_white.png",
+                "type": "image",
+                "key": "jl_yellow_white"
+            },
+            {
+                "url": "assets/pen2.png",
+                "type": "image",
+                "key": "pen2"
+            },
+            {
+                "url": "assets/penguin.png",
+                "type": "image",
+                "key": "penguin"
+            },
+            {
+                "url": "assets/pineapplecat.png",
+                "type": "image",
+                "key": "pineapplecat"
+            },
+            {
+                "url": "assets/pinkcat.png",
+                "type": "image",
+                "key": "pinkcat"
+            },
+            {
+                "url": "assets/piu.png",
+                "type": "image",
+                "key": "piu"
+            },
+            {
+                "url": "assets/spongecat.png",
+                "type": "image",
+                "key": "spongecat"
+            }
+        ]
+    },
+    "meta": {
+        "app": "Phaser Editor 2D - Asset Pack Editor",
+        "contentType": "phasereditor2d.pack.core.AssetContentType",
+        "url": "https://phasereditor2d.com",
+        "version": 2,
+        "showAllFilesInBlocks": false
+    }
+}
