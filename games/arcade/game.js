@@ -594,10 +594,16 @@ class SceneJumpDownStart extends QPhaser.Scene {
             loop: -1,
         });
         QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
-            this.scene.start(SCENE_KEYS.JumpDownMain);
+            this.startNewGame();
         });
         this.input.keyboard.once('keyup-ENTER', () => {
-            this.scene.start(SCENE_KEYS.JumpDownMain);
+            this.startNewGame();
         }, this);
+    }
+    startNewGame() {
+        document.documentElement.requestFullscreen();
+        //@ts-ignore
+        document.documentElement.webkitRequestFullScreen();
+        this.scene.start(SCENE_KEYS.JumpDownMain);
     }
 }
