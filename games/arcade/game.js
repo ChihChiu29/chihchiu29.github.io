@@ -485,7 +485,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        const player = this.physics.add.image(500, 200, 'scared');
+        const player = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
         // player.setScale(0.5, 0.5);
         player.setDisplaySize(60, 60);
         player.setCollideWorldBounds(true);
