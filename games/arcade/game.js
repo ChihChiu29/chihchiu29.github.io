@@ -420,14 +420,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
     TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     // Use these parameters to change difficulty.
-    platformMoveUpSpeed = 30;
+    platformMoveUpInitialSpeed = 30;
+    platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
     playerLeftRightSpeed = 160;
     playerJumpSpeed = 350;
     playerFallSpeed = 100;
     // For platform spawn.
-    // A new platform will be spawn randomly with this delay.
-    platformSpawnDelayMin = 3500;
-    platformSpawnDelayMax = 6000;
+    // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
+    platformSpawnDelayFactorMin = 90000;
+    platformSpawnDelayFactorMax = 150000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
     platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
     player;
@@ -462,6 +463,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
             this.survivalTimeText.setText(`${time.toFixed(1)}`);
             this.survivalTime = time;
         }
+        // Make game harder over time.
+        this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed + time * 0.8;
     }
     createBoundaries() {
         const spikes = this.physics.add.staticGroup();
@@ -518,7 +521,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 saveThis.spawnPlatform();
                 saveThis.startPlatformSpawnActions();
             }
-        }, Phaser.Math.FloatBetween(this.platformSpawnDelayMin, this.platformSpawnDelayMax));
+        }, Phaser.Math.FloatBetween(this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed, this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
@@ -601,12 +604,6 @@ class SceneJumpDownStart extends QPhaser.Scene {
         }, this);
     }
     startNewGame() {
-        document.documentElement.requestFullscreen();
-        //@ts-ignore
-        if (document.documentElement.webkitRequestFullScreen) {
-            //@ts-ignore
-            document.documentElement.webkitRequestFullScreen();
-        }
         this.scene.start(SCENE_KEYS.JumpDownMain);
     }
 }

@@ -3,15 +3,16 @@ class SceneJumpDownMain extends QPhaser.Scene {
   TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
 
   // Use these parameters to change difficulty.
-  public platformMoveUpSpeed = 30;
+  public platformMoveUpInitialSpeed = 30;
+  public platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
   public playerLeftRightSpeed = 160;
   public playerJumpSpeed = 350;
   public playerFallSpeed = 100;
 
   // For platform spawn.
-  // A new platform will be spawn randomly with this delay.
-  public platformSpawnDelayMin = 3500;
-  public platformSpawnDelayMax = 6000;
+  // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
+  public platformSpawnDelayFactorMin = 90000;
+  public platformSpawnDelayFactorMax = 150000;
   public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
   public platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
 
@@ -55,6 +56,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
       this.survivalTimeText.setText(`${time.toFixed(1)}`);
       this.survivalTime = time;
     }
+    // Make game harder over time.
+    this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed + time * 0.8;
   }
 
   private createBoundaries() {
@@ -122,7 +125,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
         saveThis.startPlatformSpawnActions();
       }
     }, Phaser.Math.FloatBetween(
-      this.platformSpawnDelayMin, this.platformSpawnDelayMax));
+      this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed,
+      this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
   }
 
   // Spawn a new platform from bottom, needs to be called after createPlayer.
