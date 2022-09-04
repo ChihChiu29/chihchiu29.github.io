@@ -21,10 +21,11 @@ window.addEventListener('load', function () {
             autoCenter: Phaser.Scale.CENTER_BOTH
         }
     });
-    game.scene.add("Boot", Boot, true);
-    game.scene.add("StartScene", StartScene);
-    game.scene.add("JumpDown", SceneJumpDown);
-    game.scene.add("EndGame", SceneEndGame);
+    game.scene.add('Boot', Boot, true);
+    game.scene.add('StartScene', StartScene);
+    game.scene.add('JumpDownStart', SceneJumpDownStart);
+    game.scene.add('JumpDownMain', SceneJumpDownMain);
+    game.scene.add('JumpDownEnd', SceneJumpDownEnd);
 });
 class Boot extends Phaser.Scene {
     preload() {
@@ -59,15 +60,68 @@ var CONST;
     };
 })(CONST || (CONST = {}));
 const TESTING = true;
-const GAME_CHOICE = 'JumpDown';
+const GAME_CHOICE = 'JumpDownMain';
 var GLOBAL;
 (function (GLOBAL) {
-    bestScores: [0, 0, 0];
+    GLOBAL.bestScores = [];
 })(GLOBAL || (GLOBAL = {}));
 ;
 // My enhancement on top of native Phaser objects.
 var QPhaser;
 (function (QPhaser) {
+    // Make it easier to maintain object container.
+    class Prefab extends Phaser.GameObjects.Container {
+        // Manages infinite tweens on objects in this container.
+        tweens = [];
+        // Called when added to scene, use `Scene` object and you don't need to explicitly call this.
+        // @Abstract
+        init() { }
+        // Update method, use the `Scene` object from this file and you don't need to explicitly call this.
+        // @Abstract
+        update(time, delta) {
+            super.update(time, delta);
+        }
+        ;
+        // Use this to add and manage tween that never finishes.
+        // Use `scene.tweens.add` etc. to directly add/remove temporary tweens.
+        addInfiniteTween(tween) {
+            this.tweens.push(this.scene.add.tween(tween));
+        }
+        // @Override
+        destroy() {
+            for (const t of this.tweens) {
+                t.stop();
+                t.remove();
+            }
+            super.destroy();
+        }
+    }
+    QPhaser.Prefab = Prefab;
+    // Make it easy for a scene to use `QPrefab`s.
+    // Use `addPrefab` instead of `add.existing` when adding new `QPrefab` objects.
+    class Scene extends Phaser.Scene {
+        registeredPrefabs = new Set();
+        // Adds a new prefab to be managed.
+        addPrefab(prefab) {
+            prefab.init();
+            this.add.existing(prefab);
+            this.registeredPrefabs.add(prefab);
+        }
+        // Destroys a managed prefab.
+        destroyPrefab(prefab) {
+            this.registeredPrefabs.delete(prefab);
+            prefab.destroy();
+        }
+        // @Override
+        update(time, delta) {
+            super.update(time, delta);
+            for (const prefab of this.registeredPrefabs) {
+                prefab.update(time, delta);
+            }
+        }
+        ;
+    }
+    QPhaser.Scene = Scene;
     // Helps to maintain tweens that cannot happen in parallel for an object.
     // When adding/updating a new tween using `update`, the previous one will be deleted.
     class SingletonTween {
@@ -217,6 +271,58 @@ class ChatPopup extends Phaser.GameObjects.Container {
         this.text.setColor('#037bfc');
     }
 }
+// An area showing rotating texts.
+class RotatingText extends QPhaser.Prefab {
+    rotationSpeedX = 0; // per sec, leftwards
+    rotationSpeedY = 10; // per sec, upwards
+    textArea;
+    textMaskLeft = 0;
+    textMaskTop = 0;
+    textMaskWidth = 320;
+    textMaskHeight = 200;
+    // Center and width/height of the shooting target spirte, the actual size is bigger because of other elements.
+    constructor(scene, left, top, width, height, textAreaGap = 10) {
+        // Use world coordinates.
+        super(scene, 0, 0);
+        this.textMaskLeft = left ?? this.textMaskLeft;
+        this.textMaskTop = top ?? this.textMaskTop;
+        this.textMaskWidth = width ?? this.textMaskWidth;
+        this.textMaskHeight = height ?? this.textMaskHeight;
+        const textContent = scene.add.text(this.textMaskLeft + textAreaGap, this.textMaskTop, '', {
+            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+            fontSize: '2em',
+            color: '#2f2ffa',
+            strokeThickness: 8,
+            stroke: '#d5d5f0',
+        });
+        this.add(textContent);
+        textContent.setDepth(CONST.LAYERS.TEXT);
+        this.textArea = textContent;
+        const shape = scene.make.graphics({});
+        shape.fillStyle(0xffffff);
+        shape.beginPath();
+        shape.fillRect(this.textMaskLeft, this.textMaskTop, this.textMaskWidth, this.textMaskHeight);
+        const mask = shape.createGeometryMask();
+        this.setMask(mask);
+        if (TESTING) {
+            const maskIllustration = this.scene.add.rectangle(this.textMaskLeft + this.textMaskWidth / 2, this.textMaskTop + this.textMaskHeight / 2, this.textMaskWidth, this.textMaskHeight);
+            this.add(maskIllustration);
+            maskIllustration.setStrokeStyle(4, 0x3236a8);
+            maskIllustration.setFillStyle(0xa83281, 0.1);
+        }
+    }
+    // @Override
+    update(time, delta) {
+        this.textArea.x -= this.rotationSpeedX * delta / 1000;
+        this.textArea.y -= this.rotationSpeedY * delta / 1000;
+        if (this.textArea.getBottomRight().y < this.textMaskTop) {
+            this.textArea.y = this.textMaskTop + this.textMaskHeight;
+        }
+        if (this.textArea.getBottomRight().x < this.textMaskLeft) {
+            this.textArea.x = this.textMaskLeft + this.textMaskWidth;
+        }
+    }
+}
 class StartScene extends Phaser.Scene {
     preload() {
         this.load.pack('avatars-special', 'assets/asset-pack.json');
@@ -226,13 +332,13 @@ class StartScene extends Phaser.Scene {
         // this.scene.start("TestScene");
     }
 }
-class SceneEndGame extends Phaser.Scene {
-    score = 0;
+class SceneJumpDownEnd extends QPhaser.Scene {
+    lastScore = 0;
     init(data) {
-        this.score = data.score;
+        this.lastScore = data.score;
     }
     create() {
-        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, `You survived for ${this.score} seconds !!!`, {
+        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, `You survived for ${this.lastScore} seconds !!!`, {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
             fontSize: '1.5em',
             color: '#8c085a',
@@ -241,7 +347,7 @@ class SceneEndGame extends Phaser.Scene {
             align: 'center',
         });
         statusText.setFontSize(60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'goodjob');
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, 350, 'goodjob');
         congrats.scale = 2;
         this.add.tween({
             targets: congrats,
@@ -250,32 +356,27 @@ class SceneEndGame extends Phaser.Scene {
             yoyo: true,
             loop: -1,
         });
-        // let viewerWithMostDamage = Object.keys(GLOBAL.mostDamage).reduce((a, b) => GLOBAL.mostDamage[a] > GLOBAL.mostDamage[b] ? a : b);
-        // let viewerWithMostShots = Object.keys(GLOBAL.mostShots).reduce((a, b) => GLOBAL.mostShots[a] > GLOBAL.mostShots[b] ? a : b);
-        // const statistics = this.add.text(
-        //   300,
-        //   500,
-        //   [
-        //     `${viewerWithMostDamage} did most (${GLOBAL.mostDamage[viewerWithMostDamage]}) damage!`,
-        //     `${viewerWithMostShots} had most (${GLOBAL.mostShots[viewerWithMostShots]}) shots!`,
-        //     `${GLOBAL.lastHitViewer} did the last shot!`,
-        //   ],
-        //   {
-        //     fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-        //     fontSize: '1.5em',
-        //     color: '#a83248',
-        //     strokeThickness: 4,
-        //     stroke: '#a8f7bd',
-        //     align: 'center',
-        //   });
-        // statistics.setFontSize(40);
+        GLOBAL.bestScores.push(this.lastScore);
+        GLOBAL.bestScores.sort().reverse();
+        const scoreTexts = ['Best scores:'];
+        let idx = 0;
+        for (const score of GLOBAL.bestScores) {
+            scoreTexts.push(`${idx + 1} -- ${score} sec`);
+            idx++;
+        }
+        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 150, 400, 400);
+        rotatingText.textArea?.setText(scoreTexts);
+        rotatingText.textArea?.setFontSize(40);
+        this.addPrefab(rotatingText);
+        this.input.keyboard.once('keyup-ONE', function () {
+        }, this);
         // const saveThis = this;
         // setTimeout(() => {
         //   saveThis.scene.stop('CongratsScene');
         // }, 10000);
     }
 }
-class SceneJumpDown extends Phaser.Scene {
+class SceneJumpDownMain extends QPhaser.Scene {
     // Use these parameters to change difficulty.
     platformMoveUpSpeed = 30;
     playerLeftRightSpeed = 160;
@@ -350,9 +451,16 @@ class SceneJumpDown extends Phaser.Scene {
         player.setBounce(0);
         player.setFrictionX(1);
         this.physics.add.overlap(player, this.spikes, () => {
-            this.scene.start('EndGame', {
+            this.scene.start('JumpDownEnd', {
                 score: (this.survivalTime / 1000).toFixed(2),
             });
+        });
+        this.add.tween({
+            targets: player,
+            scale: 0.7,
+            duration: 300,
+            yoyo: true,
+            loop: -1,
         });
         this.player = player;
     }
@@ -412,5 +520,27 @@ class SceneJumpDown extends Phaser.Scene {
         if (cursors.up.isDown && this.player?.body.touching.down) {
             this.player?.setVelocityY(-330);
         }
+    }
+}
+class SceneJumpDownStart extends QPhaser.Scene {
+    create() {
+        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, `You survived for seconds !!!`, {
+            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+            fontSize: '1.5em',
+            color: '#8c085a',
+            strokeThickness: 4,
+            stroke: '#a8f7bd',
+            align: 'center',
+        });
+        statusText.setFontSize(60);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'goodjob');
+        congrats.scale = 2;
+        this.add.tween({
+            targets: congrats,
+            scale: 2.5,
+            duration: 300,
+            yoyo: true,
+            loop: -1,
+        });
     }
 }

@@ -1,5 +1,65 @@
 // My enhancement on top of native Phaser objects.
 namespace QPhaser {
+
+  // Make it easier to maintain object container.
+  export class Prefab extends Phaser.GameObjects.Container {
+    // Manages infinite tweens on objects in this container.
+    private tweens: Phaser.Tweens.Tween[] = [];
+
+    // Called when added to scene, use `Scene` object and you don't need to explicitly call this.
+    // @Abstract
+    init(): void { }
+
+    // Update method, use the `Scene` object from this file and you don't need to explicitly call this.
+    // @Abstract
+    update(time: number, delta: number): void {
+      super.update(time, delta);
+    };
+
+    // Use this to add and manage tween that never finishes.
+    // Use `scene.tweens.add` etc. to directly add/remove temporary tweens.
+    addInfiniteTween(tween: Phaser.Types.Tweens.TweenBuilderConfig | object) {
+      this.tweens.push(this.scene.add.tween(tween));
+    }
+
+    // @Override
+    destroy() {
+      for (const t of this.tweens) {
+        t.stop();
+        t.remove();
+      }
+      super.destroy();
+    }
+  }
+
+  // Make it easy for a scene to use `QPrefab`s.
+  // Use `addPrefab` instead of `add.existing` when adding new `QPrefab` objects.
+  export class Scene extends Phaser.Scene {
+    private registeredPrefabs = new Set<Prefab>();
+
+    // Adds a new prefab to be managed.
+    addPrefab(prefab: Prefab) {
+      prefab.init();
+      this.add.existing(prefab);
+      this.registeredPrefabs.add(prefab);
+    }
+
+    // Destroys a managed prefab.
+    destroyPrefab(prefab: Prefab) {
+      this.registeredPrefabs.delete(prefab);
+      prefab.destroy();
+    }
+
+    // @Override
+    update(time: number, delta: number): void {
+      super.update(time, delta);
+
+      for (const prefab of this.registeredPrefabs) {
+        prefab.update(time, delta);
+      }
+    };
+  }
+
   // Helps to maintain tweens that cannot happen in parallel for an object.
   // When adding/updating a new tween using `update`, the previous one will be deleted.
   export class SingletonTween {

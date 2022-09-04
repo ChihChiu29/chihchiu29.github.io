@@ -23,11 +23,12 @@ window.addEventListener('load', function () {
     }
   });
 
-  game.scene.add("Boot", Boot, true);
-  game.scene.add("StartScene", StartScene);
+  game.scene.add('Boot', Boot, true);
+  game.scene.add('StartScene', StartScene);
 
-  game.scene.add("JumpDown", SceneJumpDown);
-  game.scene.add("EndGame", SceneEndGame);
+  game.scene.add('JumpDownStart', SceneJumpDownStart);
+  game.scene.add('JumpDownMain', SceneJumpDownMain);
+  game.scene.add('JumpDownEnd', SceneJumpDownEnd);
 });
 
 class Boot extends Phaser.Scene {

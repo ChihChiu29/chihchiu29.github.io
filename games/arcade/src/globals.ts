@@ -1,3 +1,3 @@
 namespace GLOBAL {
-  bestScores: [0, 0, 0];
+  export let bestScores: number[] = [];
 };
