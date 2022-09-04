@@ -639,6 +639,7 @@ class StartScene extends Phaser.Scene {
 }
 var DEBUG_SCENE;
 class SceneJumpDown extends QPhaser.Scene {
+    PLAYER_LEFT_RIGHT_SPEED = 160;
     player;
     platforms = [];
     cursors;
@@ -647,6 +648,11 @@ class SceneJumpDown extends QPhaser.Scene {
         this.createPlatforms();
         this.cursors = this.input.keyboard.createCursorKeys();
         DEBUG_SCENE = this;
+    }
+    update() {
+        if (this.cursors) {
+            this.handleInput(this.cursors);
+        }
     }
     createPlatforms() {
         this.createPlatform(400, 568).setScale(2);
@@ -666,5 +672,21 @@ class SceneJumpDown extends QPhaser.Scene {
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
         this.player = player;
+    }
+    handleInput(cursors) {
+        if (cursors.left.isDown) {
+            this.player?.setVelocityX(-this.PLAYER_LEFT_RIGHT_SPEED);
+            this.player?.setFlipX(false);
+        }
+        else if (cursors.right.isDown) {
+            this.player?.setVelocityX(this.PLAYER_LEFT_RIGHT_SPEED);
+            this.player?.setFlipX(true);
+        }
+        else {
+            this.player?.setVelocityX(0);
+        }
+        if (cursors.up.isDown && this.player?.body.touching.down) {
+            this.player?.setVelocityY(-330);
+        }
     }
 }
