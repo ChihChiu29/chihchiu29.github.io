@@ -1,5 +1,3 @@
-const TESTING: boolean = false;
+const TESTING: boolean = true;
 
-const GAME_CHOICE = 'Basketball';
-// const GAME_CHOICE = 'Football';
-// const GAME_CHOICE = 'Soccer';
+const GAME_CHOICE = 'JumpDown';
