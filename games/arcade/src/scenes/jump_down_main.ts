@@ -12,8 +12,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // A new platform will be spawn randomly with this delay.
   public platformSpawnDelayMin = 2500;
   public platformSpawnDelayMax = 5000;
-  public platformSpawnLengthFactorMin = 0.1;
-  public platformSpawnLengthFactorMax = 2;
+  public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
+  public platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
 
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
   private spikes?: Phaser.Physics.Arcade.StaticGroup;
@@ -29,7 +29,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
   create(): void {
     this.createBoundaries();
     this.createPlayer();
-    this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
+    this.createPlatform(
+      CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax)
       .setVelocityY(-this.platformMoveUpSpeed);
     this.createSurvivalTimer();
 
@@ -130,7 +131,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
       Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH),
       CONST.GAME_HEIGHT + 50,
       Phaser.Math.FloatBetween(
-        this.platformSpawnLengthFactorMin, this.platformSpawnLengthFactorMax),
+        this.platformSpawnWidthMin, this.platformSpawnWidthMax),
     );
     platform.setVelocityY(-this.platformMoveUpSpeed);
 
@@ -138,10 +139,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   // Lowest level function to create a platform.
-  private createPlatform(x: number, y: number, widthScale: number):
+  private createPlatform(x: number, y: number, width: number):
     Phaser.Types.Physics.Arcade.ImageWithDynamicBody {
     const platform = this.physics.add.image(x, y, 'platform');
-    platform.setScale(widthScale, 1);
+    platform.setDisplaySize(width, 40);
     // Use setImmovable instead setPushable so it can give friction on player.
     platform.setImmovable(true);
     platform.body.allowGravity = false;

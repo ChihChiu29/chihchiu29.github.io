@@ -1,9 +1,15 @@
 class SceneJumpDownStart extends QPhaser.Scene {
   create(): void {
-    QUI.createTextTitle(this, ['Welcome to Cato Survival Minigame!'],
+    const title = QUI.createTextTitle(
+      this,
+      [
+        'Welcome to',
+        'Cato Survival',
+        'Minigame!',
+      ],
       CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'fight');
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 300, 'fight');
     congrats.setDisplaySize(250, 250);
     congrats.setAngle(-20);
     this.add.tween({

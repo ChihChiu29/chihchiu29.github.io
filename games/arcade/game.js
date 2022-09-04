@@ -36,8 +36,8 @@ class Boot extends Phaser.Scene {
 }
 var CONST;
 (function (CONST) {
-    CONST.GAME_WIDTH = 1280;
-    CONST.GAME_HEIGHT = 720;
+    CONST.GAME_WIDTH = 400;
+    CONST.GAME_HEIGHT = 800;
     CONST.LAYERS = {
         DEFAULT: 0,
         BACKGROUND: -10,
@@ -381,12 +381,16 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         this.lastScore = data.score;
     }
     create() {
-        const title = QUI.createTextTitle(this, [`You survived for ${this.lastScore.toFixed(1)} seconds !!!`], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, title.y + 200, 'goodjob');
-        congrats.scale = 2;
+        const title = QUI.createTextTitle(this, [
+            'You survived',
+            `for ${this.lastScore.toFixed(1)}`,
+            'seconds !!!',
+        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'goodjob');
+        congrats.scale = 1.2;
         this.add.tween({
             targets: congrats,
-            scale: 2.5,
+            scale: 1.4,
             duration: 300,
             yoyo: true,
             loop: -1,
@@ -400,11 +404,11 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             scoreTexts.push(`${idx + 1} -- ${score.toFixed(1)} sec`);
             idx++;
         }
-        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 140, 300, 300);
+        const rotatingText = new RotatingText(this, congrats.x - 120, congrats.y + 100, 300, 200);
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
-        QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, congrats.y + 250, () => {
+        QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, rotatingText.textArea.y + 250, () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
         });
         this.input.keyboard.once('keyup-ENTER', () => {
@@ -424,8 +428,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // A new platform will be spawn randomly with this delay.
     platformSpawnDelayMin = 2500;
     platformSpawnDelayMax = 5000;
-    platformSpawnLengthFactorMin = 0.1;
-    platformSpawnLengthFactorMax = 2;
+    platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
+    platformSpawnWidthMax = CONST.GAME_WIDTH / 1.8;
     player;
     spikes;
     topBorder;
@@ -437,7 +441,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     create() {
         this.createBoundaries();
         this.createPlayer();
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, 2)
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax)
             .setVelocityY(-this.platformMoveUpSpeed);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
@@ -518,14 +522,14 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
-        const platform = this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnLengthFactorMin, this.platformSpawnLengthFactorMax));
+        const platform = this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax));
         platform.setVelocityY(-this.platformMoveUpSpeed);
         return platform;
     }
     // Lowest level function to create a platform.
-    createPlatform(x, y, widthScale) {
+    createPlatform(x, y, width) {
         const platform = this.physics.add.image(x, y, 'platform');
-        platform.setScale(widthScale, 1);
+        platform.setDisplaySize(width, 40);
         // Use setImmovable instead setPushable so it can give friction on player.
         platform.setImmovable(true);
         platform.body.allowGravity = false;
@@ -574,8 +578,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
 }
 class SceneJumpDownStart extends QPhaser.Scene {
     create() {
-        QUI.createTextTitle(this, ['Welcome to Cato Survival Minigame!'], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'fight');
+        const title = QUI.createTextTitle(this, [
+            'Welcome to',
+            'Cato Survival',
+            'Minigame!',
+        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 300, 'fight');
         congrats.setDisplaySize(250, 250);
         congrats.setAngle(-20);
         this.add.tween({

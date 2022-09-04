@@ -7,14 +7,18 @@ class SceneJumpDownEnd extends QPhaser.Scene {
 
   create(): void {
     const title = QUI.createTextTitle(this,
-      [`You survived for ${this.lastScore.toFixed(1)} seconds !!!`],
+      [
+        'You survived',
+        `for ${this.lastScore.toFixed(1)}`,
+        'seconds !!!',
+      ],
       CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, title.y + 200, 'goodjob');
-    congrats.scale = 2;
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'goodjob');
+    congrats.scale = 1.2;
     this.add.tween({
       targets: congrats,
-      scale: 2.5,
+      scale: 1.4,
       duration: 300,
       yoyo: true,
       loop: -1,
@@ -30,12 +34,12 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       idx++;
     }
 
-    const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 140, 300, 300);
+    const rotatingText = new RotatingText(this, congrats.x - 120, congrats.y + 100, 300, 200);
     rotatingText.textArea?.setText(scoreTexts);
     rotatingText.textArea?.setFontSize(40);
     this.addPrefab(rotatingText);
 
-    QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, congrats.y + 250, () => {
+    QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, rotatingText.textArea!.y + 250, () => {
       this.scene.start(SCENE_KEYS.JumpDownMain);
     });
 
