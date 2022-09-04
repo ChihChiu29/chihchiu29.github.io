@@ -39,12 +39,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
     this.startPlatformSpawnActions();
 
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.keys = QInput.createKeyMap(this);
+    this.keys = QUI.createKeyMap(this);
 
     this.timer = this.time.addEvent({
       delay: 3600 * 1000,
       loop: true,
-      callback: () => { console.log('yes'); }
     });
   }
 
@@ -93,25 +92,26 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    const player = this.physics.add.image(500, 200, 'dragon');
-    player.setScale(0.5, 0.5);
+    const player = this.physics.add.image(500, 200, 'scared');
+    // player.setScale(0.5, 0.5);
+    player.setDisplaySize(60, 60);
     player.setCollideWorldBounds(true);
     player.setBounce(0);
     player.setFrictionX(1);
 
     this.physics.add.overlap(player, this.spikes!, () => {
-      this.scene.start('JumpDownEnd', {
+      this.scene.start(SCENE_KEYS.JumpDownEnd, {
         score: this.survivalTime,
       });
     });
 
-    this.add.tween({
-      targets: player,
-      scale: 0.6,
-      duration: 300,
-      yoyo: true,
-      loop: -1,
-    });
+    // this.add.tween({
+    //   targets: player,
+    //   scale: 0.6,
+    //   duration: 300,
+    //   yoyo: true,
+    //   loop: -1,
+    // });
 
     this.player = player;
   }

@@ -172,7 +172,7 @@ namespace QString {
   }
 }
 
-namespace QInput {
+namespace QUI {
   export function createKeyMap(scene: Phaser.Scene) {
     const keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
     keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -180,5 +180,41 @@ namespace QInput {
     keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     return keys;
+  }
+
+  // Create texts suitable as title, centered at the given position.
+  export function createTextTitle(
+    scene: Phaser.Scene,
+    content: string[],
+    x: number, y: number,
+    fontSize: number): Phaser.GameObjects.Text {
+    return scene.add.text(x, y, content, {
+      fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+      fontSize: '1.5em',
+      color: '#8c085a',
+      strokeThickness: 4,
+      stroke: '#a8f7bd',
+      align: 'center',
+    })
+      .setOrigin(0.5)
+      .setFontSize(fontSize);
+  }
+
+  export function createButton(
+    scene: Phaser.Scene,
+    text: string,
+    x: number, y: number,
+    clickCallbackFn: () => void,
+    fontSize: number = 40): Phaser.GameObjects.Text {
+    const button = scene.add.text(x, y, text)
+      .setOrigin(0.5)
+      .setPadding(20)
+      .setFontSize(fontSize)
+      .setStyle({ backgroundColor: '#111' })
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', clickCallbackFn);
+    button.on('pointerover', () => button.setStyle({ fill: '#f39c12' }))
+    button.on('pointerout', () => button.setStyle({ fill: '#FFF' }));
+    return button;
   }
 }

@@ -60,7 +60,12 @@ var CONST;
     };
 })(CONST || (CONST = {}));
 const TESTING = true;
-const GAME_CHOICE = 'JumpDownMain';
+const SCENE_KEYS = {
+    JumpDownStart: 'JumpDownStart',
+    JumpDownMain: 'JumpDownMain',
+    JumpDownEnd: 'JumpDownEnd',
+};
+const GAME_CHOICE = 'JumpDownStart';
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
@@ -228,8 +233,8 @@ var QString;
     }
     QString.stringContains = stringContains;
 })(QString || (QString = {}));
-var QInput;
-(function (QInput) {
+var QUI;
+(function (QUI) {
     function createKeyMap(scene) {
         const keys = {};
         keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -238,8 +243,35 @@ var QInput;
         keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         return keys;
     }
-    QInput.createKeyMap = createKeyMap;
-})(QInput || (QInput = {}));
+    QUI.createKeyMap = createKeyMap;
+    // Create texts suitable as title, centered at the given position.
+    function createTextTitle(scene, content, x, y, fontSize) {
+        return scene.add.text(x, y, content, {
+            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+            fontSize: '1.5em',
+            color: '#8c085a',
+            strokeThickness: 4,
+            stroke: '#a8f7bd',
+            align: 'center',
+        })
+            .setOrigin(0.5)
+            .setFontSize(fontSize);
+    }
+    QUI.createTextTitle = createTextTitle;
+    function createButton(scene, text, x, y, clickCallbackFn, fontSize = 40) {
+        const button = scene.add.text(x, y, text)
+            .setOrigin(0.5)
+            .setPadding(20)
+            .setFontSize(fontSize)
+            .setStyle({ backgroundColor: '#111' })
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', clickCallbackFn);
+        button.on('pointerover', () => button.setStyle({ fill: '#f39c12' }));
+        button.on('pointerout', () => button.setStyle({ fill: '#FFF' }));
+        return button;
+    }
+    QUI.createButton = createButton;
+})(QUI || (QUI = {}));
 class ChatPopup extends Phaser.GameObjects.Container {
     text;
     border;
@@ -341,7 +373,6 @@ class StartScene extends Phaser.Scene {
     }
     create() {
         this.scene.start(GAME_CHOICE);
-        // this.scene.start("TestScene");
     }
 }
 class SceneJumpDownEnd extends QPhaser.Scene {
@@ -385,12 +416,8 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
         this.input.keyboard.once('keyup-Y', () => {
-            this.scene.start('JumpDownMain');
+            this.scene.start(SCENE_KEYS.JumpDownMain);
         }, this);
-        // const saveThis = this;
-        // setTimeout(() => {
-        //   saveThis.scene.stop('CongratsScene');
-        // }, 10000);
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
@@ -426,11 +453,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.keys = QInput.createKeyMap(this);
+        this.keys = QUI.createKeyMap(this);
         this.timer = this.time.addEvent({
             delay: 3600 * 1000,
             loop: true,
-            callback: () => { console.log('yes'); }
         });
     }
     update() {
@@ -473,23 +499,24 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        const player = this.physics.add.image(500, 200, 'dragon');
-        player.setScale(0.5, 0.5);
+        const player = this.physics.add.image(500, 200, 'scared');
+        // player.setScale(0.5, 0.5);
+        player.setDisplaySize(60, 60);
         player.setCollideWorldBounds(true);
         player.setBounce(0);
         player.setFrictionX(1);
         this.physics.add.overlap(player, this.spikes, () => {
-            this.scene.start('JumpDownEnd', {
+            this.scene.start(SCENE_KEYS.JumpDownEnd, {
                 score: this.survivalTime,
             });
         });
-        this.add.tween({
-            targets: player,
-            scale: 0.6,
-            duration: 300,
-            yoyo: true,
-            loop: -1,
-        });
+        // this.add.tween({
+        //   targets: player,
+        //   scale: 0.6,
+        //   duration: 300,
+        //   yoyo: true,
+        //   loop: -1,
+        // });
         this.player = player;
     }
     createSurvivalTimer() {
@@ -556,23 +583,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
 }
 class SceneJumpDownStart extends QPhaser.Scene {
     create() {
-        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, `You survived for seconds !!!`, {
-            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-            fontSize: '1.5em',
-            color: '#8c085a',
-            strokeThickness: 4,
-            stroke: '#a8f7bd',
-            align: 'center',
-        });
-        statusText.setFontSize(60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'goodjob');
-        congrats.scale = 2;
+        QUI.createTextTitle(this, ['Welcome to Cato Survival Minigame!'], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, 350, 'fight');
+        congrats.setDisplaySize(250, 250);
+        congrats.setAngle(-20);
         this.add.tween({
             targets: congrats,
-            scale: 2.5,
-            duration: 300,
+            angle: 20,
+            duration: 400,
             yoyo: true,
             loop: -1,
+        });
+        QUI.createButton(this, 'Start game', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
+            this.scene.start(SCENE_KEYS.JumpDownMain);
         });
     }
 }

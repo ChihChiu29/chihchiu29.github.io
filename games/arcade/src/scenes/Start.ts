@@ -6,6 +6,5 @@ class StartScene extends Phaser.Scene {
 
   create() {
     this.scene.start(GAME_CHOICE);
-    // this.scene.start("TestScene");
   }
 }

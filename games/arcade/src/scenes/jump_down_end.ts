@@ -49,12 +49,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     this.addPrefab(rotatingText);
 
     this.input.keyboard.once('keyup-Y', () => {
-      this.scene.start('JumpDownMain');
+      this.scene.start(SCENE_KEYS.JumpDownMain);
     }, this);
-
-    // const saveThis = this;
-    // setTimeout(() => {
-    //   saveThis.scene.stop('CongratsScene');
-    // }, 10000);
   }
 }
