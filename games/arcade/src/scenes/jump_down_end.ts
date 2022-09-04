@@ -9,7 +9,10 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     const statusText = this.add.text(
       CONST.GAME_WIDTH / 2 - 400,
       CONST.GAME_HEIGHT / 2 - 250,
-      `You survived for ${this.lastScore} seconds !!!`,
+      [
+        `You survived for ${this.lastScore} seconds !!!`,
+        'Press "Y" to try again!',
+      ],
       {
         fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
         fontSize: '1.5em',
@@ -20,7 +23,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       });
     statusText.setFontSize(60);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, 350, 'goodjob');
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, statusText.y + 400, 'goodjob');
     congrats.scale = 2;
     this.add.tween({
       targets: congrats,
@@ -31,7 +34,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     });
 
     GLOBAL.bestScores.push(this.lastScore);
-    GLOBAL.bestScores.sort().reverse();
+    GLOBAL.bestScores.sort();
     const scoreTexts: string[] = ['Best scores:'];
     let idx = 0;
     for (const score of GLOBAL.bestScores) {
@@ -39,12 +42,13 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       idx++;
     }
 
-    const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 150, 400, 400);
+    const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 180, 300, 350);
     rotatingText.textArea?.setText(scoreTexts);
     rotatingText.textArea?.setFontSize(40);
     this.addPrefab(rotatingText);
 
-    this.input.keyboard.once('keyup-ONE', function () {
+    this.input.keyboard.once('keyup-Y', () => {
+      this.scene.start('JumpDownMain');
     }, this);
 
     // const saveThis = this;

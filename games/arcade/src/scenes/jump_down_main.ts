@@ -5,7 +5,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // For platform spawn.
   // A new platform will be spawn randomly with this delay.
-  public platformSpawnDelayMin = 2000;
+  public platformSpawnDelayMin = 2500;
   public platformSpawnDelayMax = 5000;
   public platformSpawnLengthFactorMin = 0.1;
   public platformSpawnLengthFactorMax = 2;
@@ -94,7 +94,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     this.add.tween({
       targets: player,
-      scale: 0.7,
+      scale: 0.6,
       duration: 300,
       yoyo: true,
       loop: -1,

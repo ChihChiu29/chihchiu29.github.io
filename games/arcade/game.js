@@ -338,7 +338,10 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         this.lastScore = data.score;
     }
     create() {
-        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, `You survived for ${this.lastScore} seconds !!!`, {
+        const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, [
+            `You survived for ${this.lastScore} seconds !!!`,
+            'Press "Y" to try again!',
+        ], {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
             fontSize: '1.5em',
             color: '#8c085a',
@@ -347,7 +350,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             align: 'center',
         });
         statusText.setFontSize(60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, 350, 'goodjob');
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2 - 200, statusText.y + 400, 'goodjob');
         congrats.scale = 2;
         this.add.tween({
             targets: congrats,
@@ -357,18 +360,19 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             loop: -1,
         });
         GLOBAL.bestScores.push(this.lastScore);
-        GLOBAL.bestScores.sort().reverse();
+        GLOBAL.bestScores.sort();
         const scoreTexts = ['Best scores:'];
         let idx = 0;
         for (const score of GLOBAL.bestScores) {
             scoreTexts.push(`${idx + 1} -- ${score} sec`);
             idx++;
         }
-        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 150, 400, 400);
+        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 180, 300, 350);
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
-        this.input.keyboard.once('keyup-ONE', function () {
+        this.input.keyboard.once('keyup-Y', () => {
+            this.scene.start('JumpDownMain');
         }, this);
         // const saveThis = this;
         // setTimeout(() => {
@@ -382,7 +386,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     playerLeftRightSpeed = 160;
     // For platform spawn.
     // A new platform will be spawn randomly with this delay.
-    platformSpawnDelayMin = 2000;
+    platformSpawnDelayMin = 2500;
     platformSpawnDelayMax = 5000;
     platformSpawnLengthFactorMin = 0.1;
     platformSpawnLengthFactorMax = 2;
@@ -457,7 +461,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         });
         this.add.tween({
             targets: player,
-            scale: 0.7,
+            scale: 0.6,
             duration: 300,
             yoyo: true,
             loop: -1,
