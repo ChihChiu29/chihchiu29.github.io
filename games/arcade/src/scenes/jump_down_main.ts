@@ -18,6 +18,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
 
+  private timer?: Phaser.Time.TimerEvent;
+
   create(): void {
     // this.cameras.main.setViewport(
     //   CONST.GAME_WIDTH / 2,
@@ -34,14 +36,21 @@ class SceneJumpDownMain extends QPhaser.Scene {
     this.startPlatformSpawnActions();
 
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.timer = this.time.addEvent({
+      delay: 3600 * 1000,
+      loop: true,
+      callback: () => { console.log('yes'); }
+    });
   }
 
-  update(time: number, delta: number): void {
+  update(): void {
     if (this.cursors) {
       this.handleInput(this.cursors);
     }
+    const time = this.timer!.getElapsedSeconds();
     if (this.survivalTimeText) {
-      this.survivalTimeText.setText(`${(time / 1000).toFixed(2)}`);
+      this.survivalTimeText.setText(`${time.toFixed(1)}`);
       this.survivalTime = time;
     }
   }
@@ -88,7 +97,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     this.physics.add.overlap(player, this.spikes!, () => {
       this.scene.start('JumpDownEnd', {
-        score: (this.survivalTime / 1000).toFixed(2),
+        score: this.survivalTime,
       });
     });
 
@@ -98,6 +107,22 @@ class SceneJumpDownMain extends QPhaser.Scene {
       duration: 300,
       yoyo: true,
       loop: -1,
+    });
+
+    this.input.keyboard.on('keydown-A', () => {
+      this.player?.setVelocityX(-this.playerLeftRightSpeed);
+      this.player?.setFlipX(false);
+    });
+
+    this.input.keyboard.on('keydown-D', () => {
+      this.player?.setVelocityX(this.playerLeftRightSpeed);
+      this.player?.setFlipX(true);
+    });
+
+    this.input.keyboard.on('keydown-W', () => {
+      if (this.player?.body.touching.down) {
+        this.player?.setVelocityY(-330);
+      }
     });
 
     this.player = player;
@@ -115,6 +140,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         align: 'center',
       });
     statusText.setFontSize(60);
+    statusText.setDepth(CONST.LAYERS.TEXT);
     this.survivalTimeText = statusText;
   }
 
@@ -153,7 +179,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     this.physics.add.collider(this.player!, platform);
     this.physics.add.overlap(platform, this.topBorder!, () => {
-      console.log('destroyed');
       platform.destroy();
     });
 

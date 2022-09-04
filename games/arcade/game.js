@@ -339,7 +339,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
     create() {
         const statusText = this.add.text(CONST.GAME_WIDTH / 2 - 400, CONST.GAME_HEIGHT / 2 - 250, [
-            `You survived for ${this.lastScore} seconds !!!`,
+            `You survived for ${this.lastScore.toFixed(1)} seconds !!!`,
             'Press "Y" to try again!',
         ], {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
@@ -360,14 +360,15 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             loop: -1,
         });
         GLOBAL.bestScores.push(this.lastScore);
-        GLOBAL.bestScores.sort();
+        // Sort without a sorting function somehow gives wired sort-by-string result.
+        GLOBAL.bestScores.sort((a, b) => b - a);
         const scoreTexts = ['Best scores:'];
         let idx = 0;
         for (const score of GLOBAL.bestScores) {
-            scoreTexts.push(`${idx + 1} -- ${score} sec`);
+            scoreTexts.push(`${idx + 1} -- ${score.toFixed(1)} sec`);
             idx++;
         }
-        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 180, 300, 350);
+        const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 140, 300, 300);
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
@@ -396,6 +397,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     survivalTimeText;
     survivalTime = 0;
     cursors;
+    timer;
     create() {
         // this.cameras.main.setViewport(
         //   CONST.GAME_WIDTH / 2,
@@ -409,13 +411,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.timer = this.time.addEvent({
+            delay: 3600 * 1000,
+            loop: true,
+            callback: () => { console.log('yes'); }
+        });
     }
-    update(time, delta) {
+    update() {
         if (this.cursors) {
             this.handleInput(this.cursors);
         }
+        const time = this.timer.getElapsedSeconds();
         if (this.survivalTimeText) {
-            this.survivalTimeText.setText(`${(time / 1000).toFixed(2)}`);
+            this.survivalTimeText.setText(`${time.toFixed(1)}`);
             this.survivalTime = time;
         }
     }
@@ -456,7 +464,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         player.setFrictionX(1);
         this.physics.add.overlap(player, this.spikes, () => {
             this.scene.start('JumpDownEnd', {
-                score: (this.survivalTime / 1000).toFixed(2),
+                score: this.survivalTime,
             });
         });
         this.add.tween({
@@ -465,6 +473,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
             duration: 300,
             yoyo: true,
             loop: -1,
+        });
+        this.input.keyboard.on('keydown-A', () => {
+            this.player?.setVelocityX(-this.playerLeftRightSpeed);
+            this.player?.setFlipX(false);
+        });
+        this.input.keyboard.on('keydown-D', () => {
+            this.player?.setVelocityX(this.playerLeftRightSpeed);
+            this.player?.setFlipX(true);
+        });
+        this.input.keyboard.on('keydown-W', () => {
+            if (this.player?.body.touching.down) {
+                this.player?.setVelocityY(-330);
+            }
         });
         this.player = player;
     }
@@ -478,6 +499,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
             align: 'center',
         });
         statusText.setFontSize(60);
+        statusText.setDepth(CONST.LAYERS.TEXT);
         this.survivalTimeText = statusText;
     }
     startPlatformSpawnActions() {
@@ -504,7 +526,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
         platform.body.allowGravity = false;
         this.physics.add.collider(this.player, platform);
         this.physics.add.overlap(platform, this.topBorder, () => {
-            console.log('destroyed');
             platform.destroy();
         });
         return platform;

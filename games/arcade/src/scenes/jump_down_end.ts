@@ -10,7 +10,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       CONST.GAME_WIDTH / 2 - 400,
       CONST.GAME_HEIGHT / 2 - 250,
       [
-        `You survived for ${this.lastScore} seconds !!!`,
+        `You survived for ${this.lastScore.toFixed(1)} seconds !!!`,
         'Press "Y" to try again!',
       ],
       {
@@ -34,15 +34,16 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     });
 
     GLOBAL.bestScores.push(this.lastScore);
-    GLOBAL.bestScores.sort();
+    // Sort without a sorting function somehow gives wired sort-by-string result.
+    GLOBAL.bestScores.sort((a, b) => b - a);
     const scoreTexts: string[] = ['Best scores:'];
     let idx = 0;
     for (const score of GLOBAL.bestScores) {
-      scoreTexts.push(`${idx + 1} -- ${score} sec`);
+      scoreTexts.push(`${idx + 1} -- ${score.toFixed(1)} sec`);
       idx++;
     }
 
-    const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 180, 300, 350);
+    const rotatingText = new RotatingText(this, congrats.x + 300, congrats.y - 140, 300, 300);
     rotatingText.textArea?.setText(scoreTexts);
     rotatingText.textArea?.setFontSize(40);
     this.addPrefab(rotatingText);
