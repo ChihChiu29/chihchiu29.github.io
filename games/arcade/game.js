@@ -421,7 +421,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
-    platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
+    platformMoveUpSpeed = 0; // initialize in `create`.
     playerLeftRightSpeed = 160;
     playerJumpSpeed = 350;
     playerFallSpeed = 100;
@@ -442,6 +442,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     create() {
         this.createBoundaries();
         this.createPlayer();
+        this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
         this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax)
             .setVelocityY(-this.platformMoveUpSpeed);
         this.createSurvivalTimer();
