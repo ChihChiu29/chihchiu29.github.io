@@ -61,7 +61,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     this.spikes = spikes;
 
-    const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
+    const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, -20, CONST.GAME_WIDTH, 20, 0x6666ff);
     this.physics.add.existing(topBorder, true);
     this.topBorder = topBorder;
   }
