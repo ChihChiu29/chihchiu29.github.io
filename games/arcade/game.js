@@ -59,7 +59,7 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = true;
+const TESTING = false;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
@@ -605,6 +605,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
+    platformMoveLeftRightRandomRange = 10;
+    platformMoveLeftRightSpeedFactor = 30;
     // For platform spawn.
     // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
     platformSpawnDelayFactorMin = 90000;
@@ -695,10 +697,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
-        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpSpeed);
+        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpSpeed, true);
     }
     // Lowest level function to create a platform.
-    createPlatform(x, y, width, moveUpSpeed) {
+    createPlatform(x, y, width, moveUpSpeed, canMove = false) {
+        const platformShouldMove = canMove && Phaser.Math.Between(1, 10) > 6;
+        const platformMoveSpeed = Phaser.Math.Between(-this.platformMoveLeftRightRandomRange, this.platformMoveLeftRightRandomRange)
+            * this.platformMoveLeftRightSpeedFactor;
         const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
         for (let idx = 0; idx < numOfBlocks; idx++) {
             const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
@@ -722,6 +727,16 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 tile.destroy();
             });
             tile.setVelocityY(-moveUpSpeed);
+            if (platformShouldMove) {
+                tile.setVelocityX(platformMoveSpeed);
+                this.add.tween({
+                    targets: tile.body.velocity,
+                    x: -platformMoveSpeed,
+                    duration: 1000,
+                    yoyo: true,
+                    loop: -1,
+                });
+            }
         }
     }
 }

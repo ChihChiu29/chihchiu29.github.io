@@ -4,6 +4,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // Use these parameters to change difficulty.
   public platformMoveUpInitialSpeed = 30;
   public platformMoveUpSpeed = 0;  // initialize in `create`.
+  public platformMoveLeftRightRandomRange = 10;
+  public platformMoveLeftRightSpeedFactor = 30;
 
   // For platform spawn.
   // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
@@ -125,12 +127,20 @@ class SceneJumpDownMain extends QPhaser.Scene {
       Phaser.Math.FloatBetween(
         this.platformSpawnWidthMin, this.platformSpawnWidthMax),
       this.platformMoveUpSpeed,
+      true,
     );
   }
 
   // Lowest level function to create a platform.
   private createPlatform(
-    x: number, y: number, width: number, moveUpSpeed: number): void {
+    x: number, y: number, width: number, moveUpSpeed: number, canMove: boolean = false): void {
+    const platformShouldMove: boolean = canMove && Phaser.Math.Between(1, 10) > 6;
+    const platformMoveSpeed: number =
+      Phaser.Math.Between(
+        -this.platformMoveLeftRightRandomRange,
+        this.platformMoveLeftRightRandomRange)
+      * this.platformMoveLeftRightSpeedFactor;
+
     const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
     for (let idx = 0; idx < numOfBlocks; idx++) {
       const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
@@ -153,6 +163,17 @@ class SceneJumpDownMain extends QPhaser.Scene {
         tile.destroy();
       });
       tile.setVelocityY(-moveUpSpeed);
+
+      if (platformShouldMove) {
+        tile.setVelocityX(platformMoveSpeed);
+        this.add.tween({
+          targets: tile.body.velocity,
+          x: -platformMoveSpeed,
+          duration: 1000,
+          yoyo: true,
+          loop: -1,
+        });
+      }
     }
   }
 }
