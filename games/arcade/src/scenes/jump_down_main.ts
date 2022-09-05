@@ -78,9 +78,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+    // const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
     // A demo that a different type of player can be easily created.
-    // const player = new PlayerDragon(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+    const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared');
     this.addPrefab(player);
 
     player.maybeActOnMainImg((img) => {

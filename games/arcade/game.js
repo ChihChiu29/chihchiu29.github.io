@@ -419,13 +419,17 @@ class ArcadePlatformPlayer extends QPhaser.ArcadePrefab {
         }
     }
 }
-class PlayerDragon extends ArcadePlatformPlayer {
-    HEAD_IMAGE = 'dragon';
+class PlayerSingleSprite extends ArcadePlatformPlayer {
     HEAD_IMAGE_SIZE = 32;
+    imageKey = 'dragon';
+    constructor(scene, x, y, imageKey = 'scared') {
+        super(scene, x, y);
+        this.imageKey = imageKey;
+    }
     init() {
         super.init();
         // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.HEAD_IMAGE);
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
@@ -446,7 +450,7 @@ class PlayerKennyCat extends ArcadePlatformPlayer {
     HEAD_IMAGE_SIZE = 32;
     SPRITESHEET_NAME = 'tile_characters';
     ANIME_RUN = 'PlayerKennyCat_run';
-    ANIME_STOP = 'PlayerKennyCat_run';
+    ANIME_STOP = 'PlayerKennyCat_stop';
     // The sprite for the leg movement.
     legSprite;
     init() {
@@ -661,9 +665,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+        // const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
         // A demo that a different type of player can be easily created.
-        // const player = new PlayerDragon(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared');
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
             this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {

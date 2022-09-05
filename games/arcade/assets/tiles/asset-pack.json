@@ -12,11 +12,6 @@
                 "key": "character_0010"
             },
             {
-                "url": "assets/tiles/character_0017.png",
-                "type": "image",
-                "key": "character_0017"
-            },
-            {
                 "url": "assets/tiles/tile_0000.png",
                 "type": "image",
                 "key": "tile_0000"

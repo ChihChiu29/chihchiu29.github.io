@@ -1,12 +1,20 @@
-class PlayerDragon extends ArcadePlatformPlayer {
-  HEAD_IMAGE = 'dragon';
+class PlayerSingleSprite extends ArcadePlatformPlayer {
   HEAD_IMAGE_SIZE = 32;
+
+  private imageKey = 'dragon';
+
+  constructor(
+    scene: Phaser.Scene, x: number, y: number,
+    imageKey: string = 'scared') {
+    super(scene, x, y);
+    this.imageKey = imageKey;
+  }
 
   override init(): void {
     super.init();
 
     // Head.
-    const headSprite = this.scene.physics.add.sprite(0, 0, this.HEAD_IMAGE);
+    const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
     headSprite.setCollideWorldBounds(true);
     headSprite.setBounce(0);
     headSprite.setFrictionX(1);

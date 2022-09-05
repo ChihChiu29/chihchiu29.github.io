@@ -48,6 +48,19 @@
                 },
                 "type": "spritesheet",
                 "key": "tile_characters"
+            },
+            {
+                "url": "assets/tiles.png",
+                "frameConfig": {
+                    "frameWidth": 21,
+                    "frameHeight": 21,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "tiles"
             }
         ]
     },

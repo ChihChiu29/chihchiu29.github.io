@@ -3,7 +3,7 @@ class PlayerKennyCat extends ArcadePlatformPlayer {
   HEAD_IMAGE_SIZE = 32;
   SPRITESHEET_NAME = 'tile_characters';
   ANIME_RUN = 'PlayerKennyCat_run';
-  ANIME_STOP = 'PlayerKennyCat_run';
+  ANIME_STOP = 'PlayerKennyCat_stop';
 
   // The sprite for the leg movement.
   private legSprite?: Phaser.GameObjects.Sprite;
