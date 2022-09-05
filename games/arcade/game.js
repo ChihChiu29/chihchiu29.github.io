@@ -364,12 +364,18 @@ class PlayerKennyCat extends QPhaser.ArcadePrefab {
     SPRITESHEET_NAME = 'tile_characters';
     ANIME_RUN = 'PlayerKennyCat_run';
     ANIME_STOP = 'PlayerKennyCat_run';
+    TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
+    TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
+    playerLeftRightSpeed = 160;
+    playerJumpSpeed = 350;
+    playerFallSpeed = 100;
     // The sprite for the leg movement.
     legSprite;
+    keys = {};
     init() {
         // Leg.
         const legSprite = this.scene.add.sprite(0, 0, this.SPRITESHEET_NAME);
-        legSprite.setSize(32, 32);
+        legSprite.setSize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
         this.add(legSprite);
         this.scene.anims.create({
             key: this.ANIME_RUN,
@@ -390,11 +396,12 @@ class PlayerKennyCat extends QPhaser.ArcadePrefab {
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
+        // First change the physics body by raw size.
         headSprite.setSize(headSprite.width, headSprite.height * 1.3);
-        headSprite.setOffset(0, 24);
-        // headSprite.setSize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE + 20);
+        // Then change the display size and body size.
         headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
-        console.log(headSprite.body);
+        // Shifts body down a bit to cover the leg.
+        headSprite.setOffset(0, 16);
         this.setMainImage(headSprite);
         this.addInfiniteTween({
             targets: headSprite,
@@ -404,12 +411,56 @@ class PlayerKennyCat extends QPhaser.ArcadePrefab {
             yoyo: true,
             loop: -1,
         });
+        // Input.
+        this.keys = QUI.createKeyMap(this.scene);
+        this.scene.input.addPointer(3); // needs at most 3 touch points (most 2 are valid).
     }
     update(time, delta) {
         this.maybeActOnMainImg((img) => {
+            this.handleInput(img);
             this.legSprite.x = img.x;
             this.legSprite.y = img.y + 12;
         });
+    }
+    handleInput(img) {
+        // First get user intention.
+        // Keyboard based control.
+        let moveLeft = this.keys.A.isDown;
+        let moveRight = this.keys.D.isDown;
+        let moveUp = this.keys.W.isDown;
+        // Touch screen based control.
+        for (const ptr of [
+            this.scene.input.pointer1,
+            this.scene.input.pointer2,
+            this.scene.input.pointer3,
+            this.scene.input.pointer4
+        ]) {
+            if (ptr.isDown) {
+                if (ptr.downX < this.TOUCH_LEFT_BOUNDARY) {
+                    moveLeft = true;
+                }
+                if (ptr.downX > this.TOUCH_RIGHT_BOUNDARY) {
+                    moveRight = true;
+                }
+                if (this.TOUCH_LEFT_BOUNDARY <= ptr.downX && this.TOUCH_RIGHT_BOUNDARY >= ptr.downX) {
+                    moveUp = true;
+                }
+            }
+        }
+        if (moveLeft) {
+            img.setVelocityX(-this.playerLeftRightSpeed);
+            img.setFlipX(false);
+        }
+        else if (moveRight) {
+            img.setVelocityX(this.playerLeftRightSpeed);
+            img.setFlipX(true);
+        }
+        else {
+            img.setVelocityX(0);
+        }
+        if (moveUp && img.body.touching.down) {
+            img.setVelocityY(-this.playerJumpSpeed);
+        }
     }
 }
 // An area showing rotating texts.
@@ -515,28 +566,20 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
-    TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
-    TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
-    playerLeftRightSpeed = 160;
-    playerJumpSpeed = 350;
-    playerFallSpeed = 100;
     // For platform spawn.
     // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
     platformSpawnDelayFactorMin = 90000;
     platformSpawnDelayFactorMax = 150000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
     platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
-    newPlayer;
     player;
     spikes;
     topBorder;
     survivalTimeText;
     survivalTime = 0;
-    cursors;
-    keys = {};
     timer;
     create() {
         this.createBoundaries();
@@ -546,9 +589,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
             .setVelocityY(-this.platformMoveUpSpeed);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.keys = QUI.createKeyMap(this);
-        this.input.addPointer(3); // needs at most 3 touch points (most 2 are valid).
         this.timer = this.time.addEvent({
             delay: 3600 * 1000,
             loop: true,
@@ -556,9 +596,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     update(totalTime, delta) {
         super.update(totalTime, delta);
-        if (this.cursors) {
-            this.handleInput(this.cursors);
-        }
         const time = this.timer.getElapsedSeconds();
         if (this.survivalTimeText) {
             this.survivalTimeText.setText(`${time.toFixed(1)}`);
@@ -591,24 +628,14 @@ class SceneJumpDownMain extends QPhaser.Scene {
     createPlayer() {
         const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
         this.addPrefab(player);
-        this.physics.add.overlap(player, this.spikes, () => {
-            this.scene.start(SCENE_KEYS.JumpDownEnd, {
-                score: this.survivalTime,
+        player.maybeActOnMainImg((img) => {
+            this.physics.add.overlap(img, this.spikes, () => {
+                this.scene.start(SCENE_KEYS.JumpDownEnd, {
+                    score: this.survivalTime,
+                });
             });
         });
-        this.newPlayer = player;
-        const player1 = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
-        // player.setScale(0.5, 0.5);
-        player1.setDisplaySize(60, 60);
-        player1.setCollideWorldBounds(true);
-        player1.setBounce(0);
-        player1.setFrictionX(1);
-        this.physics.add.overlap(player1, this.spikes, () => {
-            this.scene.start(SCENE_KEYS.JumpDownEnd, {
-                score: this.survivalTime,
-            });
-        });
-        this.player = player1;
+        this.player = player;
     }
     createSurvivalTimer() {
         const statusText = this.add.text(20, 100, 'Good luck!', {
@@ -645,50 +672,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
         // Use setImmovable instead setPushable so it can give friction on player.
         platform.setImmovable(true);
         platform.body.allowGravity = false;
-        this.physics.add.collider(this.player, platform);
-        this.newPlayer?.maybeActOnMainImg((img) => {
+        this.player?.maybeActOnMainImg((img) => {
             this.physics.add.collider(img, platform);
         });
         this.physics.add.overlap(platform, this.topBorder, () => {
             platform.destroy();
         });
         return platform;
-    }
-    handleInput(cursors) {
-        const ptr = this.input.activePointer;
-        // First get user intention.
-        // Keyboard based control.
-        let moveLeft = this.keys.A.isDown || cursors.left.isDown;
-        let moveRight = this.keys.D.isDown || cursors.right.isDown;
-        let moveUp = this.keys.W.isDown || cursors.up.isDown;
-        // Touch screen based control.
-        for (const ptr of [this.input.pointer1, this.input.pointer2]) {
-            if (ptr.isDown) {
-                if (ptr.downX < this.TOUCH_LEFT_BOUNDARY) {
-                    moveLeft = true;
-                }
-                if (ptr.downX > this.TOUCH_RIGHT_BOUNDARY) {
-                    moveRight = true;
-                }
-                if (this.TOUCH_LEFT_BOUNDARY <= ptr.downX && this.TOUCH_RIGHT_BOUNDARY >= ptr.downX) {
-                    moveUp = true;
-                }
-            }
-        }
-        if (moveLeft) {
-            this.player?.setVelocityX(-this.playerLeftRightSpeed);
-            this.player?.setFlipX(false);
-        }
-        else if (moveRight) {
-            this.player?.setVelocityX(this.playerLeftRightSpeed);
-            this.player?.setFlipX(true);
-        }
-        else {
-            this.player?.setVelocityX(0);
-        }
-        if (moveUp && this.player?.body.touching.down) {
-            this.player?.setVelocityY(-this.playerJumpSpeed);
-        }
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {
