@@ -65,7 +65,7 @@ const SCENE_KEYS = {
     JumpDownMain: 'JumpDownMain',
     JumpDownEnd: 'JumpDownEnd',
 };
-const GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+const GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
