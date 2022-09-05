@@ -17,6 +17,11 @@
                 "key": "goodjob"
             },
             {
+                "url": "assets/pineapplecat.png",
+                "type": "image",
+                "key": "pineapplecat"
+            },
+            {
                 "url": "assets/platform.png",
                 "type": "image",
                 "key": "platform"

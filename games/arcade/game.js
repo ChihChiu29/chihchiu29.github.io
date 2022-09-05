@@ -618,6 +618,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     survivalTimeText;
     survivalTime = 0;
     timer;
+    // Last SetTimeout ID for spawning platform.
+    lastSpawnPlatformTimeout = 0;
     create() {
         this.createBoundaries();
         this.createPlayer();
@@ -665,15 +667,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
             this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {
-                this.scene.start(SCENE_KEYS.JumpDownEnd, {
-                    score: this.survivalTime,
-                });
+                this.gotoEndGame();
             });
         });
         this.player = player;
     }
     createSurvivalTimer() {
-        const statusText = this.add.text(20, 100, 'Good luck!', {
+        const statusText = this.add.text(20, 10, 'Good luck!', {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
             fontSize: '1.5em',
             color: '#8c085a',
@@ -686,12 +686,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.survivalTimeText = statusText;
     }
     startPlatformSpawnActions() {
-        const saveThis = this;
-        setTimeout(function () {
-            if (saveThis.scene.manager.isActive(saveThis)) {
-                saveThis.spawnPlatform();
-                saveThis.startPlatformSpawnActions();
-            }
+        this.lastSpawnPlatformTimeout = setTimeout(() => {
+            this.spawnPlatform();
+            this.startPlatformSpawnActions();
         }, Phaser.Math.FloatBetween(this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed, this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
@@ -737,6 +734,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 });
             }
         }
+    }
+    gotoEndGame() {
+        clearTimeout(this.lastSpawnPlatformTimeout);
+        this.scene.start(SCENE_KEYS.JumpDownEnd, {
+            score: this.survivalTime,
+        });
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {

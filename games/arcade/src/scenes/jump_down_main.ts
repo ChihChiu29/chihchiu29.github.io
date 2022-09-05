@@ -22,6 +22,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   private timer?: Phaser.Time.TimerEvent;
 
+  // Last SetTimeout ID for spawning platform.
+  private lastSpawnPlatformTimeout = 0;
+
   create(): void {
     this.createBoundaries();
     this.createPlayer();
@@ -82,9 +85,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     player.maybeActOnMainImg((img) => {
       this.physics.add.overlap(img, [this.topBorder!, this.bottomBorder!], () => {
-        this.scene.start(SCENE_KEYS.JumpDownEnd, {
-          score: this.survivalTime,
-        });
+        this.gotoEndGame();
       });
     });
 
@@ -93,7 +94,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   private createSurvivalTimer() {
     const statusText = this.add.text(
-      20, 100, 'Good luck!',
+      20, 10, 'Good luck!',
       {
         fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
         fontSize: '1.5em',
@@ -108,12 +109,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   private startPlatformSpawnActions() {
-    const saveThis = this;
-    setTimeout(function () {
-      if (saveThis.scene.manager.isActive(saveThis)) {
-        saveThis.spawnPlatform();
-        saveThis.startPlatformSpawnActions();
-      }
+    this.lastSpawnPlatformTimeout = setTimeout(() => {
+      this.spawnPlatform();
+      this.startPlatformSpawnActions();
     }, Phaser.Math.FloatBetween(
       this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed,
       this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
@@ -175,5 +173,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
         });
       }
     }
+  }
+
+  private gotoEndGame() {
+    clearTimeout(this.lastSpawnPlatformTimeout);
+    this.scene.start(SCENE_KEYS.JumpDownEnd, {
+      score: this.survivalTime,
+    });
   }
 }
