@@ -601,6 +601,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
+    PLATFORM_BLOCK_SPRITE_SIZE = 18;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
@@ -620,8 +621,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createBoundaries();
         this.createPlayer();
         this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax)
-            .setVelocityY(-this.platformMoveUpSpeed);
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpSpeed);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
         this.timer = this.time.addEvent({
@@ -698,24 +698,34 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
-        const platform = this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax));
-        platform.setVelocityY(-this.platformMoveUpSpeed);
-        return platform;
+        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpSpeed);
     }
     // Lowest level function to create a platform.
-    createPlatform(x, y, width) {
-        const platform = this.physics.add.image(x, y, 'platform');
-        platform.setDisplaySize(width, 20);
-        // Use setImmovable instead setPushable so it can give friction on player.
-        platform.setImmovable(true);
-        platform.body.allowGravity = false;
-        this.player?.maybeActOnMainImg((img) => {
-            this.physics.add.collider(img, platform);
-        });
-        this.physics.add.overlap(platform, this.topBorder, () => {
-            platform.destroy();
-        });
-        return platform;
+    createPlatform(x, y, width, moveUpSpeed) {
+        const numOfBlocks = Math.floor(width / this.PLATFORM_BLOCK_SPRITE_SIZE);
+        for (let idx = 0; idx < numOfBlocks; idx++) {
+            const blockX = x + (-numOfBlocks / 2 + idx) * this.PLATFORM_BLOCK_SPRITE_SIZE;
+            let platform;
+            if (idx == 0) {
+                platform = this.physics.add.image(blockX, y, 'tile_0001');
+            }
+            else if (idx == numOfBlocks - 1) {
+                platform = this.physics.add.image(blockX, y, 'tile_0003');
+            }
+            else {
+                platform = this.physics.add.image(blockX, y, 'tile_0002');
+            }
+            // Use setImmovable instead setPushable so it can give friction on player.
+            platform.setImmovable(true);
+            platform.body.allowGravity = false;
+            this.player?.maybeActOnMainImg((img) => {
+                this.physics.add.collider(img, platform);
+            });
+            this.physics.add.overlap(platform, this.topBorder, () => {
+                platform.destroy();
+            });
+            platform.setVelocityY(-moveUpSpeed);
+        }
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {
