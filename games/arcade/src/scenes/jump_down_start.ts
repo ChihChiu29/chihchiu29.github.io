@@ -20,7 +20,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
       loop: -1,
     });
 
-    QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
+    QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
       this.startNewGame();
     });
 

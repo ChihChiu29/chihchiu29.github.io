@@ -1,5 +1,5 @@
 class SceneJumpDownMain extends QPhaser.Scene {
-  PLATFORM_BLOCK_SPRITE_SIZE = 18;
+  BLOCK_SPRITE_SIZE = 18;
 
   // Use these parameters to change difficulty.
   public platformMoveUpInitialSpeed = 30;
@@ -50,20 +50,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   private createBoundaries() {
     const spikes = this.physics.add.staticGroup();
-    const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
-    // This makes the collision box to be shorter than the spike:
-    //  - setDisplaySize changes collision box and the image
-    //  - setSize only changes the collsion box
-    //  - setSize needs to called first otherwise that causes a shift in X somehow.
-    top.setSize(CONST.GAME_WIDTH, 120);
-    top.setDisplaySize(CONST.GAME_WIDTH, 180);
-    top.setDepth(CONST.LAYERS.FRONT);
-    const bottom = spikes.create(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT, 'spike');
-    bottom.setFlipY(true);
-    bottom.setSize(CONST.GAME_WIDTH, 120);
-    bottom.setDisplaySize(CONST.GAME_WIDTH, 180);
-
-    spikes.setDepth(CONST.LAYERS.FRONT);
+    const halfSpriteSize = this.BLOCK_SPRITE_SIZE / 2;
+    for (let spikeIdx = 0; spikeIdx <= CONST.GAME_WIDTH / this.BLOCK_SPRITE_SIZE; spikeIdx++) {
+      const x = spikeIdx * this.BLOCK_SPRITE_SIZE;
+      const top = spikes.create(x, halfSpriteSize, 'tile_0068');
+      top.setDepth(CONST.LAYERS.FRONT);
+      top.setFlipY(true);
+      const bottom = spikes.create(x, CONST.GAME_HEIGHT - halfSpriteSize, 'tile_0068');
+      bottom.setDepth(CONST.LAYERS.FRONT);
+    }
     this.spikes = spikes;
 
     const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
@@ -131,9 +126,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // Lowest level function to create a platform.
   private createPlatform(
     x: number, y: number, width: number, moveUpSpeed: number): void {
-    const numOfBlocks = Math.floor(width / this.PLATFORM_BLOCK_SPRITE_SIZE);
+    const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
     for (let idx = 0; idx < numOfBlocks; idx++) {
-      const blockX = x + (-numOfBlocks / 2 + idx) * this.PLATFORM_BLOCK_SPRITE_SIZE;
+      const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
       let platform: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
       if (idx == 0) {
         platform = this.physics.add.image(blockX, y, 'tile_0001');

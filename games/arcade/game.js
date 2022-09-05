@@ -59,13 +59,13 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = true;
+const TESTING = false;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
     JumpDownEnd: 'JumpDownEnd',
 };
-const GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+const GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
@@ -592,7 +592,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(40);
         this.addPrefab(rotatingText);
-        QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, rotatingText.textArea.y + 250, () => {
+        QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
         });
         this.input.keyboard.once('keyup-ENTER', () => {
@@ -601,7 +601,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
-    PLATFORM_BLOCK_SPRITE_SIZE = 18;
+    BLOCK_SPRITE_SIZE = 18;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
@@ -641,19 +641,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     createBoundaries() {
         const spikes = this.physics.add.staticGroup();
-        const top = spikes.create(CONST.GAME_WIDTH / 2, 0, 'spike');
-        // This makes the collision box to be shorter than the spike:
-        //  - setDisplaySize changes collision box and the image
-        //  - setSize only changes the collsion box
-        //  - setSize needs to called first otherwise that causes a shift in X somehow.
-        top.setSize(CONST.GAME_WIDTH, 120);
-        top.setDisplaySize(CONST.GAME_WIDTH, 180);
-        top.setDepth(CONST.LAYERS.FRONT);
-        const bottom = spikes.create(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT, 'spike');
-        bottom.setFlipY(true);
-        bottom.setSize(CONST.GAME_WIDTH, 120);
-        bottom.setDisplaySize(CONST.GAME_WIDTH, 180);
-        spikes.setDepth(CONST.LAYERS.FRONT);
+        const halfSpriteSize = this.BLOCK_SPRITE_SIZE / 2;
+        for (let spikeIdx = 0; spikeIdx <= CONST.GAME_WIDTH / this.BLOCK_SPRITE_SIZE; spikeIdx++) {
+            const x = spikeIdx * this.BLOCK_SPRITE_SIZE;
+            const top = spikes.create(x, halfSpriteSize, 'tile_0068');
+            top.setDepth(CONST.LAYERS.FRONT);
+            top.setFlipY(true);
+            const bottom = spikes.create(x, CONST.GAME_HEIGHT - halfSpriteSize, 'tile_0068');
+            bottom.setDepth(CONST.LAYERS.FRONT);
+        }
         this.spikes = spikes;
         const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 0, CONST.GAME_WIDTH, 20, 0x6666ff);
         this.physics.add.existing(topBorder, true);
@@ -702,9 +698,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Lowest level function to create a platform.
     createPlatform(x, y, width, moveUpSpeed) {
-        const numOfBlocks = Math.floor(width / this.PLATFORM_BLOCK_SPRITE_SIZE);
+        const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
         for (let idx = 0; idx < numOfBlocks; idx++) {
-            const blockX = x + (-numOfBlocks / 2 + idx) * this.PLATFORM_BLOCK_SPRITE_SIZE;
+            const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
             let platform;
             if (idx == 0) {
                 platform = this.physics.add.image(blockX, y, 'tile_0001');
@@ -745,7 +741,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
             yoyo: true,
             loop: -1,
         });
-        QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, congrats.y + 200, () => {
+        QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
             this.startNewGame();
         });
         this.input.keyboard.once('keyup-ENTER', () => {

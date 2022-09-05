@@ -1,4 +1,4 @@
-const TESTING: boolean = true;
+const TESTING: boolean = false;
 
 const SCENE_KEYS = {
   JumpDownStart: 'JumpDownStart',
@@ -6,4 +6,4 @@ const SCENE_KEYS = {
   JumpDownEnd: 'JumpDownEnd',
 }
 
-const GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+const GAME_CHOICE = SCENE_KEYS.JumpDownStart;
