@@ -1,12 +1,11 @@
 // My enhancement on top of native Phaser objects.
 namespace QPhaser {
-
-  // Make it easier to maintain object container.
+  // Also make it easier to use infinite tween etc.
   export class Prefab extends Phaser.GameObjects.Container {
     // Manages infinite tweens on objects in this container.
     private tweens: Phaser.Tweens.Tween[] = [];
 
-    // Called when added to scene, use `Scene` object and you don't need to explicitly call this.
+    // Called when added to scene, use `QPhaser.Scene` object and you don't need to explicitly call this.
     // @Abstract
     init(): void { }
 
@@ -29,6 +28,53 @@ namespace QPhaser {
         t.remove();
       }
       super.destroy();
+    }
+  }
+
+  // Wrapper extending a single `Arcade.Sprite` object with common accessor for it.
+  // Do not use this object's position etc., use the wrapped image directly.
+  // For any other elements other than mainImg, remember to:
+  //  - add them use `this.scene.add`, do not add other physics objects.
+  //  - add them to container using `this.add`.
+  //  - manually update them using mainImg as the only reference in `update`.
+  export class ArcadePrefab extends Prefab {
+    // The actual physical object.
+    private mainImg?: Phaser.Physics.Arcade.Sprite;
+
+    protected mainImgInitialX = 0;
+    protected mainImgInitialY = 0;
+
+    constructor(scene: Phaser.Scene, x: number, y: number) {
+      // Always use world coordinates.
+      super(scene, 0, 0);
+      this.mainImgInitialX = x;
+      this.mainImgInitialY = y;
+    }
+
+    // Sets the main image, also sets it position to initial (x, y).
+    setMainImage(img: Phaser.Physics.Arcade.Sprite) {
+      img.x = this.mainImgInitialX;
+      img.y = this.mainImgInitialY;
+      this.mainImg = img;
+      this.add(img);
+    }
+
+    // Calls action if `mainImg` is valid, otherwise it's an no-op.
+    maybeActOnMainImg(action: (mainImg: Phaser.Physics.Arcade.Sprite) => void): void {
+      const img = this.getMainImg();
+      if (img) {
+        action(img);
+      }
+    }
+
+    // You can set mainImage directly using the property; but use this function to read it.
+    private getMainImg(): Phaser.Physics.Arcade.Sprite | undefined {
+      if (!this.mainImg) {
+        return undefined;
+      } else if (!this.mainImg.active) {
+        return undefined;
+      }
+      return this.mainImg;
     }
   }
 

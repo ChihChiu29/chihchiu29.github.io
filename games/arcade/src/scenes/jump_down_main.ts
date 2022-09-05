@@ -16,6 +16,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
   public platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
 
+  private newPlayer?: QPhaser.ArcadePrefab;
   private player?: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
   private spikes?: Phaser.Physics.Arcade.StaticGroup;
   private topBorder?: Phaser.GameObjects.Rectangle;
@@ -48,7 +49,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     });
   }
 
-  update(): void {
+  update(totalTime: number, delta: number): void {
+    super.update(totalTime, delta);
     if (this.cursors) {
       this.handleInput(this.cursors);
     }
@@ -86,12 +88,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    const player = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
-    // player.setScale(0.5, 0.5);
-    player.setDisplaySize(60, 60);
-    player.setCollideWorldBounds(true);
-    player.setBounce(0);
-    player.setFrictionX(1);
+    const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+    this.addPrefab(player);
 
     this.physics.add.overlap(player, this.spikes!, () => {
       this.scene.start(SCENE_KEYS.JumpDownEnd, {
@@ -99,7 +97,22 @@ class SceneJumpDownMain extends QPhaser.Scene {
       });
     });
 
-    this.player = player;
+    this.newPlayer = player;
+
+    const player1 = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
+    // player.setScale(0.5, 0.5);
+    player1.setDisplaySize(60, 60);
+    player1.setCollideWorldBounds(true);
+    player1.setBounce(0);
+    player1.setFrictionX(1);
+
+    this.physics.add.overlap(player1, this.spikes!, () => {
+      this.scene.start(SCENE_KEYS.JumpDownEnd, {
+        score: this.survivalTime,
+      });
+    });
+
+    this.player = player1;
   }
 
   private createSurvivalTimer() {
@@ -153,6 +166,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
     platform.body.allowGravity = false;
 
     this.physics.add.collider(this.player!, platform);
+    this.newPlayer?.maybeActOnMainImg((img) => {
+      this.physics.add.collider(img, platform);
+    });
     this.physics.add.overlap(platform, this.topBorder!, () => {
       platform.destroy();
     });

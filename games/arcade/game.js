@@ -59,13 +59,13 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = false;
+const TESTING = true;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
     JumpDownEnd: 'JumpDownEnd',
 };
-const GAME_CHOICE = 'JumpDownStart';
+const GAME_CHOICE = SCENE_KEYS.JumpDownMain;
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
@@ -74,11 +74,11 @@ var GLOBAL;
 // My enhancement on top of native Phaser objects.
 var QPhaser;
 (function (QPhaser) {
-    // Make it easier to maintain object container.
+    // Also make it easier to use infinite tween etc.
     class Prefab extends Phaser.GameObjects.Container {
         // Manages infinite tweens on objects in this container.
         tweens = [];
-        // Called when added to scene, use `Scene` object and you don't need to explicitly call this.
+        // Called when added to scene, use `QPhaser.Scene` object and you don't need to explicitly call this.
         // @Abstract
         init() { }
         // Update method, use the `Scene` object from this file and you don't need to explicitly call this.
@@ -102,6 +102,49 @@ var QPhaser;
         }
     }
     QPhaser.Prefab = Prefab;
+    // Wrapper extending a single `Arcade.Sprite` object with common accessor for it.
+    // Do not use this object's position etc., use the wrapped image directly.
+    // For any other elements other than mainImg, remember to:
+    //  - add them use `this.scene.add`, do not add other physics objects.
+    //  - add them to container using `this.add`.
+    //  - manually update them using mainImg as the only reference in `update`.
+    class ArcadePrefab extends Prefab {
+        // The actual physical object.
+        mainImg;
+        mainImgInitialX = 0;
+        mainImgInitialY = 0;
+        constructor(scene, x, y) {
+            // Always use world coordinates.
+            super(scene, 0, 0);
+            this.mainImgInitialX = x;
+            this.mainImgInitialY = y;
+        }
+        // Sets the main image, also sets it position to initial (x, y).
+        setMainImage(img) {
+            img.x = this.mainImgInitialX;
+            img.y = this.mainImgInitialY;
+            this.mainImg = img;
+            this.add(img);
+        }
+        // Calls action if `mainImg` is valid, otherwise it's an no-op.
+        maybeActOnMainImg(action) {
+            const img = this.getMainImg();
+            if (img) {
+                action(img);
+            }
+        }
+        // You can set mainImage directly using the property; but use this function to read it.
+        getMainImg() {
+            if (!this.mainImg) {
+                return undefined;
+            }
+            else if (!this.mainImg.active) {
+                return undefined;
+            }
+            return this.mainImg;
+        }
+    }
+    QPhaser.ArcadePrefab = ArcadePrefab;
     // Make it easy for a scene to use `QPrefab`s.
     // Use `addPrefab` instead of `add.existing` when adding new `QPrefab` objects.
     class Scene extends Phaser.Scene {
@@ -315,6 +358,60 @@ class ChatPopup extends Phaser.GameObjects.Container {
         this.text.setColor('#037bfc');
     }
 }
+class PlayerKennyCat extends QPhaser.ArcadePrefab {
+    HEAD_IMAGE = 'scared';
+    HEAD_IMAGE_SIZE = 32;
+    SPRITESHEET_NAME = 'tile_characters';
+    ANIME_RUN = 'PlayerKennyCat_run';
+    ANIME_STOP = 'PlayerKennyCat_run';
+    // The sprite for the leg movement.
+    legSprite;
+    init() {
+        // Leg.
+        const legSprite = this.scene.add.sprite(0, 0, this.SPRITESHEET_NAME);
+        legSprite.setSize(32, 32);
+        this.add(legSprite);
+        this.scene.anims.create({
+            key: this.ANIME_RUN,
+            frames: this.scene.anims.generateFrameNumbers(this.SPRITESHEET_NAME, { start: 6, end: 7 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.scene.anims.create({
+            key: this.ANIME_STOP,
+            frames: [{ key: this.SPRITESHEET_NAME, frame: 4 }],
+            frameRate: 10,
+            repeat: -1
+        });
+        legSprite.anims.play(this.ANIME_RUN, true);
+        this.legSprite = legSprite;
+        // Head.
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.HEAD_IMAGE);
+        headSprite.setCollideWorldBounds(true);
+        headSprite.setBounce(0);
+        headSprite.setFrictionX(1);
+        headSprite.setSize(headSprite.width, headSprite.height * 1.3);
+        headSprite.setOffset(0, 24);
+        // headSprite.setSize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE + 20);
+        headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
+        console.log(headSprite.body);
+        this.setMainImage(headSprite);
+        this.addInfiniteTween({
+            targets: headSprite,
+            displayWidth: this.HEAD_IMAGE_SIZE * 1.05,
+            displayHeight: this.HEAD_IMAGE_SIZE * 1.05,
+            duration: 200,
+            yoyo: true,
+            loop: -1,
+        });
+    }
+    update(time, delta) {
+        this.maybeActOnMainImg((img) => {
+            this.legSprite.x = img.x;
+            this.legSprite.y = img.y + 12;
+        });
+    }
+}
 // An area showing rotating texts.
 class RotatingText extends QPhaser.Prefab {
     rotationSpeedX = 0; // per sec, leftwards
@@ -369,7 +466,8 @@ class RotatingText extends QPhaser.Prefab {
 }
 class StartScene extends Phaser.Scene {
     preload() {
-        this.load.pack('avatars-special', 'assets/asset-pack.json');
+        this.load.pack('root', 'assets/asset-pack.json');
+        this.load.pack('tiles', 'assets/tiles/asset-pack.json');
     }
     create() {
         this.scene.start(GAME_CHOICE);
@@ -431,6 +529,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     platformSpawnDelayFactorMax = 150000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
     platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
+    newPlayer;
     player;
     spikes;
     topBorder;
@@ -455,7 +554,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
             loop: true,
         });
     }
-    update() {
+    update(totalTime, delta) {
+        super.update(totalTime, delta);
         if (this.cursors) {
             this.handleInput(this.cursors);
         }
@@ -489,18 +589,26 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        const player = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
-        // player.setScale(0.5, 0.5);
-        player.setDisplaySize(60, 60);
-        player.setCollideWorldBounds(true);
-        player.setBounce(0);
-        player.setFrictionX(1);
+        const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
+        this.addPrefab(player);
         this.physics.add.overlap(player, this.spikes, () => {
             this.scene.start(SCENE_KEYS.JumpDownEnd, {
                 score: this.survivalTime,
             });
         });
-        this.player = player;
+        this.newPlayer = player;
+        const player1 = this.physics.add.image(CONST.GAME_WIDTH / 2, 200, 'scared');
+        // player.setScale(0.5, 0.5);
+        player1.setDisplaySize(60, 60);
+        player1.setCollideWorldBounds(true);
+        player1.setBounce(0);
+        player1.setFrictionX(1);
+        this.physics.add.overlap(player1, this.spikes, () => {
+            this.scene.start(SCENE_KEYS.JumpDownEnd, {
+                score: this.survivalTime,
+            });
+        });
+        this.player = player1;
     }
     createSurvivalTimer() {
         const statusText = this.add.text(20, 100, 'Good luck!', {
@@ -538,6 +646,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
         platform.setImmovable(true);
         platform.body.allowGravity = false;
         this.physics.add.collider(this.player, platform);
+        this.newPlayer?.maybeActOnMainImg((img) => {
+            this.physics.add.collider(img, platform);
+        });
         this.physics.add.overlap(platform, this.topBorder, () => {
             platform.destroy();
         });
