@@ -59,13 +59,13 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = false;
+const TESTING = true;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
     JumpDownEnd: 'JumpDownEnd',
 };
-const GAME_CHOICE = SCENE_KEYS.JumpDownStart;
+const GAME_CHOICE = SCENE_KEYS.JumpDownMain;
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
@@ -612,8 +612,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
     platformSpawnWidthMax = CONST.GAME_WIDTH / 2;
     player;
-    spikes;
     topBorder;
+    bottomBorder;
     survivalTimeText;
     survivalTime = 0;
     timer;
@@ -640,20 +640,21 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed + time * 0.8;
     }
     createBoundaries() {
-        const spikes = this.physics.add.staticGroup();
         const halfSpriteSize = this.BLOCK_SPRITE_SIZE / 2;
         for (let spikeIdx = 0; spikeIdx <= CONST.GAME_WIDTH / this.BLOCK_SPRITE_SIZE; spikeIdx++) {
             const x = spikeIdx * this.BLOCK_SPRITE_SIZE;
-            const top = spikes.create(x, halfSpriteSize, 'tile_0068');
+            const top = this.add.image(x, halfSpriteSize, 'tile_0068');
             top.setDepth(CONST.LAYERS.FRONT);
             top.setFlipY(true);
-            const bottom = spikes.create(x, CONST.GAME_HEIGHT - halfSpriteSize, 'tile_0068');
+            const bottom = this.add.image(x, CONST.GAME_HEIGHT - halfSpriteSize, 'tile_0068');
             bottom.setDepth(CONST.LAYERS.FRONT);
         }
-        this.spikes = spikes;
-        const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, -20, CONST.GAME_WIDTH, 20, 0x6666ff);
+        const topBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, 5, CONST.GAME_WIDTH, 10);
         this.physics.add.existing(topBorder, true);
         this.topBorder = topBorder;
+        const bottomBorder = this.add.rectangle(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 5, CONST.GAME_WIDTH, 10);
+        this.physics.add.existing(bottomBorder, true);
+        this.bottomBorder = bottomBorder;
     }
     // Needs to be called after createSpikes.
     createPlayer() {
@@ -662,7 +663,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         // const player = new PlayerDragon(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
-            this.physics.add.overlap(img, this.spikes, () => {
+            this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {
                 this.scene.start(SCENE_KEYS.JumpDownEnd, {
                     score: this.survivalTime,
                 });
@@ -701,26 +702,26 @@ class SceneJumpDownMain extends QPhaser.Scene {
         const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
         for (let idx = 0; idx < numOfBlocks; idx++) {
             const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
-            let platform;
+            let tile;
             if (idx == 0) {
-                platform = this.physics.add.image(blockX, y, 'tile_0001');
+                tile = this.physics.add.image(blockX, y, 'tile_0001');
             }
             else if (idx == numOfBlocks - 1) {
-                platform = this.physics.add.image(blockX, y, 'tile_0003');
+                tile = this.physics.add.image(blockX, y, 'tile_0003');
             }
             else {
-                platform = this.physics.add.image(blockX, y, 'tile_0002');
+                tile = this.physics.add.image(blockX, y, 'tile_0002');
             }
             // Use setImmovable instead setPushable so it can give friction on player.
-            platform.setImmovable(true);
-            platform.body.allowGravity = false;
+            tile.setImmovable(true);
+            tile.body.allowGravity = false;
             this.player?.maybeActOnMainImg((img) => {
-                this.physics.add.collider(img, platform);
+                this.physics.add.collider(img, tile);
             });
-            this.physics.add.overlap(platform, this.topBorder, () => {
-                platform.destroy();
+            this.physics.add.overlap(tile, this.topBorder, () => {
+                tile.destroy();
             });
-            platform.setVelocityY(-moveUpSpeed);
+            tile.setVelocityY(-moveUpSpeed);
         }
     }
 }
