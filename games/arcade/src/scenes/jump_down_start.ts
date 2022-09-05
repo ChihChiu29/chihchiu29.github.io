@@ -7,10 +7,10 @@ class SceneJumpDownStart extends QPhaser.Scene {
         'Cato Survival',
         'Minigame!',
       ],
-      CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
+      CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 300, 'fight');
-    congrats.setDisplaySize(250, 250);
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
+    congrats.setDisplaySize(200, 200);
     congrats.setAngle(-20);
     this.add.tween({
       targets: congrats,

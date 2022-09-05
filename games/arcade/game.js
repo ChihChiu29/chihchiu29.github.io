@@ -18,7 +18,7 @@ window.addEventListener('load', function () {
         transparent: true,
         scale: {
             mode: Phaser.Scale.FIT,
-            autoCenter: Phaser.Scale.CENTER_BOTH
+            autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
         }
     });
     game.scene.add('Boot', Boot, true);
@@ -37,7 +37,7 @@ class Boot extends Phaser.Scene {
 var CONST;
 (function (CONST) {
     CONST.GAME_WIDTH = 400;
-    CONST.GAME_HEIGHT = 720;
+    CONST.GAME_HEIGHT = 600;
     CONST.LAYERS = {
         DEFAULT: 0,
         BACKGROUND: -10,
@@ -288,7 +288,7 @@ var QUI;
     }
     QUI.createKeyMap = createKeyMap;
     // Create texts suitable as title, centered at the given position.
-    function createTextTitle(scene, content, x, y, fontSize = 60) {
+    function createTextTitle(scene, content, x, y, fontSize = 50) {
         return scene.add.text(x, y, content, {
             fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
             fontSize: '1.5em',
@@ -567,10 +567,9 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     create() {
         const title = QUI.createTextTitle(this, [
             'You survived',
-            `for ${this.lastScore.toFixed(1)}`,
-            'seconds !!!',
-        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'goodjob');
+            `${this.lastScore.toFixed(1)} seconds!`,
+        ], CONST.GAME_WIDTH / 2, 100);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 150, 'goodjob');
         congrats.scale = 1.2;
         this.add.tween({
             targets: congrats,
@@ -588,9 +587,9 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             scoreTexts.push(`${idx + 1} -- ${score.toFixed(1)} sec`);
             idx++;
         }
-        const rotatingText = new RotatingText(this, congrats.x - 120, congrats.y + 100, 300, 200);
+        const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 300, 200);
         rotatingText.textArea?.setText(scoreTexts);
-        rotatingText.textArea?.setFontSize(40);
+        rotatingText.textArea?.setFontSize(32);
         this.addPrefab(rotatingText);
         QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
@@ -746,9 +745,9 @@ class SceneJumpDownStart extends QPhaser.Scene {
             'Welcome to',
             'Cato Survival',
             'Minigame!',
-        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250, 60);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 300, 'fight');
-        congrats.setDisplaySize(250, 250);
+        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
+        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
+        congrats.setDisplaySize(200, 200);
         congrats.setAngle(-20);
         this.add.tween({
             targets: congrats,

@@ -9,12 +9,11 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     const title = QUI.createTextTitle(this,
       [
         'You survived',
-        `for ${this.lastScore.toFixed(1)}`,
-        'seconds !!!',
+        `${this.lastScore.toFixed(1)} seconds!`,
       ],
-      CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 250);
+      CONST.GAME_WIDTH / 2, 100);
 
-    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'goodjob');
+    const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 150, 'goodjob');
     congrats.scale = 1.2;
     this.add.tween({
       targets: congrats,
@@ -34,9 +33,9 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       idx++;
     }
 
-    const rotatingText = new RotatingText(this, congrats.x - 120, congrats.y + 100, 300, 200);
+    const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 300, 200);
     rotatingText.textArea?.setText(scoreTexts);
-    rotatingText.textArea?.setFontSize(40);
+    rotatingText.textArea?.setFontSize(32);
     this.addPrefab(rotatingText);
 
     QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {

@@ -233,7 +233,7 @@ namespace QUI {
     scene: Phaser.Scene,
     content: string[],
     x: number, y: number,
-    fontSize: number = 60): Phaser.GameObjects.Text {
+    fontSize: number = 50): Phaser.GameObjects.Text {
     return scene.add.text(x, y, content, {
       fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
       fontSize: '1.5em',
