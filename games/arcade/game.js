@@ -315,53 +315,10 @@ var QUI;
     }
     QUI.createButton = createButton;
 })(QUI || (QUI = {}));
-class ChatPopup extends Phaser.GameObjects.Container {
-    text;
-    border;
-    // Note that `setPosition` will then set top-left position.
-    constructor(scene, left, top, width, height, content, faceRight) {
-        super(scene, left ?? 0, top ?? 0);
-        width = width ?? 100;
-        height = height ?? 100;
-        faceRight = faceRight ?? false;
-        // Used to draw the "conversation tip". Note that the actual height of the text box is shorter by `deltaY`.
-        const deltaX = width / 6;
-        const deltaY = height / 5;
-        const realY = height - deltaY;
-        if (faceRight) {
-            this.border = scene.add.polygon(width / 2, height / 2, [
-                { x: 0, y: realY },
-                { x: 0, y: 0 },
-                { x: width, y: 0 },
-                { x: width, y: realY },
-                { x: width - deltaX, y: realY },
-                { x: width - deltaX, y: height },
-                { x: width - (deltaX + deltaX), y: realY },
-            ]);
-        }
-        else {
-            this.border = scene.add.polygon(width / 2, height / 2, [
-                { x: 0, y: realY },
-                { x: 0, y: 0 },
-                { x: width, y: 0 },
-                { x: width, y: realY },
-                { x: deltaX + deltaX, y: realY },
-                { x: deltaX, y: height },
-                { x: deltaX, y: realY },
-            ]);
-        }
-        this.border.setStrokeStyle(2, 0x325ca8);
-        this.border.isFilled = true;
-        this.add(this.border);
-        this.text = scene.add.text(5, 5, content ?? ['hello world']); // 5 is gap to top-left.
-        this.add(this.text);
-        this.text.setColor('#037bfc');
-    }
-}
 // Base class for arcade platform player.
 // When subclassing this class, create elements in `init`.
 // And performs necessary actions in `update`.
-class ArcadePlatformPlayer extends QPhaser.ArcadePrefab {
+class ArcadePlayer extends QPhaser.ArcadePrefab {
     TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
@@ -419,7 +376,70 @@ class ArcadePlatformPlayer extends QPhaser.ArcadePrefab {
         }
     }
 }
-class PlayerSingleSprite extends ArcadePlatformPlayer {
+class ChatPopup extends Phaser.GameObjects.Container {
+    text;
+    border;
+    // Note that `setPosition` will then set top-left position.
+    constructor(scene, left, top, width, height, content, faceRight) {
+        super(scene, left ?? 0, top ?? 0);
+        width = width ?? 100;
+        height = height ?? 100;
+        faceRight = faceRight ?? false;
+        // Used to draw the "conversation tip". Note that the actual height of the text box is shorter by `deltaY`.
+        const deltaX = width / 6;
+        const deltaY = height / 5;
+        const realY = height - deltaY;
+        if (faceRight) {
+            this.border = scene.add.polygon(width / 2, height / 2, [
+                { x: 0, y: realY },
+                { x: 0, y: 0 },
+                { x: width, y: 0 },
+                { x: width, y: realY },
+                { x: width - deltaX, y: realY },
+                { x: width - deltaX, y: height },
+                { x: width - (deltaX + deltaX), y: realY },
+            ]);
+        }
+        else {
+            this.border = scene.add.polygon(width / 2, height / 2, [
+                { x: 0, y: realY },
+                { x: 0, y: 0 },
+                { x: width, y: 0 },
+                { x: width, y: realY },
+                { x: deltaX + deltaX, y: realY },
+                { x: deltaX, y: height },
+                { x: deltaX, y: realY },
+            ]);
+        }
+        this.border.setStrokeStyle(2, 0x325ca8);
+        this.border.isFilled = true;
+        this.add(this.border);
+        this.text = scene.add.text(5, 5, content ?? ['hello world']); // 5 is gap to top-left.
+        this.add(this.text);
+        this.text.setColor('#037bfc');
+    }
+}
+// Base class for platform tiles.
+class PlatformTile extends QPhaser.ArcadePrefab {
+    tileWidth = 0;
+    tileHeight = 0;
+    constructor(scene, x, y, spriteKey, frameIndex = 0, tileWidth = 20, tileHeight = 20) {
+        super(scene, x, y);
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
+    }
+    setCollideWith(gameObjs) {
+        this.maybeActOnMainImg((img) => {
+            this.scene.physics.collide(img, gameObjs);
+        });
+    }
+    setOverlapWith(gameObjs, callback) {
+        this.maybeActOnMainImg((img) => {
+            this.scene.physics.overlap(img, gameObjs, callback);
+        });
+    }
+}
+class PlayerSingleSprite extends ArcadePlayer {
     HEAD_IMAGE_SIZE = 32;
     imageKey = 'dragon';
     constructor(scene, x, y, imageKey = 'scared') {
@@ -445,7 +465,7 @@ class PlayerSingleSprite extends ArcadePlatformPlayer {
         });
     }
 }
-class PlayerKennyCat extends ArcadePlatformPlayer {
+class PlayerKennyCat extends ArcadePlayer {
     HEAD_IMAGE = 'scared';
     HEAD_IMAGE_SIZE = 32;
     SPRITESHEET_NAME = 'tile_characters';

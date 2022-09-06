@@ -1,7 +1,7 @@
 // Base class for arcade platform player.
 // When subclassing this class, create elements in `init`.
 // And performs necessary actions in `update`.
-class ArcadePlatformPlayer extends QPhaser.ArcadePrefab {
+class ArcadePlayer extends QPhaser.ArcadePrefab {
   TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
   TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
 
