@@ -530,9 +530,10 @@ class PlayerKennyCat extends ArcadePlayerBase {
         });
     }
 }
+// A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
     HEAD_IMAGE_SIZE = 32;
-    imageKey = 'dragon';
+    imageKey = '';
     constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared') {
         super(scene, imgInitialX, imgInitialY);
         this.imageKey = imageKey;

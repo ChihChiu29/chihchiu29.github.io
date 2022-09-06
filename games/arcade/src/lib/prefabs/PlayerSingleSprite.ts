@@ -1,7 +1,8 @@
+// A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
   HEAD_IMAGE_SIZE = 32;
 
-  private imageKey = 'dragon';
+  private imageKey = '';
 
   constructor(
     scene: Phaser.Scene, imgInitialX: number, imgInitialY: number,
