@@ -1,4 +1,4 @@
-class PlayerKennyCat extends ArcadePlayer {
+class PlayerKennyCat extends ArcadePlayerBase {
   HEAD_IMAGE = 'scared';
   HEAD_IMAGE_SIZE = 32;
   SPRITESHEET_NAME = 'tile_characters';

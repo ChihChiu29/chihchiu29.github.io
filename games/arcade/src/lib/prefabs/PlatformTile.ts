@@ -1,4 +1,5 @@
 // Base class for platform square tiles.
+// It can be used to create a basic tile.
 class PlatformTile extends QPhaser.ArcadePrefab {
   private tileInitialSize: number = 0;
 
@@ -23,22 +24,26 @@ class PlatformTile extends QPhaser.ArcadePrefab {
     this.setMainImage(img);
   }
 
+  // Sets that this tile collides with the given prefabs.
   public setCollideWith(prefabs: QPhaser.ArcadePrefab[]) {
     this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
   }
 
+  // Sets that this tile collides with the given gameobjects.
   public setCollideWithGameObjects(gameObjs: Phaser.GameObjects.GameObject[]) {
     this.maybeActOnMainImg((img) => {
       this.scene.physics.add.collider(img, gameObjs);
     });
   }
 
+  // Sets that when this tile touch the given prefabs, what happens.
   public setOverlapWith(
     prefabs: QPhaser.ArcadePrefab[],
     callback: ArcadePhysicsCallback) {
     this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
   }
 
+  // Sets that when this tile touch the given gameobjects, what happens.
   public setOverlapWithGameObjects(
     gameObjs: Phaser.GameObjects.GameObject[],
     callback: ArcadePhysicsCallback) {

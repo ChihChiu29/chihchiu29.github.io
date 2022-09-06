@@ -1,4 +1,4 @@
-class PlayerSingleSprite extends ArcadePlayer {
+class PlayerSingleSprite extends ArcadePlayerBase {
   HEAD_IMAGE_SIZE = 32;
 
   private imageKey = 'dragon';

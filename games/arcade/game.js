@@ -331,9 +331,10 @@ var QUI;
     QUI.createButton = createButton;
 })(QUI || (QUI = {}));
 // Base class for arcade platform player.
+// It is not directly useable.
 // When subclassing this class, create elements in `init`.
 // And performs necessary actions in `update`.
-class ArcadePlayer extends QPhaser.ArcadePrefab {
+class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
@@ -435,6 +436,7 @@ class ChatPopup extends Phaser.GameObjects.Container {
     }
 }
 // Base class for platform square tiles.
+// It can be used to create a basic tile.
 class PlatformTile extends QPhaser.ArcadePrefab {
     tileInitialSize = 0;
     spriteKey = '';
@@ -450,24 +452,28 @@ class PlatformTile extends QPhaser.ArcadePrefab {
         img.setDisplaySize(tileInitialSize, tileInitialSize);
         this.setMainImage(img);
     }
+    // Sets that this tile collides with the given prefabs.
     setCollideWith(prefabs) {
         this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
     }
+    // Sets that this tile collides with the given gameobjects.
     setCollideWithGameObjects(gameObjs) {
         this.maybeActOnMainImg((img) => {
             this.scene.physics.add.collider(img, gameObjs);
         });
     }
+    // Sets that when this tile touch the given prefabs, what happens.
     setOverlapWith(prefabs, callback) {
         this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
     }
+    // Sets that when this tile touch the given gameobjects, what happens.
     setOverlapWithGameObjects(gameObjs, callback) {
         this.maybeActOnMainImg((img) => {
             this.scene.physics.add.overlap(img, gameObjs, callback);
         });
     }
 }
-class PlayerKennyCat extends ArcadePlayer {
+class PlayerKennyCat extends ArcadePlayerBase {
     HEAD_IMAGE = 'scared';
     HEAD_IMAGE_SIZE = 32;
     SPRITESHEET_NAME = 'tile_characters';
@@ -524,7 +530,7 @@ class PlayerKennyCat extends ArcadePlayer {
         });
     }
 }
-class PlayerSingleSprite extends ArcadePlayer {
+class PlayerSingleSprite extends ArcadePlayerBase {
     HEAD_IMAGE_SIZE = 32;
     imageKey = 'dragon';
     constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared') {
