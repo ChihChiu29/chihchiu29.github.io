@@ -113,11 +113,11 @@ var QPhaser;
         mainImg;
         mainImgInitialX = 0;
         mainImgInitialY = 0;
-        constructor(scene, x, y) {
+        constructor(scene, initialX, initialY) {
             // Always use world coordinates.
             super(scene, 0, 0);
-            this.mainImgInitialX = x;
-            this.mainImgInitialY = y;
+            this.mainImgInitialX = initialX;
+            this.mainImgInitialY = initialY;
         }
         // Sets the main image, also sets it position to initial (x, y).
         setMainImage(img) {
@@ -423,10 +423,15 @@ class ChatPopup extends Phaser.GameObjects.Container {
 class PlatformTile extends QPhaser.ArcadePrefab {
     tileWidth = 0;
     tileHeight = 0;
-    constructor(scene, x, y, spriteKey, frameIndex = 0, tileWidth = 20, tileHeight = 20) {
-        super(scene, x, y);
+    spriteKey = '';
+    frameIndex = 0;
+    constructor(scene, initialX, initialY, spriteKey, frameIndex = 0, tileWidth = 20, tileHeight = 20) {
+        super(scene, initialX, initialY);
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
+        this.spriteKey = spriteKey;
+        this.frameIndex = frameIndex;
+        this.scene.physics.add.sprite(this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
     }
     setCollideWith(gameObjs) {
         this.maybeActOnMainImg((img) => {
@@ -436,32 +441,6 @@ class PlatformTile extends QPhaser.ArcadePrefab {
     setOverlapWith(gameObjs, callback) {
         this.maybeActOnMainImg((img) => {
             this.scene.physics.overlap(img, gameObjs, callback);
-        });
-    }
-}
-class PlayerSingleSprite extends ArcadePlayer {
-    HEAD_IMAGE_SIZE = 32;
-    imageKey = 'dragon';
-    constructor(scene, x, y, imageKey = 'scared') {
-        super(scene, x, y);
-        this.imageKey = imageKey;
-    }
-    init() {
-        super.init();
-        // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
-        headSprite.setCollideWorldBounds(true);
-        headSprite.setBounce(0);
-        headSprite.setFrictionX(1);
-        headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
-        this.setMainImage(headSprite);
-        this.addInfiniteTween({
-            targets: headSprite,
-            displayWidth: this.HEAD_IMAGE_SIZE * 1.05,
-            displayHeight: this.HEAD_IMAGE_SIZE * 1.05,
-            duration: 200,
-            yoyo: true,
-            loop: -1,
         });
     }
 }
@@ -519,6 +498,32 @@ class PlayerKennyCat extends ArcadePlayer {
         this.maybeActOnMainImg((img) => {
             this.legSprite.x = img.x;
             this.legSprite.y = img.y + 12;
+        });
+    }
+}
+class PlayerSingleSprite extends ArcadePlayer {
+    HEAD_IMAGE_SIZE = 32;
+    imageKey = 'dragon';
+    constructor(scene, initialX, initialY, imageKey = 'scared') {
+        super(scene, initialX, initialY);
+        this.imageKey = imageKey;
+    }
+    init() {
+        super.init();
+        // Head.
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
+        headSprite.setCollideWorldBounds(true);
+        headSprite.setBounce(0);
+        headSprite.setFrictionX(1);
+        headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
+        this.setMainImage(headSprite);
+        this.addInfiniteTween({
+            targets: headSprite,
+            displayWidth: this.HEAD_IMAGE_SIZE * 1.05,
+            displayHeight: this.HEAD_IMAGE_SIZE * 1.05,
+            duration: 200,
+            yoyo: true,
+            loop: -1,
         });
     }
 }

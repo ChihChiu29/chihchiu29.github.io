@@ -44,11 +44,11 @@ namespace QPhaser {
     protected mainImgInitialX = 0;
     protected mainImgInitialY = 0;
 
-    constructor(scene: Phaser.Scene, x: number, y: number) {
+    constructor(scene: Phaser.Scene, initialX: number, initialY: number) {
       // Always use world coordinates.
       super(scene, 0, 0);
-      this.mainImgInitialX = x;
-      this.mainImgInitialY = y;
+      this.mainImgInitialX = initialX;
+      this.mainImgInitialY = initialY;
     }
 
     // Sets the main image, also sets it position to initial (x, y).

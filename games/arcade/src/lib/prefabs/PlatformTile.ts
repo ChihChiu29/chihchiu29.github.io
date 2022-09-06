@@ -3,14 +3,22 @@ class PlatformTile extends QPhaser.ArcadePrefab {
   private tileWidth: number = 0;
   private tileHeight: number = 0;
 
+  private spriteKey: string = '';
+  private frameIndex: number = 0;
+
   constructor(
     scene: Phaser.Scene,
-    x: number, y: number,
+    initialX: number, initialY: number,
     spriteKey: string, frameIndex: number = 0,
     tileWidth: number = 20, tileHeight: number = 20) {
-    super(scene, x, y);
+    super(scene, initialX, initialY);
     this.tileWidth = tileWidth;
     this.tileHeight = tileHeight;
+    this.spriteKey = spriteKey;
+    this.frameIndex = frameIndex;
+
+    this.scene.physics.add.sprite(
+      this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
   }
 
   public setCollideWith(gameObjs: Phaser.GameObjects.GameObject[]) {

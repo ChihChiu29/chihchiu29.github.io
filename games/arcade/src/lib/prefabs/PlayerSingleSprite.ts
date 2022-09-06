@@ -4,9 +4,9 @@ class PlayerSingleSprite extends ArcadePlayer {
   private imageKey = 'dragon';
 
   constructor(
-    scene: Phaser.Scene, x: number, y: number,
+    scene: Phaser.Scene, initialX: number, initialY: number,
     imageKey: string = 'scared') {
-    super(scene, x, y);
+    super(scene, initialX, initialY);
     this.imageKey = imageKey;
   }
 
