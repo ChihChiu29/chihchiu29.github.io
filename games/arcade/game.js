@@ -59,13 +59,19 @@ var CONST;
         },
     };
 })(CONST || (CONST = {}));
-const TESTING = false;
+const TESTING = true;
 const SCENE_KEYS = {
     JumpDownStart: 'JumpDownStart',
     JumpDownMain: 'JumpDownMain',
     JumpDownEnd: 'JumpDownEnd',
 };
-const GAME_CHOICE = SCENE_KEYS.JumpDownStart;
+let GAME_CHOICE;
+if (TESTING) {
+    GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+}
+else {
+    GAME_CHOICE = SCENE_KEYS.JumpDownStart;
+}
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
@@ -616,7 +622,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
             scoreTexts.push(`${idx + 1} -- ${score.toFixed(1)} sec`);
             idx++;
         }
-        const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 300, 200);
+        const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 200, 150);
         rotatingText.textArea?.setText(scoreTexts);
         rotatingText.textArea?.setFontSize(32);
         this.addPrefab(rotatingText);

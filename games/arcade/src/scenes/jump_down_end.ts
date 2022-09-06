@@ -33,7 +33,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
       idx++;
     }
 
-    const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 300, 200);
+    const rotatingText = new RotatingText(this, congrats.x - 100, congrats.y + 100, 200, 150);
     rotatingText.textArea?.setText(scoreTexts);
     rotatingText.textArea?.setFontSize(32);
     this.addPrefab(rotatingText);
