@@ -44,19 +44,8 @@ var CONST;
         FRONT: 10,
         TEXT: 100,
     };
-    CONST.CHANNELS = {
-        SUPERCATO: 'supercatomeow',
-    };
-    CONST.FONT_STYLES = {
-        GREENISH: function (font_size = '6em') {
-            return {
-                fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-                fontSize: font_size,
-                color: '#2f2ffa',
-                strokeThickness: 8,
-                stroke: '#d5d5f0',
-            };
-        },
+    CONST.INPUT = {
+        SMALL_TIME_INTERVAL_MS: 200,
     };
 })(CONST || (CONST = {}));
 const TESTING = false;
@@ -167,6 +156,7 @@ var QPhaser;
                 this.velocityToBeAppliedY += y;
                 this.needToApplyVelocity = true;
                 this.velocityLastActionTime.set(source, now);
+                console.log('applyVelocity took action');
             }
         }
         // Makes it easeir to not use maybeActOnMainImg when you only care about its position.
@@ -439,8 +429,8 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             img.setVelocityX(0);
         }
         if (moveUp && img.body.touching.down) {
-            // Only apply once per 200 ms.
-            this.applyVelocity(0, -this.playerJumpSpeed, 'input', 200);
+            // Only apply once per a small time interval.
+            this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
         }
     }
 }
@@ -677,7 +667,7 @@ class TileForceJump extends PlatformTile {
                 const relativeAngle = new Phaser.Math.Vector2(targetPos.x - selfPos.x, selfPos.y - targetPos.y).angle();
                 if (relativeAngle > QMath.constants.PI_ONE_QUARTER &&
                     relativeAngle < QMath.constants.PI_THREE_QUARTER) {
-                    prefab.applyVelocity(0, -speed);
+                    prefab.applyVelocity(0, -speed, 'TileForceJump', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
                     activated = true;
                 }
             }
@@ -925,7 +915,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
             // 1/10 chance to create jump tiles
             for (const pos of tilePositions) {
                 const tile = new TileForceJump(this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
-                tile.setPushPrefabsUp([this.player], 100, 'tiles', 196);
+                tile.setPushPrefabsUp([this.player], 300, 'tiles', 196);
                 tiles.push(tile);
             }
         }

@@ -106,6 +106,7 @@ namespace QPhaser {
         this.velocityToBeAppliedY += y;
         this.needToApplyVelocity = true;
         this.velocityLastActionTime.set(source, now);
+        console.log('applyVelocity took action');
       }
     }
 

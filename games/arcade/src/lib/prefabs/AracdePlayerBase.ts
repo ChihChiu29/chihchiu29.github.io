@@ -61,8 +61,10 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     }
 
     if (moveUp && img.body.touching.down) {
-      // Only apply once per 200 ms.
-      this.applyVelocity(0, -this.playerJumpSpeed, 'input', 200);
+      // Only apply once per a small time interval.
+      this.applyVelocity(
+        0, -this.playerJumpSpeed,
+        'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
     }
   }
 }

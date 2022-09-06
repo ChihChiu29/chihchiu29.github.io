@@ -9,19 +9,7 @@ namespace CONST {
     TEXT: 100,
   };
 
-  export const CHANNELS = {
-    SUPERCATO: 'supercatomeow',
-  };
-
-  export const FONT_STYLES = {
-    GREENISH: function (font_size: string = '6em') {
-      return {
-        fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-        fontSize: font_size,
-        color: '#2f2ffa',
-        strokeThickness: 8,
-        stroke: '#d5d5f0',
-      };
-    },
+  export const INPUT = {
+    SMALL_TIME_INTERVAL_MS: 200,
   };
 }

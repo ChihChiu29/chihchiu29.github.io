@@ -20,7 +20,8 @@ class TileForceJump extends PlatformTile {
         ).angle();
         if (relativeAngle > QMath.constants.PI_ONE_QUARTER &&
           relativeAngle < QMath.constants.PI_THREE_QUARTER) {
-          prefab.applyVelocity(0, -speed);
+          prefab.applyVelocity(
+            0, -speed, 'TileForceJump', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
           activated = true;
         }
       }

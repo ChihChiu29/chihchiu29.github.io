@@ -221,7 +221,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
           'tiles', 302,
           this.BLOCK_SPRITE_SIZE,
         );
-        tile.setPushPrefabsUp([this.player!], 100, 'tiles', 196);
+        tile.setPushPrefabsUp([this.player!], 300, 'tiles', 196);
         tiles.push(tile);
       }
     } else {
