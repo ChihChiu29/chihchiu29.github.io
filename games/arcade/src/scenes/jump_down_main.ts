@@ -1,5 +1,10 @@
 class SceneJumpDownMain extends QPhaser.Scene {
-  BLOCK_SPRITE_SIZE = 21;
+  BLOCK_SPRITE_SIZE = 24;
+  PLAYER_SIZE = 32;
+
+  // Tiles will be break into segments, each contains at this number of tiles,
+  // each segment is a unit for special tile generation.
+  TILE_GENERATION_SIZE = 4;
 
   // Use these parameters to change difficulty.
   public platformMoveUpInitialSpeed = 30;
@@ -78,9 +83,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    // const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
-    // A demo that a different type of player can be easily created.
-    const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared');
+    // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
+    const player = new PlayerSingleSprite(
+      this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2,
+      'scared', this.PLAYER_SIZE);
     this.addPrefab(player);
 
     player.maybeActOnMainImg((img) => {
@@ -140,33 +146,22 @@ class SceneJumpDownMain extends QPhaser.Scene {
       * this.platformMoveLeftRightSpeedFactor;
 
     const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
+    const tilePositions: QPoint[] = [];
     for (let idx = 0; idx < numOfBlocks; idx++) {
       const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
-      let tile: PlatformTile;
-      if (idx == 0) {
-        tile = new PlatformTile(
-          this, blockX, y,
-          'tiles', 125,
-          this.BLOCK_SPRITE_SIZE);
-      } else if (idx == numOfBlocks - 1) {
-        tile = new PlatformTile(
-          this, blockX, y,
-          'tiles', 125,
-          this.BLOCK_SPRITE_SIZE);
-        tile.maybeActOnMainImg((img) => { img.setFlipX(true); });
-      } else {
-        tile = new PlatformTile(
-          this, blockX, y,
-          'tiles', 123,
-          this.BLOCK_SPRITE_SIZE);
-      }
-      this.addPrefab(tile);
+      tilePositions.push({ x: blockX, y: y });
+    }
 
-      tile.maybeActOnMainImg((tileImg) => {
-        this.player?.maybeActOnMainImg((playerImg) => {
-          this.physics.add.collider(tileImg, playerImg);
-        });
-      });
+    const tiles: PlatformTile[] = [];
+    for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
+      for (const tile of this.createTilesForSegments(
+        tilePositions.slice(i, i + this.TILE_GENERATION_SIZE))) {
+        tiles.push(tile);
+      }
+    }
+
+    for (const tile of tiles) {
+      this.addPrefab(tile);
 
       tile.setCollideWith([this.player!]);
       tile.setOverlapWithGameObjects([this.topBorder!], () => {
@@ -187,6 +182,32 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
       });
     }
+  }
+
+  // A segment of tiles used together for creation of special tiles.
+  // Each segment can only contain one type of special tiles.
+  private createTilesForSegments(tilePositions: QPoint[]): PlatformTile[] {
+    const tiles: PlatformTile[] = [];
+    const choice = Phaser.Math.Between(1, 100);
+    if (choice < 10) {
+      // 1/10 chance to create auto disappearing tiles
+      for (const pos of tilePositions) {
+        const tile = new TileSelfDestroy(
+          this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
+        tile.setDisappearAfterOverlappingWith([this.player!]);
+        tiles.push(tile);
+      }
+    } else {
+      for (const pos of tilePositions) {
+        tiles.push(this.createNormalTile(pos.x, pos.y));
+      }
+    }
+    return tiles;
+  }
+
+  private createNormalTile(x: number, y: number): PlatformTile {
+    return new PlatformTile(
+      this, x, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
   }
 
   private gotoEndGame() {

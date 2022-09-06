@@ -1,14 +1,14 @@
 // A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
-  HEAD_IMAGE_SIZE = 32;
-
   private imageKey = '';
+  private imageInitialSize = 32;
 
   constructor(
     scene: Phaser.Scene, imgInitialX: number, imgInitialY: number,
-    imageKey: string = 'scared') {
+    imageKey: string = 'scared', imageInitialSize: number = 32) {
     super(scene, imgInitialX, imgInitialY);
     this.imageKey = imageKey;
+    this.imageInitialSize = imageInitialSize;
   }
 
   override init(): void {
@@ -19,13 +19,13 @@ class PlayerSingleSprite extends ArcadePlayerBase {
     headSprite.setCollideWorldBounds(true);
     headSprite.setBounce(0);
     headSprite.setFrictionX(1);
-    headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
+    headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
     this.setMainImage(headSprite);
 
     this.addInfiniteTween({
       targets: headSprite,
-      displayWidth: this.HEAD_IMAGE_SIZE * 1.05,
-      displayHeight: this.HEAD_IMAGE_SIZE * 1.05,
+      displayWidth: this.imageInitialSize,
+      displayHeight: this.imageInitialSize,
       duration: 200,
       yoyo: true,
       loop: -1,

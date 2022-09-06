@@ -532,11 +532,12 @@ class PlayerKennyCat extends ArcadePlayerBase {
 }
 // A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
-    HEAD_IMAGE_SIZE = 32;
     imageKey = '';
-    constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared') {
+    imageInitialSize = 32;
+    constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared', imageInitialSize = 32) {
         super(scene, imgInitialX, imgInitialY);
         this.imageKey = imageKey;
+        this.imageInitialSize = imageInitialSize;
     }
     init() {
         super.init();
@@ -545,12 +546,12 @@ class PlayerSingleSprite extends ArcadePlayerBase {
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
-        headSprite.setDisplaySize(this.HEAD_IMAGE_SIZE, this.HEAD_IMAGE_SIZE);
+        headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
         this.setMainImage(headSprite);
         this.addInfiniteTween({
             targets: headSprite,
-            displayWidth: this.HEAD_IMAGE_SIZE * 1.05,
-            displayHeight: this.HEAD_IMAGE_SIZE * 1.05,
+            displayWidth: this.imageInitialSize,
+            displayHeight: this.imageInitialSize,
             duration: 200,
             yoyo: true,
             loop: -1,
@@ -609,6 +610,23 @@ class RotatingText extends QPhaser.Prefab {
         }
     }
 }
+// A tile that disappears after player touches it.
+class TileSelfDestroy extends PlatformTile {
+    // After touching these prefabs, this tile will disappear.
+    setDisappearAfterOverlappingWith(prefabs, delayMs = 2000) {
+        this.setOverlapWith(prefabs, (self, other) => {
+            this.scene.add.tween({
+                targets: self,
+                alpha: 0,
+                duration: delayMs,
+                loop: false,
+                onComplete: () => {
+                    this.destroy();
+                }
+            });
+        });
+    }
+}
 class StartScene extends Phaser.Scene {
     preload() {
         this.load.pack('root', 'assets/asset-pack.json');
@@ -659,7 +677,11 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
-    BLOCK_SPRITE_SIZE = 21;
+    BLOCK_SPRITE_SIZE = 24;
+    PLAYER_SIZE = 32;
+    // Tiles will be break into segments, each contains at this number of tiles,
+    // each segment is a unit for special tile generation.
+    TILE_GENERATION_SIZE = 4;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
@@ -720,9 +742,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        // const player = new PlayerKennyCat(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2);
-        // A demo that a different type of player can be easily created.
-        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared');
+        // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
+        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared', this.PLAYER_SIZE);
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
             this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {
@@ -760,25 +781,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
         const platformMoveSpeed = Phaser.Math.Between(-this.platformMoveLeftRightRandomRange, this.platformMoveLeftRightRandomRange)
             * this.platformMoveLeftRightSpeedFactor;
         const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
+        const tilePositions = [];
         for (let idx = 0; idx < numOfBlocks; idx++) {
             const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
-            let tile;
-            if (idx == 0) {
-                tile = new PlatformTile(this, blockX, y, 'tiles', 125, this.BLOCK_SPRITE_SIZE);
+            tilePositions.push({ x: blockX, y: y });
+        }
+        const tiles = [];
+        for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
+            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE))) {
+                tiles.push(tile);
             }
-            else if (idx == numOfBlocks - 1) {
-                tile = new PlatformTile(this, blockX, y, 'tiles', 125, this.BLOCK_SPRITE_SIZE);
-                tile.maybeActOnMainImg((img) => { img.setFlipX(true); });
-            }
-            else {
-                tile = new PlatformTile(this, blockX, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
-            }
+        }
+        for (const tile of tiles) {
             this.addPrefab(tile);
-            tile.maybeActOnMainImg((tileImg) => {
-                this.player?.maybeActOnMainImg((playerImg) => {
-                    this.physics.add.collider(tileImg, playerImg);
-                });
-            });
             tile.setCollideWith([this.player]);
             tile.setOverlapWithGameObjects([this.topBorder], () => {
                 tile.destroy();
@@ -797,6 +812,29 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 }
             });
         }
+    }
+    // A segment of tiles used together for creation of special tiles.
+    // Each segment can only contain one type of special tiles.
+    createTilesForSegments(tilePositions) {
+        const tiles = [];
+        const choice = Phaser.Math.Between(1, 100);
+        if (choice < 10) {
+            // 1/10 chance to create auto disappearing tiles
+            for (const pos of tilePositions) {
+                const tile = new TileSelfDestroy(this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
+                tile.setDisappearAfterOverlappingWith([this.player]);
+                tiles.push(tile);
+            }
+        }
+        else {
+            for (const pos of tilePositions) {
+                tiles.push(this.createNormalTile(pos.x, pos.y));
+            }
+        }
+        return tiles;
+    }
+    createNormalTile(x, y) {
+        return new PlatformTile(this, x, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
     }
     gotoEndGame() {
         clearTimeout(this.lastSpawnPlatformTimeout);
