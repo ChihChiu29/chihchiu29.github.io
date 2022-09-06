@@ -1,5 +1,5 @@
 class SceneJumpDownMain extends QPhaser.Scene {
-  BLOCK_SPRITE_SIZE = 18;
+  BLOCK_SPRITE_SIZE = 21;
 
   // Use these parameters to change difficulty.
   public platformMoveUpInitialSpeed = 30;
@@ -142,36 +142,50 @@ class SceneJumpDownMain extends QPhaser.Scene {
     const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
     for (let idx = 0; idx < numOfBlocks; idx++) {
       const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
-      let tile: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
+      let tile: PlatformTile;
       if (idx == 0) {
-        tile = this.physics.add.image(blockX, y, 'tile_0001');
+        tile = new PlatformTile(
+          this, blockX, y,
+          'tiles', 125,
+          this.BLOCK_SPRITE_SIZE);
       } else if (idx == numOfBlocks - 1) {
-        tile = this.physics.add.image(blockX, y, 'tile_0003');
+        tile = new PlatformTile(
+          this, blockX, y,
+          'tiles', 125,
+          this.BLOCK_SPRITE_SIZE);
+        tile.maybeActOnMainImg((img) => { img.setFlipX(true); });
       } else {
-        tile = this.physics.add.image(blockX, y, 'tile_0002');
+        tile = new PlatformTile(
+          this, blockX, y,
+          'tiles', 123,
+          this.BLOCK_SPRITE_SIZE);
       }
+      this.addPrefab(tile);
 
-      // Use setImmovable instead setPushable so it can give friction on player.
-      tile.setImmovable(true);
-      tile.body.allowGravity = false;
-      this.player?.maybeActOnMainImg((img) => {
-        this.physics.add.collider(img, tile);
+      tile.maybeActOnMainImg((tileImg) => {
+        this.player?.maybeActOnMainImg((playerImg) => {
+          this.physics.add.collider(tileImg, playerImg);
+        });
       });
-      this.physics.add.overlap(tile, this.topBorder!, () => {
+
+      tile.setCollideWith([this.player!]);
+      tile.setOverlapWithGameObjects([this.topBorder!], () => {
         tile.destroy();
       });
-      tile.setVelocityY(-moveUpSpeed);
 
-      if (platformShouldMove) {
-        tile.setVelocityX(platformMoveSpeed);
-        this.add.tween({
-          targets: tile.body.velocity,
-          x: -platformMoveSpeed,
-          duration: 1000,
-          yoyo: true,
-          loop: -1,
-        });
-      }
+      tile.maybeActOnMainImg((img) => {
+        img.setVelocityY(-moveUpSpeed);
+        if (platformShouldMove) {
+          img.setVelocityX(platformMoveSpeed);
+          this.add.tween({
+            targets: img.body.velocity,
+            x: -platformMoveSpeed,
+            duration: 1000,
+            yoyo: true,
+            loop: -1,
+          });
+        }
+      });
     }
   }
 

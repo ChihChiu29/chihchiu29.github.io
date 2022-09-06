@@ -1,37 +1,49 @@
-// Base class for platform tiles.
+// Base class for platform square tiles.
 class PlatformTile extends QPhaser.ArcadePrefab {
-  private tileWidth: number = 0;
-  private tileHeight: number = 0;
+  private tileInitialSize: number = 0;
 
   private spriteKey: string = '';
   private frameIndex: number = 0;
 
   constructor(
     scene: Phaser.Scene,
-    initialX: number, initialY: number,
+    imgInitialX: number, imgInitialY: number,
     spriteKey: string, frameIndex: number = 0,
-    tileWidth: number = 20, tileHeight: number = 20) {
-    super(scene, initialX, initialY);
-    this.tileWidth = tileWidth;
-    this.tileHeight = tileHeight;
+    tileInitialSize: number = 20) {
+    super(scene, imgInitialX, imgInitialY);
+    this.tileInitialSize = tileInitialSize;
     this.spriteKey = spriteKey;
     this.frameIndex = frameIndex;
 
-    this.scene.physics.add.sprite(
+    const img = this.scene.physics.add.sprite(
       this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
+    img.setImmovable(true);
+    img.body.allowGravity = false;
+    img.setDisplaySize(tileInitialSize, tileInitialSize);
+    this.setMainImage(img);
   }
 
-  public setCollideWith(gameObjs: Phaser.GameObjects.GameObject[]) {
+  public setCollideWith(prefabs: QPhaser.ArcadePrefab[]) {
+    this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
+  }
+
+  public setCollideWithGameObjects(gameObjs: Phaser.GameObjects.GameObject[]) {
     this.maybeActOnMainImg((img) => {
-      this.scene.physics.collide(img, gameObjs);
+      this.scene.physics.add.collider(img, gameObjs);
     });
   }
 
   public setOverlapWith(
+    prefabs: QPhaser.ArcadePrefab[],
+    callback: ArcadePhysicsCallback) {
+    this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
+  }
+
+  public setOverlapWithGameObjects(
     gameObjs: Phaser.GameObjects.GameObject[],
     callback: ArcadePhysicsCallback) {
     this.maybeActOnMainImg((img) => {
-      this.scene.physics.overlap(img, gameObjs, callback);
+      this.scene.physics.add.overlap(img, gameObjs, callback);
     });
   }
 }

@@ -21,8 +21,7 @@ namespace QPhaser {
       this.tweens.push(this.scene.add.tween(tween));
     }
 
-    // @Override
-    destroy() {
+    override destroy() {
       for (const t of this.tweens) {
         t.stop();
         t.remove();
@@ -39,20 +38,20 @@ namespace QPhaser {
   //  - manually update them using mainImg as the only reference in `update`.
   export class ArcadePrefab extends Prefab {
     // The actual physical object.
-    private mainImg?: Phaser.Physics.Arcade.Sprite;
+    private mainImg?: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
     protected mainImgInitialX = 0;
     protected mainImgInitialY = 0;
 
-    constructor(scene: Phaser.Scene, initialX: number, initialY: number) {
+    constructor(scene: Phaser.Scene, imgInitialX: number, imgInitialY: number) {
       // Always use world coordinates.
       super(scene, 0, 0);
-      this.mainImgInitialX = initialX;
-      this.mainImgInitialY = initialY;
+      this.mainImgInitialX = imgInitialX;
+      this.mainImgInitialY = imgInitialY;
     }
 
     // Sets the main image, also sets it position to initial (x, y).
-    setMainImage(img: Phaser.Physics.Arcade.Sprite) {
+    setMainImage(img: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
       img.x = this.mainImgInitialX;
       img.y = this.mainImgInitialY;
       this.mainImg = img;
@@ -60,7 +59,7 @@ namespace QPhaser {
     }
 
     // Calls action if `mainImg` is valid, otherwise it's an no-op.
-    maybeActOnMainImg(action: (mainImg: Phaser.Physics.Arcade.Sprite) => void): void {
+    maybeActOnMainImg(action: (mainImg: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void): void {
       const img = this.getMainImg();
       if (img) {
         action(img);
@@ -68,7 +67,7 @@ namespace QPhaser {
     }
 
     // You can set mainImage directly using the property; but use this function to read it.
-    private getMainImg(): Phaser.Physics.Arcade.Sprite | undefined {
+    private getMainImg(): Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined {
       if (!this.mainImg) {
         return undefined;
       } else if (!this.mainImg.active) {
@@ -120,7 +119,17 @@ namespace QPhaser {
       this.existing = tween;
     }
   }
-}
+
+  export function collectImgs(prefabs: ArcadePrefab[]): Phaser.Types.Physics.Arcade.SpriteWithDynamicBody[] {
+    const imgs: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody[] = [];
+    for (const prefab of prefabs) {
+      prefab.maybeActOnMainImg((img) => {
+        imgs.push(img);
+      });
+    }
+    return imgs;
+  }
+}  // QPhaser
 
 // Time and task related functions.
 namespace QTime {

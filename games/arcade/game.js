@@ -98,7 +98,6 @@ var QPhaser;
         addInfiniteTween(tween) {
             this.tweens.push(this.scene.add.tween(tween));
         }
-        // @Override
         destroy() {
             for (const t of this.tweens) {
                 t.stop();
@@ -119,11 +118,11 @@ var QPhaser;
         mainImg;
         mainImgInitialX = 0;
         mainImgInitialY = 0;
-        constructor(scene, initialX, initialY) {
+        constructor(scene, imgInitialX, imgInitialY) {
             // Always use world coordinates.
             super(scene, 0, 0);
-            this.mainImgInitialX = initialX;
-            this.mainImgInitialY = initialY;
+            this.mainImgInitialX = imgInitialX;
+            this.mainImgInitialY = imgInitialY;
         }
         // Sets the main image, also sets it position to initial (x, y).
         setMainImage(img) {
@@ -189,7 +188,17 @@ var QPhaser;
         }
     }
     QPhaser.SingletonTween = SingletonTween;
-})(QPhaser || (QPhaser = {}));
+    function collectImgs(prefabs) {
+        const imgs = [];
+        for (const prefab of prefabs) {
+            prefab.maybeActOnMainImg((img) => {
+                imgs.push(img);
+            });
+        }
+        return imgs;
+    }
+    QPhaser.collectImgs = collectImgs;
+})(QPhaser || (QPhaser = {})); // QPhaser
 // Time and task related functions.
 var QTime;
 (function (QTime) {
@@ -425,28 +434,36 @@ class ChatPopup extends Phaser.GameObjects.Container {
         this.text.setColor('#037bfc');
     }
 }
-// Base class for platform tiles.
+// Base class for platform square tiles.
 class PlatformTile extends QPhaser.ArcadePrefab {
-    tileWidth = 0;
-    tileHeight = 0;
+    tileInitialSize = 0;
     spriteKey = '';
     frameIndex = 0;
-    constructor(scene, initialX, initialY, spriteKey, frameIndex = 0, tileWidth = 20, tileHeight = 20) {
-        super(scene, initialX, initialY);
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
+    constructor(scene, imgInitialX, imgInitialY, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY);
+        this.tileInitialSize = tileInitialSize;
         this.spriteKey = spriteKey;
         this.frameIndex = frameIndex;
-        this.scene.physics.add.sprite(this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
+        const img = this.scene.physics.add.sprite(this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
+        img.setImmovable(true);
+        img.body.allowGravity = false;
+        img.setDisplaySize(tileInitialSize, tileInitialSize);
+        this.setMainImage(img);
     }
-    setCollideWith(gameObjs) {
+    setCollideWith(prefabs) {
+        this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
+    }
+    setCollideWithGameObjects(gameObjs) {
         this.maybeActOnMainImg((img) => {
-            this.scene.physics.collide(img, gameObjs);
+            this.scene.physics.add.collider(img, gameObjs);
         });
     }
-    setOverlapWith(gameObjs, callback) {
+    setOverlapWith(prefabs, callback) {
+        this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
+    }
+    setOverlapWithGameObjects(gameObjs, callback) {
         this.maybeActOnMainImg((img) => {
-            this.scene.physics.overlap(img, gameObjs, callback);
+            this.scene.physics.add.overlap(img, gameObjs, callback);
         });
     }
 }
@@ -510,8 +527,8 @@ class PlayerKennyCat extends ArcadePlayer {
 class PlayerSingleSprite extends ArcadePlayer {
     HEAD_IMAGE_SIZE = 32;
     imageKey = 'dragon';
-    constructor(scene, initialX, initialY, imageKey = 'scared') {
-        super(scene, initialX, initialY);
+    constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared') {
+        super(scene, imgInitialX, imgInitialY);
         this.imageKey = imageKey;
     }
     init() {
@@ -635,7 +652,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     }
 }
 class SceneJumpDownMain extends QPhaser.Scene {
-    BLOCK_SPRITE_SIZE = 18;
+    BLOCK_SPRITE_SIZE = 21;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
@@ -740,34 +757,38 @@ class SceneJumpDownMain extends QPhaser.Scene {
             const blockX = x + (-numOfBlocks / 2 + idx) * this.BLOCK_SPRITE_SIZE;
             let tile;
             if (idx == 0) {
-                tile = this.physics.add.image(blockX, y, 'tile_0001');
+                tile = new PlatformTile(this, blockX, y, 'tiles', 125, this.BLOCK_SPRITE_SIZE);
             }
             else if (idx == numOfBlocks - 1) {
-                tile = this.physics.add.image(blockX, y, 'tile_0003');
+                tile = new PlatformTile(this, blockX, y, 'tiles', 125, this.BLOCK_SPRITE_SIZE);
+                tile.maybeActOnMainImg((img) => { img.setFlipX(true); });
             }
             else {
-                tile = this.physics.add.image(blockX, y, 'tile_0002');
+                tile = new PlatformTile(this, blockX, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
             }
-            // Use setImmovable instead setPushable so it can give friction on player.
-            tile.setImmovable(true);
-            tile.body.allowGravity = false;
-            this.player?.maybeActOnMainImg((img) => {
-                this.physics.add.collider(img, tile);
+            this.addPrefab(tile);
+            tile.maybeActOnMainImg((tileImg) => {
+                this.player?.maybeActOnMainImg((playerImg) => {
+                    this.physics.add.collider(tileImg, playerImg);
+                });
             });
-            this.physics.add.overlap(tile, this.topBorder, () => {
+            tile.setCollideWith([this.player]);
+            tile.setOverlapWithGameObjects([this.topBorder], () => {
                 tile.destroy();
             });
-            tile.setVelocityY(-moveUpSpeed);
-            if (platformShouldMove) {
-                tile.setVelocityX(platformMoveSpeed);
-                this.add.tween({
-                    targets: tile.body.velocity,
-                    x: -platformMoveSpeed,
-                    duration: 1000,
-                    yoyo: true,
-                    loop: -1,
-                });
-            }
+            tile.maybeActOnMainImg((img) => {
+                img.setVelocityY(-moveUpSpeed);
+                if (platformShouldMove) {
+                    img.setVelocityX(platformMoveSpeed);
+                    this.add.tween({
+                        targets: img.body.velocity,
+                        x: -platformMoveSpeed,
+                        duration: 1000,
+                        yoyo: true,
+                        loop: -1,
+                    });
+                }
+            });
         }
     }
     gotoEndGame() {
