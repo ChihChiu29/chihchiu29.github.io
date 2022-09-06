@@ -1,3 +1,5 @@
+let DEBUG_SCENE: Phaser.Scene;
+
 class SceneJumpDownMain extends QPhaser.Scene {
   BLOCK_SPRITE_SIZE = 24;
   PLAYER_SIZE = 32;
@@ -7,7 +9,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   TILE_GENERATION_SIZE = 4;
 
   // Use these parameters to change difficulty.
-  public platformMoveUpInitialSpeed = 30;
+  public platformMoveUpInitialSpeed = 3;
   public platformMoveUpSpeed = 0;  // initialize in `create`.
   public platformMoveLeftRightRandomRange = 10;
   public platformMoveLeftRightSpeedFactor = 30;
@@ -45,6 +47,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
       delay: 3600 * 1000,
       loop: true,
     });
+
+    DEBUG_SCENE = this;
   }
 
   update(totalTime: number, delta: number): void {
@@ -189,12 +193,20 @@ class SceneJumpDownMain extends QPhaser.Scene {
   private createTilesForSegments(tilePositions: QPoint[]): PlatformTile[] {
     const tiles: PlatformTile[] = [];
     const choice = Phaser.Math.Between(1, 100);
-    if (choice < 10) {
+    if (choice < 0) {
       // 1/10 chance to create auto disappearing tiles
       for (const pos of tilePositions) {
         const tile = new TileSelfDestroy(
           this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
         tile.setDisappearAfterOverlappingWith([this.player!]);
+        tiles.push(tile);
+      }
+    } else if (choice < 100) {
+      // 1/10 chance to create jump tiles
+      for (const pos of tilePositions) {
+        const tile = new TileForceJump(
+          this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
+        tile.setPushPrefabsUp([this.player!]);
         tiles.push(tile);
       }
     } else {

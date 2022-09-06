@@ -118,11 +118,25 @@ var QPhaser;
         mainImg;
         mainImgInitialX = 0;
         mainImgInitialY = 0;
+        needToApplyVelocity = false;
+        velocityToBeAppliedX = 0;
+        velocityToBeAppliedY = 0;
         constructor(scene, imgInitialX, imgInitialY) {
             // Always use world coordinates.
             super(scene, 0, 0);
             this.mainImgInitialX = imgInitialX;
             this.mainImgInitialY = imgInitialY;
+        }
+        update(time, delta) {
+            super.update(time, delta);
+            this.maybeActOnMainImg((img) => {
+                if (this.needToApplyVelocity) {
+                    img.setVelocity(img.body.velocity.x + this.velocityToBeAppliedX, img.body.velocity.y + this.velocityToBeAppliedY);
+                    this.needToApplyVelocity = false;
+                    this.velocityToBeAppliedX = 0;
+                    this.velocityToBeAppliedY = 0;
+                }
+            });
         }
         // Sets the main image, also sets it position to initial (x, y).
         setMainImage(img) {
@@ -137,6 +151,13 @@ var QPhaser;
             if (img) {
                 action(img);
             }
+        }
+        // Velocity vector added via this function will be applied on top of the current
+        // velocity of the object in the next `update`.
+        applyVelocity(x, y) {
+            this.velocityToBeAppliedX += x;
+            this.velocityToBeAppliedY += y;
+            this.needToApplyVelocity = true;
         }
         // You can set mainImage directly using the property; but use this function to read it.
         getMainImg() {
@@ -347,6 +368,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         this.scene.input.addPointer(3); // needs at most 3 touch points (most 2 are valid).
     }
     update(time, delta) {
+        super.update(time, delta);
         this.maybeActOnMainImg((img) => {
             this.handleInput(img);
         });
@@ -377,18 +399,18 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             }
         }
         if (moveLeft) {
-            img.setVelocityX(-this.playerLeftRightSpeed);
+            this.applyVelocity(-this.playerLeftRightSpeed, 0);
             img.setFlipX(false);
         }
         else if (moveRight) {
-            img.setVelocityX(this.playerLeftRightSpeed);
+            this.applyVelocity(this.playerLeftRightSpeed, 0);
             img.setFlipX(true);
         }
         else {
             img.setVelocityX(0);
         }
         if (moveUp && img.body.touching.down) {
-            img.setVelocityY(-this.playerJumpSpeed);
+            this.applyVelocity(0, -this.playerJumpSpeed);
         }
     }
 }
@@ -467,6 +489,7 @@ class PlatformTile extends QPhaser.ArcadePrefab {
         this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
     }
     // Sets that when this tile touch the given gameobjects, what happens.
+    // Callback is given (tile, other) as arguments.
     setOverlapWithGameObjects(gameObjs, callback) {
         this.maybeActOnMainImg((img) => {
             this.scene.physics.add.overlap(img, gameObjs, callback);
@@ -610,6 +633,31 @@ class RotatingText extends QPhaser.Prefab {
         }
     }
 }
+// A tile that bumps player up.
+class TileForceJump extends PlatformTile {
+    // After touching these prefabs, this tile will disappear.
+    setPushPrefabsUp(prefabs, speed = 300, 
+    // Optionally use another sprite to show the "push up" effect.
+    pushUpSpriteKey = '', pushUpSpriteFrame = 0) {
+        this.setOverlapWith(prefabs, (self, other) => {
+            for (const prefab of prefabs) {
+                prefab.applyVelocity(0, -speed);
+            }
+            if (pushUpSpriteKey) {
+                this.maybeActOnMainImg((img) => {
+                    const pushupImg = this.scene.add.sprite(img.x, img.y, pushUpSpriteKey, pushUpSpriteFrame);
+                    pushupImg.setDisplaySize(img.width, img.height);
+                    this.scene.add.tween({
+                        targets: pushupImg,
+                        y: img.y - img.height,
+                        duration: 100,
+                        loop: false,
+                    });
+                });
+            }
+        });
+    }
+}
 // A tile that disappears after player touches it.
 class TileSelfDestroy extends PlatformTile {
     // After touching these prefabs, this tile will disappear.
@@ -676,6 +724,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         }, this);
     }
 }
+let DEBUG_SCENE;
 class SceneJumpDownMain extends QPhaser.Scene {
     BLOCK_SPRITE_SIZE = 24;
     PLAYER_SIZE = 32;
@@ -683,7 +732,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // each segment is a unit for special tile generation.
     TILE_GENERATION_SIZE = 4;
     // Use these parameters to change difficulty.
-    platformMoveUpInitialSpeed = 30;
+    platformMoveUpInitialSpeed = 3;
     platformMoveUpSpeed = 0; // initialize in `create`.
     platformMoveLeftRightRandomRange = 10;
     platformMoveLeftRightSpeedFactor = 30;
@@ -712,6 +761,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
             delay: 3600 * 1000,
             loop: true,
         });
+        DEBUG_SCENE = this;
     }
     update(totalTime, delta) {
         super.update(totalTime, delta);
@@ -818,11 +868,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
     createTilesForSegments(tilePositions) {
         const tiles = [];
         const choice = Phaser.Math.Between(1, 100);
-        if (choice < 10) {
+        if (choice < 0) {
             // 1/10 chance to create auto disappearing tiles
             for (const pos of tilePositions) {
                 const tile = new TileSelfDestroy(this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
                 tile.setDisappearAfterOverlappingWith([this.player]);
+                tiles.push(tile);
+            }
+        }
+        else if (choice < 100) {
+            // 1/10 chance to create jump tiles
+            for (const pos of tilePositions) {
+                const tile = new TileForceJump(this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
+                tile.setPushPrefabsUp([this.player]);
                 tiles.push(tile);
             }
         }

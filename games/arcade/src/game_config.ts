@@ -6,7 +6,7 @@ const SCENE_KEYS = {
   JumpDownEnd: 'JumpDownEnd',
 }
 
-let GAME_CHOICE;
+let GAME_CHOICE: string;
 if (TESTING) {
   GAME_CHOICE = SCENE_KEYS.JumpDownMain;
 } else {

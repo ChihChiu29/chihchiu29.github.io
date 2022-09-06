@@ -43,6 +43,10 @@ namespace QPhaser {
     protected mainImgInitialX = 0;
     protected mainImgInitialY = 0;
 
+    private needToApplyVelocity = false;
+    private velocityToBeAppliedX = 0;
+    private velocityToBeAppliedY = 0;
+
     constructor(scene: Phaser.Scene, imgInitialX: number, imgInitialY: number) {
       // Always use world coordinates.
       super(scene, 0, 0);
@@ -50,8 +54,23 @@ namespace QPhaser {
       this.mainImgInitialY = imgInitialY;
     }
 
+    override update(time: number, delta: number) {
+      super.update(time, delta);
+      this.maybeActOnMainImg((img) => {
+        if (this.needToApplyVelocity) {
+          img.setVelocity(
+            img.body.velocity.x + this.velocityToBeAppliedX,
+            img.body.velocity.y + this.velocityToBeAppliedY,
+          );
+          this.needToApplyVelocity = false;
+          this.velocityToBeAppliedX = 0;
+          this.velocityToBeAppliedY = 0;
+        }
+      });
+    }
+
     // Sets the main image, also sets it position to initial (x, y).
-    setMainImage(img: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
+    public setMainImage(img: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
       img.x = this.mainImgInitialX;
       img.y = this.mainImgInitialY;
       this.mainImg = img;
@@ -59,11 +78,19 @@ namespace QPhaser {
     }
 
     // Calls action if `mainImg` is valid, otherwise it's an no-op.
-    maybeActOnMainImg(action: (mainImg: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void): void {
+    public maybeActOnMainImg(action: (mainImg: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void): void {
       const img = this.getMainImg();
       if (img) {
         action(img);
       }
+    }
+
+    // Velocity vector added via this function will be applied on top of the current
+    // velocity of the object in the next `update`.
+    public applyVelocity(x: number, y: number) {
+      this.velocityToBeAppliedX += x;
+      this.velocityToBeAppliedY += y;
+      this.needToApplyVelocity = true;
     }
 
     // You can set mainImage directly using the property; but use this function to read it.

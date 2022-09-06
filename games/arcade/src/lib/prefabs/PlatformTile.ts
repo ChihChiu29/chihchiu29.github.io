@@ -44,6 +44,7 @@ class PlatformTile extends QPhaser.ArcadePrefab {
   }
 
   // Sets that when this tile touch the given gameobjects, what happens.
+  // Callback is given (tile, other) as arguments.
   public setOverlapWithGameObjects(
     gameObjs: Phaser.GameObjects.GameObject[],
     callback: ArcadePhysicsCallback) {

@@ -19,12 +19,13 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   }
 
   override update(time: number, delta: number) {
+    super.update(time, delta);
     this.maybeActOnMainImg((img) => {
       this.handleInput(img);
     });
   }
 
-  private handleInput(img: Phaser.Physics.Arcade.Sprite) {
+  private handleInput(img: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
     // First get user intention.
     // Keyboard based control.
     let moveLeft = this.keys.A.isDown;
@@ -50,17 +51,17 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     }
 
     if (moveLeft) {
-      img.setVelocityX(-this.playerLeftRightSpeed);
+      this.applyVelocity(-this.playerLeftRightSpeed, 0);
       img.setFlipX(false);
     } else if (moveRight) {
-      img.setVelocityX(this.playerLeftRightSpeed);
+      this.applyVelocity(this.playerLeftRightSpeed, 0);
       img.setFlipX(true);
     } else {
       img.setVelocityX(0);
     }
 
     if (moveUp && img.body.touching.down) {
-      img.setVelocityY(-this.playerJumpSpeed);
+      this.applyVelocity(0, -this.playerJumpSpeed);
     }
   }
 }
