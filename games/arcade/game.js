@@ -976,8 +976,18 @@ class SceneJumpDownStart extends QPhaser.Scene {
             'Falling Cato',
             'Survival Game!',
         ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
+        const instruction = this.add.text(CONST.GAME_WIDTH / 2, title.y + 180, [
+            'Choose your favorite',
+            'character, then use',
+            'left, mid, and right',
+            'part of screen for',
+            'control. Good luck!'
+        ])
+            .setOrigin(0.5)
+            .setFontSize(24);
+        const gap = 120;
         const iconSize = CONST.GAME_WIDTH / 4;
-        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, title.y + 200, // position
+        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, instruction.y + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -989,7 +999,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 canDoubleJump: false,
             });
         });
-        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, title.y + 200, // position
+        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
