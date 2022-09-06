@@ -46,6 +46,7 @@ namespace QPhaser {
     private needToApplyVelocity = false;
     private velocityToBeAppliedX = 0;
     private velocityToBeAppliedY = 0;
+    private velocityLastActionTime: Map<string, number> = new Map();
 
     constructor(scene: Phaser.Scene, imgInitialX: number, imgInitialY: number) {
       // Always use world coordinates.
@@ -78,7 +79,9 @@ namespace QPhaser {
     }
 
     // Calls action if `mainImg` is valid, otherwise it's an no-op.
-    public maybeActOnMainImg(action: (mainImg: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void): void {
+    public maybeActOnMainImg(
+      action: (mainImg: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void,
+    ): void {
       const img = this.getMainImg();
       if (img) {
         action(img);
@@ -87,10 +90,34 @@ namespace QPhaser {
 
     // Velocity vector added via this function will be applied on top of the current
     // velocity of the object in the next `update`.
-    public applyVelocity(x: number, y: number) {
-      this.velocityToBeAppliedX += x;
-      this.velocityToBeAppliedY += y;
-      this.needToApplyVelocity = true;
+    // Note that this is helpful to add "one-shot" velocity, and it won't work well
+    // for "continous" cases like "when key A is down move at speed 200".
+    // If multiple calls are made from the same `source` within `oncePerDurationMs`,
+    // only the first one has effect.
+    public applyVelocity(
+      x: number, y: number,
+      source: string = '',
+      oncePerDurationMs: number = 0,
+    ) {
+      const lastActionTime = this.velocityLastActionTime.get(source);
+      const now = QTime.now();
+      if (!lastActionTime || now - lastActionTime > oncePerDurationMs) {
+        this.velocityToBeAppliedX += x;
+        this.velocityToBeAppliedY += y;
+        this.needToApplyVelocity = true;
+        this.velocityLastActionTime.set(source, now);
+      }
+    }
+
+    // Makes it easeir to not use maybeActOnMainImg when you only care about its position.
+    // Returns (0, 0) if not valid.
+    public getPosition(): QPoint {
+      const img = this.getMainImg();
+      if (img) {
+        return { x: img.x, y: img.y };
+      } else {
+        return { x: 0, y: 0 };
+      }
     }
 
     // You can set mainImage directly using the property; but use this function to read it.
@@ -298,5 +325,13 @@ namespace QUI {
     button.on('pointerover', () => button.setStyle({ fill: '#f39c12' }))
     button.on('pointerout', () => button.setStyle({ fill: '#FFF' }));
     return button;
+  }
+}
+
+namespace QMath {
+  export const constants = {
+    PI_ONE_HALF: Math.PI / 2,
+    PI_ONE_QUARTER: Math.PI / 4,
+    PI_THREE_QUARTER: Math.PI * 3 / 4,
   }
 }

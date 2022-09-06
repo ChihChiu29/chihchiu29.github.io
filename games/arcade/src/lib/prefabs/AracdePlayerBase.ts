@@ -7,7 +7,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
 
   public playerLeftRightSpeed = 160;
-  public playerJumpSpeed = 350;
+  public playerJumpSpeed = 250;
   public playerFallSpeed = 100;
 
   private keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
@@ -51,17 +51,18 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     }
 
     if (moveLeft) {
-      this.applyVelocity(-this.playerLeftRightSpeed, 0);
+      img.setVelocityX(-this.playerLeftRightSpeed);
       img.setFlipX(false);
     } else if (moveRight) {
-      this.applyVelocity(this.playerLeftRightSpeed, 0);
+      img.setVelocityX(this.playerLeftRightSpeed);
       img.setFlipX(true);
     } else {
       img.setVelocityX(0);
     }
 
     if (moveUp && img.body.touching.down) {
-      this.applyVelocity(0, -this.playerJumpSpeed);
+      // Only apply once per 200 ms.
+      this.applyVelocity(0, -this.playerJumpSpeed, 'input', 200);
     }
   }
 }

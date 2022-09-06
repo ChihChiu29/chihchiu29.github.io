@@ -121,6 +121,7 @@ var QPhaser;
         needToApplyVelocity = false;
         velocityToBeAppliedX = 0;
         velocityToBeAppliedY = 0;
+        velocityLastActionTime = new Map();
         constructor(scene, imgInitialX, imgInitialY) {
             // Always use world coordinates.
             super(scene, 0, 0);
@@ -154,10 +155,30 @@ var QPhaser;
         }
         // Velocity vector added via this function will be applied on top of the current
         // velocity of the object in the next `update`.
-        applyVelocity(x, y) {
-            this.velocityToBeAppliedX += x;
-            this.velocityToBeAppliedY += y;
-            this.needToApplyVelocity = true;
+        // Note that this is helpful to add "one-shot" velocity, and it won't work well
+        // for "continous" cases like "when key A is down move at speed 200".
+        // If multiple calls are made from the same `source` within `oncePerDurationMs`,
+        // only the first one has effect.
+        applyVelocity(x, y, source = '', oncePerDurationMs = 0) {
+            const lastActionTime = this.velocityLastActionTime.get(source);
+            const now = QTime.now();
+            if (!lastActionTime || now - lastActionTime > oncePerDurationMs) {
+                this.velocityToBeAppliedX += x;
+                this.velocityToBeAppliedY += y;
+                this.needToApplyVelocity = true;
+                this.velocityLastActionTime.set(source, now);
+            }
+        }
+        // Makes it easeir to not use maybeActOnMainImg when you only care about its position.
+        // Returns (0, 0) if not valid.
+        getPosition() {
+            const img = this.getMainImg();
+            if (img) {
+                return { x: img.x, y: img.y };
+            }
+            else {
+                return { x: 0, y: 0 };
+            }
         }
         // You can set mainImage directly using the property; but use this function to read it.
         getMainImg() {
@@ -351,6 +372,14 @@ var QUI;
     }
     QUI.createButton = createButton;
 })(QUI || (QUI = {}));
+var QMath;
+(function (QMath) {
+    QMath.constants = {
+        PI_ONE_HALF: Math.PI / 2,
+        PI_ONE_QUARTER: Math.PI / 4,
+        PI_THREE_QUARTER: Math.PI * 3 / 4,
+    };
+})(QMath || (QMath = {}));
 // Base class for arcade platform player.
 // It is not directly useable.
 // When subclassing this class, create elements in `init`.
@@ -359,7 +388,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
-    playerJumpSpeed = 350;
+    playerJumpSpeed = 250;
     playerFallSpeed = 100;
     keys = {};
     init() {
@@ -399,18 +428,19 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             }
         }
         if (moveLeft) {
-            this.applyVelocity(-this.playerLeftRightSpeed, 0);
+            img.setVelocityX(-this.playerLeftRightSpeed);
             img.setFlipX(false);
         }
         else if (moveRight) {
-            this.applyVelocity(this.playerLeftRightSpeed, 0);
+            img.setVelocityX(this.playerLeftRightSpeed);
             img.setFlipX(true);
         }
         else {
             img.setVelocityX(0);
         }
         if (moveUp && img.body.touching.down) {
-            this.applyVelocity(0, -this.playerJumpSpeed);
+            // Only apply once per 200 ms.
+            this.applyVelocity(0, -this.playerJumpSpeed, 'input', 200);
         }
     }
 }
@@ -636,22 +666,33 @@ class RotatingText extends QPhaser.Prefab {
 // A tile that bumps player up.
 class TileForceJump extends PlatformTile {
     // After touching these prefabs, this tile will disappear.
-    setPushPrefabsUp(prefabs, speed = 300, 
+    setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
     pushUpSpriteKey = '', pushUpSpriteFrame = 0) {
         this.setOverlapWith(prefabs, (self, other) => {
+            let activated = false;
+            const selfPos = this.getPosition();
             for (const prefab of prefabs) {
-                prefab.applyVelocity(0, -speed);
+                const targetPos = prefab.getPosition();
+                const relativeAngle = new Phaser.Math.Vector2(targetPos.x - selfPos.x, selfPos.y - targetPos.y).angle();
+                if (relativeAngle > QMath.constants.PI_ONE_QUARTER &&
+                    relativeAngle < QMath.constants.PI_THREE_QUARTER) {
+                    prefab.applyVelocity(0, -speed);
+                    activated = true;
+                }
             }
-            if (pushUpSpriteKey) {
+            if (pushUpSpriteKey && activated) {
                 this.maybeActOnMainImg((img) => {
                     const pushupImg = this.scene.add.sprite(img.x, img.y, pushUpSpriteKey, pushUpSpriteFrame);
-                    pushupImg.setDisplaySize(img.width, img.height);
                     this.scene.add.tween({
                         targets: pushupImg,
                         y: img.y - img.height,
                         duration: 100,
                         loop: false,
+                        yoyo: true,
+                        onComplete: () => {
+                            pushupImg.destroy();
+                        },
                     });
                 });
             }
@@ -661,7 +702,7 @@ class TileForceJump extends PlatformTile {
 // A tile that disappears after player touches it.
 class TileSelfDestroy extends PlatformTile {
     // After touching these prefabs, this tile will disappear.
-    setDisappearAfterOverlappingWith(prefabs, delayMs = 2000) {
+    setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
             this.scene.add.tween({
                 targets: self,
@@ -732,7 +773,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // each segment is a unit for special tile generation.
     TILE_GENERATION_SIZE = 4;
     // Use these parameters to change difficulty.
-    platformMoveUpInitialSpeed = 3;
+    platformMoveUpInitialSpeed = 30;
     platformMoveUpSpeed = 0; // initialize in `create`.
     platformMoveLeftRightRandomRange = 10;
     platformMoveLeftRightSpeedFactor = 30;
@@ -754,7 +795,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createBoundaries();
         this.createPlayer();
         this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpSpeed);
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpSpeed, false, // no move left right
+        false);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
         this.timer = this.time.addEvent({
@@ -826,8 +868,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpSpeed, true);
     }
     // Lowest level function to create a platform.
-    createPlatform(x, y, width, moveUpSpeed, canMove = false) {
-        const platformShouldMove = canMove && Phaser.Math.Between(1, 10) > 6;
+    createPlatform(x, y, width, moveUpSpeed, canMoveLeftNRight = false, useSpecialTiles = true) {
+        const platformShouldMove = canMoveLeftNRight && Phaser.Math.Between(1, 10) > 6;
         const platformMoveSpeed = Phaser.Math.Between(-this.platformMoveLeftRightRandomRange, this.platformMoveLeftRightRandomRange)
             * this.platformMoveLeftRightSpeedFactor;
         const numOfBlocks = Math.floor(width / this.BLOCK_SPRITE_SIZE);
@@ -838,7 +880,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
         const tiles = [];
         for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
-            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE))) {
+            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
                 tiles.push(tile);
             }
         }
@@ -865,10 +907,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // A segment of tiles used together for creation of special tiles.
     // Each segment can only contain one type of special tiles.
-    createTilesForSegments(tilePositions) {
+    createTilesForSegments(tilePositions, useSpecialTiles = true) {
         const tiles = [];
-        const choice = Phaser.Math.Between(1, 100);
-        if (choice < 0) {
+        let choice = 100; // default to use normal tiles only.
+        if (useSpecialTiles) {
+            choice = Phaser.Math.Between(1, 100);
+        }
+        if (choice < 10) {
             // 1/10 chance to create auto disappearing tiles
             for (const pos of tilePositions) {
                 const tile = new TileSelfDestroy(this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
@@ -876,11 +921,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 tiles.push(tile);
             }
         }
-        else if (choice < 100) {
+        else if (choice < 20) {
             // 1/10 chance to create jump tiles
             for (const pos of tilePositions) {
                 const tile = new TileForceJump(this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
-                tile.setPushPrefabsUp([this.player]);
+                tile.setPushPrefabsUp([this.player], 100, 'tiles', 196);
                 tiles.push(tile);
             }
         }

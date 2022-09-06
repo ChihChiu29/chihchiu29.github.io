@@ -9,7 +9,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   TILE_GENERATION_SIZE = 4;
 
   // Use these parameters to change difficulty.
-  public platformMoveUpInitialSpeed = 3;
+  public platformMoveUpInitialSpeed = 30;
   public platformMoveUpSpeed = 0;  // initialize in `create`.
   public platformMoveLeftRightRandomRange = 10;
   public platformMoveLeftRightSpeedFactor = 30;
@@ -38,7 +38,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
     this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
     this.createPlatform(
       CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50,
-      this.platformSpawnWidthMax, this.platformMoveUpSpeed);
+      this.platformSpawnWidthMax, this.platformMoveUpSpeed,
+      false,  // no move left right
+      false,  // use normal tiles only.
+    );
     this.createSurvivalTimer();
 
     this.startPlatformSpawnActions();
@@ -141,8 +144,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Lowest level function to create a platform.
   private createPlatform(
-    x: number, y: number, width: number, moveUpSpeed: number, canMove: boolean = false): void {
-    const platformShouldMove: boolean = canMove && Phaser.Math.Between(1, 10) > 6;
+    x: number, y: number, width: number,
+    moveUpSpeed: number,
+    canMoveLeftNRight: boolean = false,
+    useSpecialTiles: boolean = true,
+  ): void {
+    const platformShouldMove: boolean = canMoveLeftNRight && Phaser.Math.Between(1, 10) > 6;
     const platformMoveSpeed: number =
       Phaser.Math.Between(
         -this.platformMoveLeftRightRandomRange,
@@ -159,7 +166,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     const tiles: PlatformTile[] = [];
     for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
       for (const tile of this.createTilesForSegments(
-        tilePositions.slice(i, i + this.TILE_GENERATION_SIZE))) {
+        tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
         tiles.push(tile);
       }
     }
@@ -190,10 +197,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // A segment of tiles used together for creation of special tiles.
   // Each segment can only contain one type of special tiles.
-  private createTilesForSegments(tilePositions: QPoint[]): PlatformTile[] {
+  private createTilesForSegments(
+    tilePositions: QPoint[],
+    useSpecialTiles: boolean = true): PlatformTile[] {
     const tiles: PlatformTile[] = [];
-    const choice = Phaser.Math.Between(1, 100);
-    if (choice < 0) {
+    let choice = 100;  // default to use normal tiles only.
+    if (useSpecialTiles) {
+      choice = Phaser.Math.Between(1, 100);
+    }
+    if (choice < 10) {
       // 1/10 chance to create auto disappearing tiles
       for (const pos of tilePositions) {
         const tile = new TileSelfDestroy(
@@ -201,12 +213,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
         tile.setDisappearAfterOverlappingWith([this.player!]);
         tiles.push(tile);
       }
-    } else if (choice < 100) {
+    } else if (choice < 20) {
       // 1/10 chance to create jump tiles
       for (const pos of tilePositions) {
         const tile = new TileForceJump(
-          this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
-        tile.setPushPrefabsUp([this.player!]);
+          this, pos.x, pos.y,
+          'tiles', 302,
+          this.BLOCK_SPRITE_SIZE,
+        );
+        tile.setPushPrefabsUp([this.player!], 100, 'tiles', 196);
         tiles.push(tile);
       }
     } else {

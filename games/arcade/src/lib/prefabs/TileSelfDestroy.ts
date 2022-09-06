@@ -3,7 +3,7 @@ class TileSelfDestroy extends PlatformTile {
   // After touching these prefabs, this tile will disappear.
   public setDisappearAfterOverlappingWith(
     prefabs: QPhaser.ArcadePrefab[],
-    delayMs: number = 2000): void {
+    delayMs: number = 1500): void {
     this.setOverlapWith(prefabs, (self, other) => {
       this.scene.add.tween({
         targets: self,
