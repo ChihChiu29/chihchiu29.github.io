@@ -56,7 +56,7 @@ const SCENE_KEYS = {
 };
 let GAME_CHOICE;
 if (TESTING) {
-    GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+    GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 }
 else {
     GAME_CHOICE = SCENE_KEYS.JumpDownStart;
@@ -148,6 +148,7 @@ var QPhaser;
         // for "continous" cases like "when key A is down move at speed 200".
         // If multiple calls are made from the same `source` within `oncePerDurationMs`,
         // only the first one has effect.
+        // Returns if action was taken.
         applyVelocity(x, y, source = '', oncePerDurationMs = 0) {
             const lastActionTime = this.velocityLastActionTime.get(source);
             const now = QTime.now();
@@ -156,7 +157,9 @@ var QPhaser;
                 this.velocityToBeAppliedY += y;
                 this.needToApplyVelocity = true;
                 this.velocityLastActionTime.set(source, now);
+                return true;
             }
+            return false;
         }
         // Makes it easeir to not use maybeActOnMainImg when you only care about its position.
         // Returns (0, 0) if not valid.
@@ -360,6 +363,15 @@ var QUI;
         return button;
     }
     QUI.createButton = createButton;
+    function createIconButton(scene, spriteKey, spriteFrame, x, y, width, height, clickCallbackFn) {
+        const box = scene.add.rectangle(x, y, width, height, 0xf39c12, 0.1);
+        const button = scene.add.sprite(x, y, spriteKey, spriteFrame)
+            .setInteractive()
+            .setDisplaySize(width * 0.8, height * 0.8)
+            .on('pointerdown', clickCallbackFn);
+        return button;
+    }
+    QUI.createIconButton = createIconButton;
 })(QUI || (QUI = {}));
 var QMath;
 (function (QMath) {
@@ -378,8 +390,10 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
     playerJumpSpeed = 250;
-    playerFallSpeed = 100;
+    playerCanDoubleJump = false;
     keys = {};
+    // Used to control when can double jump.
+    landedBefore = true;
     init() {
         // Input.
         this.keys = QUI.createKeyMap(this.scene);
@@ -427,9 +441,20 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         else {
             img.setVelocityX(0);
         }
-        if (moveUp && img.body.touching.down) {
-            // Only apply once per a small time interval.
-            this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+        if (moveUp) {
+            if (img.body.touching.down) {
+                this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+            }
+            else if (this.playerCanDoubleJump && this.landedBefore) {
+                const result = this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+                if (result) {
+                    // Only clears this bit if jump action happened.
+                    this.landedBefore = false; // can only jump once in air.
+                }
+            }
+        }
+        if (img.body.touching.down) {
+            this.landedBefore = true;
         }
     }
 }
@@ -575,16 +600,18 @@ class PlayerKennyCat extends ArcadePlayerBase {
 // A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
     imageKey = '';
+    imageFrame = 0;
     imageInitialSize = 32;
-    constructor(scene, imgInitialX, imgInitialY, imageKey = 'scared', imageInitialSize = 32) {
+    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32) {
         super(scene, imgInitialX, imgInitialY);
-        this.imageKey = imageKey;
+        this.imageKey = spriteKey;
+        this.imageFrame = spriteFrame;
         this.imageInitialSize = imageInitialSize;
     }
     init() {
         super.init();
         // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey, this.imageFrame);
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
@@ -747,7 +774,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         rotatingText.textArea?.setFontSize(28);
         this.addPrefab(rotatingText);
         QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
-            this.scene.start(SCENE_KEYS.JumpDownMain);
+            this.scene.start(SCENE_KEYS.JumpDownStart);
         });
         this.input.keyboard.once('keyup-ENTER', () => {
             this.scene.start(SCENE_KEYS.JumpDownMain);
@@ -780,6 +807,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
     timer;
     // Last SetTimeout ID for spawning platform.
     lastSpawnPlatformTimeout = 0;
+    playerData;
+    init(playerData) {
+        this.playerData = playerData;
+    }
     create() {
         this.createBoundaries();
         this.createPlayer();
@@ -824,7 +855,10 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Needs to be called after createSpikes.
     createPlayer() {
         // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
-        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, 'scared', this.PLAYER_SIZE);
+        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData?.spriteKey, this.playerData?.spriteFrame, this.playerData?.size);
+        player.playerLeftRightSpeed = this.playerData.leftRightSpeed;
+        player.playerJumpSpeed = this.playerData.jumpSpeed;
+        player.playerCanDoubleJump = this.playerData.canDoubleJump;
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
             this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {
@@ -936,6 +970,59 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {
+    create() {
+        const title = QUI.createTextTitle(this, [
+            'Welcome to',
+            'Falling Cato',
+            'Survival Game!',
+        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
+        const iconSize = CONST.GAME_WIDTH / 4;
+        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, title.y + 200, // position
+        iconSize, iconSize, // size
+        () => {
+            this.startNewGame({
+                spriteKey: 'scared',
+                spriteFrame: 0,
+                size: 32,
+                leftRightSpeed: 200,
+                jumpSpeed: 300,
+                canDoubleJump: false,
+            });
+        });
+        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, title.y + 200, // position
+        iconSize, iconSize, // size
+        () => {
+            this.startNewGame({
+                spriteKey: 'pineapplecat',
+                spriteFrame: 0,
+                size: 48,
+                leftRightSpeed: 120,
+                jumpSpeed: 200,
+                canDoubleJump: true,
+            });
+        });
+        // const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
+        // congrats.setDisplaySize(200, 200);
+        // congrats.setAngle(-20);
+        // this.add.tween({
+        //   targets: congrats,
+        //   angle: 20,
+        //   duration: 400,
+        //   yoyo: true,
+        //   loop: -1,
+        // });
+        // QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
+        //   this.startNewGame();
+        // });
+        // this.input.keyboard.once('keyup-ENTER', () => {
+        //   this.startNewGame();
+        // }, this);
+    }
+    startNewGame(playerData) {
+        this.scene.start(SCENE_KEYS.JumpDownMain, playerData);
+    }
+}
+class SceneJumpDownStartOld extends QPhaser.Scene {
     create() {
         const title = QUI.createTextTitle(this, [
             'Welcome to',

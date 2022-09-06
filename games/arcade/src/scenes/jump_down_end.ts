@@ -39,7 +39,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     this.addPrefab(rotatingText);
 
     QUI.createButton(this, 'TRY AGAIN', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
-      this.scene.start(SCENE_KEYS.JumpDownMain);
+      this.scene.start(SCENE_KEYS.JumpDownStart);
     });
 
     this.input.keyboard.once('keyup-ENTER', () => {

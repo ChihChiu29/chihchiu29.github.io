@@ -94,11 +94,12 @@ namespace QPhaser {
     // for "continous" cases like "when key A is down move at speed 200".
     // If multiple calls are made from the same `source` within `oncePerDurationMs`,
     // only the first one has effect.
+    // Returns if action was taken.
     public applyVelocity(
       x: number, y: number,
       source: string = '',
       oncePerDurationMs: number = 0,
-    ) {
+    ): boolean {
       const lastActionTime = this.velocityLastActionTime.get(source);
       const now = QTime.now();
       if (!lastActionTime || now - lastActionTime > oncePerDurationMs) {
@@ -106,7 +107,9 @@ namespace QPhaser {
         this.velocityToBeAppliedY += y;
         this.needToApplyVelocity = true;
         this.velocityLastActionTime.set(source, now);
+        return true;
       }
+      return false;
     }
 
     // Makes it easeir to not use maybeActOnMainImg when you only care about its position.
@@ -324,6 +327,21 @@ namespace QUI {
       .on('pointerdown', clickCallbackFn);
     button.on('pointerover', () => button.setStyle({ fill: '#f39c12' }))
     button.on('pointerout', () => button.setStyle({ fill: '#FFF' }));
+    return button;
+  }
+
+  export function createIconButton(
+    scene: Phaser.Scene,
+    spriteKey: string, spriteFrame: number,
+    x: number, y: number,
+    width: number, height: number,
+    clickCallbackFn: () => void,
+  ): Phaser.GameObjects.Sprite {
+    const box = scene.add.rectangle(x, y, width, height, 0xf39c12, 0.1);
+    const button = scene.add.sprite(x, y, spriteKey, spriteFrame)
+      .setInteractive()
+      .setDisplaySize(width * 0.8, height * 0.8)
+      .on('pointerdown', clickCallbackFn);
     return button;
   }
 }

@@ -8,9 +8,13 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
 
   public playerLeftRightSpeed = 160;
   public playerJumpSpeed = 250;
-  public playerFallSpeed = 100;
+
+  public playerCanDoubleJump = false;
 
   private keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
+
+  // Used to control when can double jump.
+  private landedBefore = true;
 
   override init(): void {
     // Input.
@@ -60,11 +64,24 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       img.setVelocityX(0);
     }
 
-    if (moveUp && img.body.touching.down) {
-      // Only apply once per a small time interval.
-      this.applyVelocity(
-        0, -this.playerJumpSpeed,
-        'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+    if (moveUp) {
+      if (img.body.touching.down) {
+        this.applyVelocity(
+          0, -this.playerJumpSpeed,
+          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+      } else if (this.playerCanDoubleJump && this.landedBefore) {
+        const result = this.applyVelocity(
+          0, -this.playerJumpSpeed,
+          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
+        if (result) {
+          // Only clears this bit if jump action happened.
+          this.landedBefore = false;  // can only jump once in air.
+        }
+      }
+    }
+
+    if (img.body.touching.down) {
+      this.landedBefore = true;
     }
   }
 }

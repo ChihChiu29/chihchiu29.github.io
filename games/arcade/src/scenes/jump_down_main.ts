@@ -32,6 +32,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // Last SetTimeout ID for spawning platform.
   private lastSpawnPlatformTimeout = 0;
 
+  private playerData: PlayerProperties | undefined;
+
+  init(playerData: PlayerProperties): void {
+    this.playerData = playerData;
+  }
+
   create(): void {
     this.createBoundaries();
     this.createPlayer();
@@ -93,7 +99,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
     const player = new PlayerSingleSprite(
       this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2,
-      'scared', this.PLAYER_SIZE);
+      this.playerData?.spriteKey, this.playerData?.spriteFrame,
+      this.playerData?.size);
+    player.playerLeftRightSpeed = this.playerData!.leftRightSpeed;
+    player.playerJumpSpeed = this.playerData!.jumpSpeed;
+    player.playerCanDoubleJump = this.playerData!.canDoubleJump;
     this.addPrefab(player);
 
     player.maybeActOnMainImg((img) => {

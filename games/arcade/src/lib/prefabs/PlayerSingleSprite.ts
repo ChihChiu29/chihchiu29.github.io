@@ -1,13 +1,16 @@
 // A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
   private imageKey = '';
+  private imageFrame = 0;
   private imageInitialSize = 32;
 
   constructor(
     scene: Phaser.Scene, imgInitialX: number, imgInitialY: number,
-    imageKey: string = 'scared', imageInitialSize: number = 32) {
+    spriteKey: string = 'scared', spriteFrame: number = 0,
+    imageInitialSize: number = 32) {
     super(scene, imgInitialX, imgInitialY);
-    this.imageKey = imageKey;
+    this.imageKey = spriteKey;
+    this.imageFrame = spriteFrame;
     this.imageInitialSize = imageInitialSize;
   }
 
@@ -15,7 +18,7 @@ class PlayerSingleSprite extends ArcadePlayerBase {
     super.init();
 
     // Head.
-    const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey);
+    const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey, this.imageFrame);
     headSprite.setCollideWorldBounds(true);
     headSprite.setBounce(0);
     headSprite.setFrictionX(1);
