@@ -190,6 +190,47 @@ namespace QPhaser {
 
 // Time and task related functions.
 namespace QTime {
+
+  /**
+   * A counter that returns number of count actions within a time period.
+   * For example this can help to throttle actions, like:
+   * ```TypeScript
+   *   const counter = TimedCounter(200);
+   *   counter.count();
+   *   // ...
+   *   if (counter.count() === 0) {
+   *     // do actions
+   *   } else {
+   *     // happening too soon
+   *   }
+   * ```
+   */
+  export class TimedCounter {
+    private durationMs = 0;
+
+    private currentCount = 0;
+    private lastActionTime = 0;
+
+    constructor(durationMs: number) {
+      this.durationMs = durationMs;
+    }
+
+    // Imposes a "count" action. If the last action was older by more than
+    // `this.durationMS`, this function clears internal counter and return 0,
+    // otherwise it returns the number of "count" actions since the last time
+    // counter was cleared.
+    public count(): integer {
+      const now = QTime.now();
+      if (now - this.lastActionTime > this.durationMs) {
+        this.currentCount = 0;
+        this.lastActionTime = now;
+      } else {
+        this.currentCount++;
+      }
+      return this.currentCount;
+    }
+  }
+
   // Get current timestamp.
   export function now(): number {
     return new Date().getTime();

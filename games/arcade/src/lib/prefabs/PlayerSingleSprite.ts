@@ -3,15 +3,20 @@ class PlayerSingleSprite extends ArcadePlayerBase {
   private imageKey = '';
   private imageFrame = 0;
   private imageInitialSize = 32;
+  private hasSpongeEffect = false;
 
   constructor(
     scene: Phaser.Scene, imgInitialX: number, imgInitialY: number,
     spriteKey: string = 'scared', spriteFrame: number = 0,
-    imageInitialSize: number = 32) {
+    imageInitialSize: number = 32,
+    // whether the sprite would vary a bit in size periodically.
+    hasSpongeEffect: boolean = false,
+  ) {
     super(scene, imgInitialX, imgInitialY);
     this.imageKey = spriteKey;
     this.imageFrame = spriteFrame;
     this.imageInitialSize = imageInitialSize;
+    this.hasSpongeEffect = hasSpongeEffect;
   }
 
   override init(): void {
@@ -25,13 +30,15 @@ class PlayerSingleSprite extends ArcadePlayerBase {
     headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
     this.setMainImage(headSprite);
 
-    this.addInfiniteTween({
-      targets: headSprite,
-      displayWidth: this.imageInitialSize,
-      displayHeight: this.imageInitialSize,
-      duration: 200,
-      yoyo: true,
-      loop: -1,
-    });
+    if (this.hasSpongeEffect) {
+      this.addInfiniteTween({
+        targets: headSprite,
+        displayWidth: this.imageInitialSize,
+        displayHeight: this.imageInitialSize,
+        duration: 200,
+        yoyo: true,
+        loop: -1,
+      });
+    }
   }
 }

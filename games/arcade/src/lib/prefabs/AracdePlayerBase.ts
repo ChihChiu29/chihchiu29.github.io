@@ -13,6 +13,17 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
 
   private keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
 
+  INPUT_TYPE = {
+    NEUTRAL: 'NEUTRAL',
+    UP: 'UP',
+    LEFT: 'LEFT',
+    RIGHT: 'RIGHT',
+  }
+  // Last few non-neutral input actions that finished (key up).
+  protected recentInputs: string[] = [];
+  // Last input action that can be ongoing (key down), can be neutral.
+  private lastInput: string = '';
+
   // Used to control when can double jump.
   private landedBefore = true;
 
@@ -54,6 +65,24 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       }
     }
 
+    // Update last and recent input actions.
+    let currentInput = this.INPUT_TYPE.NEUTRAL;
+    if (moveLeft) {
+      currentInput = this.INPUT_TYPE.LEFT;
+    } else if (moveRight) {
+      currentInput = this.INPUT_TYPE.RIGHT;
+    } else if (moveUp) {
+      currentInput = this.INPUT_TYPE.UP;
+    }
+    if (currentInput !== this.lastInput) {
+      if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
+        this.recentInputs.unshift(this.lastInput);
+        this.recentInputs.splice(5);
+      }
+      this.lastInput = currentInput;
+    }
+
+    // Handle move intentions.
     if (moveLeft) {
       img.setVelocityX(-this.playerLeftRightSpeed);
       img.setFlipX(false);
@@ -63,7 +92,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     } else {
       img.setVelocityX(0);
     }
-
+    // Up and left/right could co-happen.
     if (moveUp) {
       if (img.body.touching.down) {
         this.applyVelocity(
@@ -80,6 +109,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       }
     }
 
+    // For multi-jump.
     if (img.body.touching.down) {
       this.landedBefore = true;
     }

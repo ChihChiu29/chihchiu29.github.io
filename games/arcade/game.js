@@ -236,6 +236,44 @@ var QPhaser;
 // Time and task related functions.
 var QTime;
 (function (QTime) {
+    /**
+     * A counter that returns number of count actions within a time period.
+     * For example this can help to throttle actions, like:
+     * ```TypeScript
+     *   const counter = TimedCounter(200);
+     *   counter.count();
+     *   // ...
+     *   if (counter.count() === 0) {
+     *     // do actions
+     *   } else {
+     *     // happening too soon
+     *   }
+     * ```
+     */
+    class TimedCounter {
+        durationMs = 0;
+        currentCount = 0;
+        lastActionTime = 0;
+        constructor(durationMs) {
+            this.durationMs = durationMs;
+        }
+        // Imposes a "count" action. If the last action was older by more than
+        // `this.durationMS`, this function clears internal counter and return 0,
+        // otherwise it returns the number of "count" actions since the last time
+        // counter was cleared.
+        count() {
+            const now = QTime.now();
+            if (now - this.lastActionTime > this.durationMs) {
+                this.currentCount = 0;
+                this.lastActionTime = now;
+            }
+            else {
+                this.currentCount++;
+            }
+            return this.currentCount;
+        }
+    }
+    QTime.TimedCounter = TimedCounter;
     // Get current timestamp.
     function now() {
         return new Date().getTime();
@@ -392,6 +430,16 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     playerJumpSpeed = 250;
     playerCanDoubleJump = false;
     keys = {};
+    INPUT_TYPE = {
+        NEUTRAL: 'NEUTRAL',
+        UP: 'UP',
+        LEFT: 'LEFT',
+        RIGHT: 'RIGHT',
+    };
+    // Last few non-neutral input actions that finished (key up).
+    recentInputs = [];
+    // Last input action that can be ongoing (key down), can be neutral.
+    lastInput = '';
     // Used to control when can double jump.
     landedBefore = true;
     init() {
@@ -430,6 +478,25 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
                 }
             }
         }
+        // Update last and recent input actions.
+        let currentInput = this.INPUT_TYPE.NEUTRAL;
+        if (moveLeft) {
+            currentInput = this.INPUT_TYPE.LEFT;
+        }
+        else if (moveRight) {
+            currentInput = this.INPUT_TYPE.RIGHT;
+        }
+        else if (moveUp) {
+            currentInput = this.INPUT_TYPE.UP;
+        }
+        if (currentInput !== this.lastInput) {
+            if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
+                this.recentInputs.unshift(this.lastInput);
+                this.recentInputs.splice(5);
+            }
+            this.lastInput = currentInput;
+        }
+        // Handle move intentions.
         if (moveLeft) {
             img.setVelocityX(-this.playerLeftRightSpeed);
             img.setFlipX(false);
@@ -441,6 +508,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         else {
             img.setVelocityX(0);
         }
+        // Up and left/right could co-happen.
         if (moveUp) {
             if (img.body.touching.down) {
                 this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
@@ -453,6 +521,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
                 }
             }
         }
+        // For multi-jump.
         if (img.body.touching.down) {
             this.landedBefore = true;
         }
@@ -602,11 +671,15 @@ class PlayerSingleSprite extends ArcadePlayerBase {
     imageKey = '';
     imageFrame = 0;
     imageInitialSize = 32;
-    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32) {
+    hasSpongeEffect = false;
+    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32, 
+    // whether the sprite would vary a bit in size periodically.
+    hasSpongeEffect = false) {
         super(scene, imgInitialX, imgInitialY);
         this.imageKey = spriteKey;
         this.imageFrame = spriteFrame;
         this.imageInitialSize = imageInitialSize;
+        this.hasSpongeEffect = hasSpongeEffect;
     }
     init() {
         super.init();
@@ -617,14 +690,16 @@ class PlayerSingleSprite extends ArcadePlayerBase {
         headSprite.setFrictionX(1);
         headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
         this.setMainImage(headSprite);
-        this.addInfiniteTween({
-            targets: headSprite,
-            displayWidth: this.imageInitialSize,
-            displayHeight: this.imageInitialSize,
-            duration: 200,
-            yoyo: true,
-            loop: -1,
-        });
+        if (this.hasSpongeEffect) {
+            this.addInfiniteTween({
+                targets: headSprite,
+                displayWidth: this.imageInitialSize,
+                displayHeight: this.imageInitialSize,
+                duration: 200,
+                yoyo: true,
+                loop: -1,
+            });
+        }
     }
 }
 // An area showing rotating texts.
