@@ -103,7 +103,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
       this.playerData?.size);
     player.playerLeftRightSpeed = this.playerData!.leftRightSpeed;
     player.playerJumpSpeed = this.playerData!.jumpSpeed;
-    player.playerCanDoubleJump = this.playerData!.canDoubleJump;
+    player.playerNumAllowedJumps = this.playerData!.numAllowedJumps;
     this.addPrefab(player);
 
     player.maybeActOnMainImg((img) => {

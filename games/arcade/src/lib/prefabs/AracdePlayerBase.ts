@@ -8,8 +8,8 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
 
   public playerLeftRightSpeed = 160;
   public playerJumpSpeed = 250;
-
-  public playerCanDoubleJump = false;
+  // How many jumps are allowed when not on the groud.
+  public playerNumAllowedJumps = 1;
 
   private keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
 
@@ -25,7 +25,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   private lastInput: string = '';
 
   // Used to control when can double jump.
-  private landedBefore = true;
+  private numJumpsSinceLastLanding = 0;
 
   override init(): void {
     // Input.
@@ -94,24 +94,18 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     }
     // Up and left/right could co-happen.
     if (moveUp) {
-      if (img.body.touching.down) {
-        this.applyVelocity(
+      if (this.numJumpsSinceLastLanding < this.playerNumAllowedJumps) {
+        if (this.applyVelocity(
           0, -this.playerJumpSpeed,
-          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
-      } else if (this.playerCanDoubleJump && this.landedBefore) {
-        const result = this.applyVelocity(
-          0, -this.playerJumpSpeed,
-          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
-        if (result) {
-          // Only clears this bit if jump action happened.
-          this.landedBefore = false;  // can only jump once in air.
+          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS)) {
+          this.numJumpsSinceLastLanding++;
         }
       }
     }
 
     // For multi-jump.
     if (img.body.touching.down) {
-      this.landedBefore = true;
+      this.numJumpsSinceLastLanding = 0;
     }
   }
 }

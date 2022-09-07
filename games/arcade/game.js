@@ -428,7 +428,8 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
     playerJumpSpeed = 250;
-    playerCanDoubleJump = false;
+    // How many jumps are allowed when not on the groud.
+    playerNumAllowedJumps = 1;
     keys = {};
     INPUT_TYPE = {
         NEUTRAL: 'NEUTRAL',
@@ -441,7 +442,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     // Last input action that can be ongoing (key down), can be neutral.
     lastInput = '';
     // Used to control when can double jump.
-    landedBefore = true;
+    numJumpsSinceLastLanding = 0;
     init() {
         // Input.
         this.keys = QUI.createKeyMap(this.scene);
@@ -510,20 +511,15 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         }
         // Up and left/right could co-happen.
         if (moveUp) {
-            if (img.body.touching.down) {
-                this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
-            }
-            else if (this.playerCanDoubleJump && this.landedBefore) {
-                const result = this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS);
-                if (result) {
-                    // Only clears this bit if jump action happened.
-                    this.landedBefore = false; // can only jump once in air.
+            if (this.numJumpsSinceLastLanding < this.playerNumAllowedJumps) {
+                if (this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS)) {
+                    this.numJumpsSinceLastLanding++;
                 }
             }
         }
         // For multi-jump.
         if (img.body.touching.down) {
-            this.landedBefore = true;
+            this.numJumpsSinceLastLanding = 0;
         }
     }
 }
@@ -933,7 +929,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData?.spriteKey, this.playerData?.spriteFrame, this.playerData?.size);
         player.playerLeftRightSpeed = this.playerData.leftRightSpeed;
         player.playerJumpSpeed = this.playerData.jumpSpeed;
-        player.playerCanDoubleJump = this.playerData.canDoubleJump;
+        player.playerNumAllowedJumps = this.playerData.numAllowedJumps;
         this.addPrefab(player);
         player.maybeActOnMainImg((img) => {
             this.physics.add.overlap(img, [this.topBorder, this.bottomBorder], () => {
@@ -1071,7 +1067,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 size: 32,
                 leftRightSpeed: 200,
                 jumpSpeed: 300,
-                canDoubleJump: false,
+                numAllowedJumps: 1,
             });
         });
         QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + gap, // position
@@ -1083,7 +1079,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 size: 48,
                 leftRightSpeed: 120,
                 jumpSpeed: 200,
-                canDoubleJump: true,
+                numAllowedJumps: 2,
             });
         });
         // const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');

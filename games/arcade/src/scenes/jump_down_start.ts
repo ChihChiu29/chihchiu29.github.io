@@ -4,7 +4,7 @@ interface PlayerProperties {
   size: number,
   leftRightSpeed: number,
   jumpSpeed: number,
-  canDoubleJump: boolean,
+  numAllowedJumps: number,
 }
 
 class SceneJumpDownStart extends QPhaser.Scene {
@@ -45,7 +45,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
           size: 32,
           leftRightSpeed: 200,
           jumpSpeed: 300,
-          canDoubleJump: false,
+          numAllowedJumps: 1,
         });
       }
     );
@@ -61,7 +61,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
           size: 48,
           leftRightSpeed: 120,
           jumpSpeed: 200,
-          canDoubleJump: true,
+          numAllowedJumps: 2,
         });
       },
     );
