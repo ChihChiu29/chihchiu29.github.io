@@ -454,6 +454,15 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             this.handleInput(img);
         });
     }
+    // @abstract
+    // Called by this class.
+    // For subclass to implement actions when player is moving left/right/neutral.
+    whenMovingLeftRight(direction, // INPUT_TYPE (only left/right/neutral)
+    isDashing) { }
+    // @abstract
+    // Called by this class
+    // For subclass to implement actions when player is jumping.
+    whenJumping(numOfRemainingJumps) { }
     handleInput(img) {
         // First get user intention.
         // Keyboard based control.
@@ -501,19 +510,23 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         if (moveLeft) {
             img.setVelocityX(-this.playerLeftRightSpeed);
             img.setFlipX(false);
+            this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
         }
         else if (moveRight) {
             img.setVelocityX(this.playerLeftRightSpeed);
             img.setFlipX(true);
+            this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
         }
         else {
             img.setVelocityX(0);
+            this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
         }
         // Up and left/right could co-happen.
         if (moveUp) {
             if (this.numJumpsSinceLastLanding < this.playerNumAllowedJumps) {
                 if (this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS)) {
                     this.numJumpsSinceLastLanding++;
+                    this.whenJumping(this.playerNumAllowedJumps - this.numJumpsSinceLastLanding);
                 }
             }
         }
