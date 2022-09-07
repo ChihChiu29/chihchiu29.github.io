@@ -231,6 +231,41 @@ namespace QTime {
     }
   }
 
+  // A variable that cannot be changed more frequently than every durationMs.
+  // It's most useful when you wants to update a value in update loop, but
+  // does not want the update to happen too soon.
+  export class SluggishVariable<T> {
+    private durationMs = 0;
+    private lastChangeTime = 0;
+    private value: T;
+
+    constructor(initialValue: T, durationMs: number) {
+      this.value = initialValue;
+      this.durationMs = durationMs;
+      this.lastChangeTime = QTime.now();
+    }
+
+    // Sets to a new value, if the last time this was changed was more than
+    // this.durationMs ago. Returns if new value was set or rejected.
+    public maybeSet(newValue: T): boolean {
+      if (QTime.now() - this.lastChangeTime > this.durationMs) {
+        this.set(newValue);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    public set(newValue: T) {
+      this.value = newValue;
+      this.lastChangeTime = QTime.now();
+    }
+
+    public get(): T {
+      return this.value;
+    }
+  }
+
   // Get current timestamp.
   export function now(): number {
     return new Date().getTime();

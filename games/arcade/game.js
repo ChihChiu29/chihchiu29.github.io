@@ -274,6 +274,38 @@ var QTime;
         }
     }
     QTime.TimedCounter = TimedCounter;
+    // A variable that cannot be changed more frequently than every durationMs.
+    // It's most useful when you wants to update a value in update loop, but
+    // does not want the update to happen too soon.
+    class SluggishVariable {
+        durationMs = 0;
+        lastChangeTime = 0;
+        value;
+        constructor(initialValue, durationMs) {
+            this.value = initialValue;
+            this.durationMs = durationMs;
+            this.lastChangeTime = QTime.now();
+        }
+        // Sets to a new value, if the last time this was changed was more than
+        // this.durationMs ago. Returns if new value was set or rejected.
+        maybeSet(newValue) {
+            if (QTime.now() - this.lastChangeTime > this.durationMs) {
+                this.set(newValue);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        set(newValue) {
+            this.value = newValue;
+            this.lastChangeTime = QTime.now();
+        }
+        get() {
+            return this.value;
+        }
+    }
+    QTime.SluggishVariable = SluggishVariable;
     // Get current timestamp.
     function now() {
         return new Date().getTime();
@@ -445,7 +477,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     // Last input action that can be ongoing (key down), can be neutral.
     lastInput = '';
     // Used to control when can double jump.
-    numJumpsSinceLastLanding = 0;
+    numJumpsSinceLastLanding = new QTime.SluggishVariable(0, 50);
     init() {
         // Input.
         this.keys = QUI.createKeyMap(this.scene);
@@ -546,18 +578,43 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             img.setVelocityX(0);
             this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
         }
-        // Up and left/right could co-happen.
+        // Separated if since up and left/right could co-happen.
         if (moveUp) {
-            if (this.numJumpsSinceLastLanding < this.playerNumAllowedJumps) {
-                if (this.applyVelocity(0, -this.playerJumpSpeed, 'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS)) {
-                    this.numJumpsSinceLastLanding++;
-                    this.whenJumping(this.playerNumAllowedJumps - this.numJumpsSinceLastLanding);
+            // The logic is this: the number of allowed jumps are broken into two
+            // categories:
+            //  - 1. Ground jump.
+            //  - 2. Air jump.
+            // The first part check ground jump. It has to check if the player is
+            // grounded instead of just using numJumpsSinceLastLanding because
+            // otherwise player can fall off a ground and still make a "ground jump".
+            // The second part (else) checks for air jump, which uses
+            // (playerNumAllowedJumps - 1) as the number of allowed jump.
+            if (img.body.touching.down) {
+                // On ground -- try to set numJumpsSinceLastLanding to 0.
+                if (this.numJumpsSinceLastLanding.maybeSet(0)) {
+                    // If we are able to set, make a new jump.
+                    if (this.playerNumAllowedJumps > 0) {
+                        this.applyVelocity(0, -this.playerJumpSpeed);
+                        this.whenJumping(this.playerNumAllowedJumps - 1);
+                    }
+                }
+            }
+            else {
+                // In air.
+                const numJump = this.numJumpsSinceLastLanding.get();
+                // -1 since the first jump has be on ground.
+                if (numJump < this.playerNumAllowedJumps - 1) {
+                    if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
+                        this.applyVelocity(0, -this.playerJumpSpeed);
+                        this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+                    }
                 }
             }
         }
         // For multi-jump.
         if (img.body.touching.down) {
-            this.numJumpsSinceLastLanding = 0;
+            // Needs to wait a bit to set if "just" jumped.
+            this.numJumpsSinceLastLanding.maybeSet(0);
         }
     }
 }

@@ -29,7 +29,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   private lastInput: string = '';
 
   // Used to control when can double jump.
-  private numJumpsSinceLastLanding = 0;
+  private numJumpsSinceLastLanding = new QTime.SluggishVariable<number>(0, 50);
 
   override init(): void {
     // Input.
@@ -134,22 +134,43 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       img.setVelocityX(0);
       this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
     }
-    // Up and left/right could co-happen.
+    // Separated if since up and left/right could co-happen.
     if (moveUp) {
-      if (this.numJumpsSinceLastLanding < this.playerNumAllowedJumps) {
-        if (this.applyVelocity(
-          0, -this.playerJumpSpeed,
-          'input', CONST.INPUT.SMALL_TIME_INTERVAL_MS)) {
-          this.numJumpsSinceLastLanding++;
-          this.whenJumping(
-            this.playerNumAllowedJumps - this.numJumpsSinceLastLanding);
+      // The logic is this: the number of allowed jumps are broken into two
+      // categories:
+      //  - 1. Ground jump.
+      //  - 2. Air jump.
+      // The first part check ground jump. It has to check if the player is
+      // grounded instead of just using numJumpsSinceLastLanding because
+      // otherwise player can fall off a ground and still make a "ground jump".
+      // The second part (else) checks for air jump, which uses
+      // (playerNumAllowedJumps - 1) as the number of allowed jump.
+      if (img.body.touching.down) {
+        // On ground -- try to set numJumpsSinceLastLanding to 0.
+        if (this.numJumpsSinceLastLanding.maybeSet(0)) {
+          // If we are able to set, make a new jump.
+          if (this.playerNumAllowedJumps > 0) {
+            this.applyVelocity(0, -this.playerJumpSpeed);
+            this.whenJumping(this.playerNumAllowedJumps - 1);
+          }
+        }
+      } else {
+        // In air.
+        const numJump = this.numJumpsSinceLastLanding.get();
+        // -1 since the first jump has be on ground.
+        if (numJump < this.playerNumAllowedJumps - 1) {
+          if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
+            this.applyVelocity(0, -this.playerJumpSpeed);
+            this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+          }
         }
       }
     }
 
     // For multi-jump.
     if (img.body.touching.down) {
-      this.numJumpsSinceLastLanding = 0;
+      // Needs to wait a bit to set if "just" jumped.
+      this.numJumpsSinceLastLanding.maybeSet(0);
     }
   }
 }
