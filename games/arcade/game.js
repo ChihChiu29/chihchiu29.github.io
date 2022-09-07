@@ -420,13 +420,16 @@ var QMath;
     };
 })(QMath || (QMath = {})); // QMath
 // Base class for arcade platform player.
-// It is not directly useable.
+// It handles user input and setting velocity etc., but it does not handle
+// rendering and it's not directly useable.
 // When subclassing this class, create elements in `init`.
 // And performs necessary actions in `update`.
 class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     TOUCH_LEFT_BOUNDARY = CONST.GAME_WIDTH / 4;
     TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
     playerLeftRightSpeed = 160;
+    // Undefined means dash is diabled.
+    playerLeftRightDashSpeed;
     playerJumpSpeed = 250;
     // How many jumps are allowed when not on the groud.
     playerNumAllowedJumps = 1;
@@ -503,19 +506,39 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
                 this.recentInputs.unshift(this.lastInput);
                 this.recentInputs.splice(5);
+                console.log(this.lastInput);
             }
             this.lastInput = currentInput;
         }
         // Handle move intentions.
+        // The input actions in `this.recentInputs` are guaranteed to be
+        // separated by another input action.
+        const previousInputAction = this.recentInputs[this.recentInputs.length - 1];
         if (moveLeft) {
-            img.setVelocityX(-this.playerLeftRightSpeed);
-            img.setFlipX(false);
-            this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
+            if (this.playerLeftRightDashSpeed) {
+                if (previousInputAction === this.INPUT_TYPE.LEFT) {
+                    // dash left
+                    img.setVelocity(-this.playerLeftRightDashSpeed);
+                    this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, true);
+                }
+            }
+            else {
+                img.setVelocityX(-this.playerLeftRightSpeed);
+                this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
+            }
         }
         else if (moveRight) {
-            img.setVelocityX(this.playerLeftRightSpeed);
-            img.setFlipX(true);
-            this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
+            if (this.playerLeftRightDashSpeed) {
+                if (previousInputAction === this.INPUT_TYPE.RIGHT) {
+                    // dash right
+                    img.setVelocity(this.playerLeftRightDashSpeed);
+                    this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, true);
+                }
+            }
+            else {
+                img.setVelocityX(this.playerLeftRightSpeed);
+                this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
+            }
         }
         else {
             img.setVelocityX(0);
@@ -713,38 +736,40 @@ class PlayerKennyCat extends ArcadePlayerBase {
 }
 // A basic player that uses a single sprite.
 class PlayerSingleSprite extends ArcadePlayerBase {
-    imageKey = '';
-    imageFrame = 0;
-    imageInitialSize = 32;
-    hasSpongeEffect = false;
-    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32, 
-    // whether the sprite would vary a bit in size periodically.
-    hasSpongeEffect = false) {
+    cfg;
+    constructor(scene, imgInitialX, imgInitialY, playerData) {
         super(scene, imgInitialX, imgInitialY);
-        this.imageKey = spriteKey;
-        this.imageFrame = spriteFrame;
-        this.imageInitialSize = imageInitialSize;
-        this.hasSpongeEffect = hasSpongeEffect;
+        this.cfg = playerData;
     }
     init() {
         super.init();
         // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey, this.imageFrame);
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.cfg.spriteKey, this.cfg.spriteFrame);
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
-        headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
+        headSprite.setDisplaySize(this.cfg.size * 0.95, this.cfg.size * 0.95);
         this.setMainImage(headSprite);
-        if (this.hasSpongeEffect) {
+        if (this.cfg.hasSpongeEffect) {
             this.addInfiniteTween({
                 targets: headSprite,
-                displayWidth: this.imageInitialSize,
-                displayHeight: this.imageInitialSize,
+                displayWidth: this.cfg.size,
+                displayHeight: this.cfg.size,
                 duration: 200,
                 yoyo: true,
                 loop: -1,
             });
         }
+    }
+    whenMovingLeftRight(direction, isDashing) {
+        this.maybeActOnMainImg((img) => {
+            if (direction === this.INPUT_TYPE.LEFT) {
+                img.setFlipX(!this.cfg.facingLeft);
+            }
+            else if (direction === this.INPUT_TYPE.RIGHT) {
+                img.setFlipX(this.cfg.facingLeft);
+            }
+        });
     }
 }
 // An area showing rotating texts.
@@ -975,8 +1000,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // Needs to be called after createSpikes.
     createPlayer() {
         // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
-        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData?.spriteKey, this.playerData?.spriteFrame, this.playerData?.size);
+        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
         player.playerLeftRightSpeed = this.playerData.leftRightSpeed;
+        player.playerLeftRightDashSpeed = this.playerData.leftRightDashSpeed;
         player.playerJumpSpeed = this.playerData.jumpSpeed;
         player.playerNumAllowedJumps = this.playerData.numAllowedJumps;
         this.addPrefab(player);
@@ -1111,24 +1137,26 @@ class SceneJumpDownStart extends QPhaser.Scene {
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
-                spriteKey: 'scared',
-                spriteFrame: 0,
-                size: 32,
                 leftRightSpeed: 200,
                 jumpSpeed: 300,
                 numAllowedJumps: 1,
+                size: 32,
+                spriteKey: 'scared',
+                spriteFrame: 0,
+                facingLeft: true,
             });
         });
         QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
-                spriteKey: 'pineapplecat',
-                spriteFrame: 0,
-                size: 48,
                 leftRightSpeed: 120,
                 jumpSpeed: 200,
                 numAllowedJumps: 2,
+                size: 48,
+                spriteKey: 'pineapplecat',
+                spriteFrame: 0,
+                facingLeft: true,
             });
         });
         // const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');

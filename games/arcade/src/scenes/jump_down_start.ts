@@ -1,10 +1,18 @@
 interface PlayerProperties {
-  spriteKey: string,
-  spriteFrame: number,
-  size: number,
+  // Arcade player properties:
   leftRightSpeed: number,
   jumpSpeed: number,
   numAllowedJumps: number,
+  leftRightDashSpeed?: number,  // undefined means disabled.
+
+  // Common UI:
+  size: number,
+
+  // Required by PlayerSingleSprite:
+  spriteKey?: string,
+  spriteFrame?: number,
+  facingLeft?: boolean,
+  hasSpongeEffect?: boolean,  // whether the sprite would vary a bit in size periodically.
 }
 
 class SceneJumpDownStart extends QPhaser.Scene {
@@ -40,12 +48,13 @@ class SceneJumpDownStart extends QPhaser.Scene {
       iconSize, iconSize,  // size
       () => {
         this.startNewGame({
-          spriteKey: 'scared',
-          spriteFrame: 0,
-          size: 32,
           leftRightSpeed: 200,
           jumpSpeed: 300,
           numAllowedJumps: 1,
+          size: 32,
+          spriteKey: 'scared',
+          spriteFrame: 0,
+          facingLeft: true,
         });
       }
     );
@@ -56,12 +65,13 @@ class SceneJumpDownStart extends QPhaser.Scene {
       iconSize, iconSize,  // size
       () => {
         this.startNewGame({
-          spriteKey: 'pineapplecat',
-          spriteFrame: 0,
-          size: 48,
           leftRightSpeed: 120,
           jumpSpeed: 200,
           numAllowedJumps: 2,
+          size: 48,
+          spriteKey: 'pineapplecat',
+          spriteFrame: 0,
+          facingLeft: true,
         });
       },
     );

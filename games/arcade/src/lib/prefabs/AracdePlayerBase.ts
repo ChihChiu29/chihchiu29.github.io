@@ -1,5 +1,6 @@
 // Base class for arcade platform player.
-// It is not directly useable.
+// It handles user input and setting velocity etc., but it does not handle
+// rendering and it's not directly useable.
 // When subclassing this class, create elements in `init`.
 // And performs necessary actions in `update`.
 class ArcadePlayerBase extends QPhaser.ArcadePrefab {
@@ -7,6 +8,9 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   TOUCH_RIGHT_BOUNDARY = CONST.GAME_WIDTH * 3 / 4;
 
   public playerLeftRightSpeed = 160;
+  // Undefined means dash is diabled.
+  public playerLeftRightDashSpeed: number | undefined;
+
   public playerJumpSpeed = 250;
   // How many jumps are allowed when not on the groud.
   public playerNumAllowedJumps = 1;
@@ -93,19 +97,37 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
         this.recentInputs.unshift(this.lastInput);
         this.recentInputs.splice(5);
+        console.log(this.lastInput);
       }
       this.lastInput = currentInput;
     }
 
     // Handle move intentions.
+    // The input actions in `this.recentInputs` are guaranteed to be
+    // separated by another input action.
+    const previousInputAction = this.recentInputs[this.recentInputs.length - 1];
     if (moveLeft) {
-      img.setVelocityX(-this.playerLeftRightSpeed);
-      img.setFlipX(false);
-      this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
+      if (this.playerLeftRightDashSpeed) {
+        if (previousInputAction === this.INPUT_TYPE.LEFT) {
+          // dash left
+          img.setVelocity(-this.playerLeftRightDashSpeed);
+          this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, true);
+        }
+      } else {
+        img.setVelocityX(-this.playerLeftRightSpeed);
+        this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
+      }
     } else if (moveRight) {
-      img.setVelocityX(this.playerLeftRightSpeed);
-      img.setFlipX(true);
-      this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
+      if (this.playerLeftRightDashSpeed) {
+        if (previousInputAction === this.INPUT_TYPE.RIGHT) {
+          // dash right
+          img.setVelocity(this.playerLeftRightDashSpeed);
+          this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, true);
+        }
+      } else {
+        img.setVelocityX(this.playerLeftRightSpeed);
+        this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
+      }
     } else {
       img.setVelocityX(0);
       this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
