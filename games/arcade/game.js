@@ -621,7 +621,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             this.recentInputs.unshift(this.lastInput);
             this.recentInputs.splice(5);
             this.lastInput = currentInput;
-            console.log(this.lastInput);
+            // console.log(this.lastInput);
         }
         // For multi-jump.
         if (img.body.touching.down) {
@@ -1238,18 +1238,16 @@ class SceneJumpDownStart extends QPhaser.Scene {
             'Falling Cato',
             'Survival Game!',
         ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
-        const instruction = this.add.text(CONST.GAME_WIDTH / 2, title.y + 180, [
-            'Choose your favorite',
-            'character, then use',
-            'left, mid, and right',
-            'part of screen for',
-            'control. Good luck!'
+        const instruction = this.add.text(CONST.GAME_WIDTH / 2, title.y + 120, [
+            'Choose your character',
+            'and Good Luck!',
         ])
             .setOrigin(0.5)
             .setFontSize(24);
-        const gap = 120;
+        const afterTextGap = 40;
+        const gap = 40;
         const iconSize = CONST.GAME_WIDTH / 4;
-        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, instruction.y + gap, // position
+        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, instruction.y + afterTextGap + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1263,7 +1261,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
-        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + gap, // position
+        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + afterTextGap + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1277,7 +1275,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
-        QUI.createIconButton(this, 'tiles', 82, CONST.GAME_WIDTH * 1 / 4, instruction.y + gap * 2, // position
+        QUI.createIconButton(this, 'tiles', 89, CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1296,22 +1294,6 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 frameJumpEnd: 87,
             });
         });
-        // const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
-        // congrats.setDisplaySize(200, 200);
-        // congrats.setAngle(-20);
-        // this.add.tween({
-        //   targets: congrats,
-        //   angle: 20,
-        //   duration: 400,
-        //   yoyo: true,
-        //   loop: -1,
-        // });
-        // QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
-        //   this.startNewGame();
-        // });
-        // this.input.keyboard.once('keyup-ENTER', () => {
-        //   this.startNewGame();
-        // }, this);
     }
     startNewGame(playerData) {
         this.scene.start(SCENE_KEYS.JumpDownMain, playerData);

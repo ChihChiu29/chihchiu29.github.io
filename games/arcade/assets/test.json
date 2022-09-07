@@ -1,0 +1,26 @@
+{
+    "section1": {
+        "files": [
+            {
+                "url": "tiles.png",
+                "frameConfig": {
+                    "frameWidth": 21,
+                    "frameHeight": 21,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "tiles"
+            }
+        ]
+    },
+    "meta": {
+        "app": "Phaser Editor 2D - Asset Pack Editor",
+        "contentType": "phasereditor2d.pack.core.AssetContentType",
+        "url": "https://phasereditor2d.com",
+        "version": 2,
+        "showAllFilesInBlocks": false
+    }
+}

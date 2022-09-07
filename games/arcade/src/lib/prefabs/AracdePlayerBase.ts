@@ -170,7 +170,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
       this.recentInputs.unshift(this.lastInput);
       this.recentInputs.splice(5);
       this.lastInput = currentInput;
-      console.log(this.lastInput);
+      // console.log(this.lastInput);
     }
     // For multi-jump.
     if (img.body.touching.down) {
