@@ -2,13 +2,26 @@
     "section1": {
         "files": [
             {
-                "url": "tiles.png",
+                "url": "tilemap.png",
                 "frameConfig": {
-                    "frameWidth": 21,
-                    "frameHeight": 21,
+                    "frameWidth": 20,
+                    "frameHeight": 20,
                     "startFrame": 0,
                     "endFrame": -1,
-                    "spacing": 0,
+                    "spacing": 3,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "tilemap"
+            },
+            {
+                "url": "tiles.png",
+                "frameConfig": {
+                    "frameWidth": 20,
+                    "frameHeight": 20,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 2,
                     "margin": 0
                 },
                 "type": "spritesheet",

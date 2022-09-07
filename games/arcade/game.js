@@ -1039,8 +1039,9 @@ class SceneJumpDownEnd extends QPhaser.Scene {
 }
 let DEBUG_SCENE;
 class SceneJumpDownMain extends QPhaser.Scene {
-    BLOCK_SPRITE_SIZE = 24;
+    BLOCK_SPRITE_SIZE = 20;
     PLAYER_SIZE = 32;
+    SPRITESHEET_KEY = 'tiles';
     // Tiles will be break into segments, each contains at this number of tiles,
     // each segment is a unit for special tile generation.
     TILE_GENERATION_SIZE = 4;
@@ -1201,7 +1202,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         if (choice < 10) {
             // 1/10 chance to create auto disappearing tiles
             for (const pos of tilePositions) {
-                const tile = new TileSelfDestroy(this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
+                const tile = new TileSelfDestroy(this, pos.x, pos.y, this.SPRITESHEET_KEY, 3, this.BLOCK_SPRITE_SIZE);
                 tile.setDisappearAfterOverlappingWith([this.player]);
                 tiles.push(tile);
             }
@@ -1209,8 +1210,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
         else if (choice < 20) {
             // 1/10 chance to create jump tiles
             for (const pos of tilePositions) {
-                const tile = new TileForceJump(this, pos.x, pos.y, 'tiles', 302, this.BLOCK_SPRITE_SIZE);
-                tile.setPushPrefabsUp([this.player], 300, 'tiles', 196);
+                const tile = new TileForceJump(this, pos.x, pos.y, this.SPRITESHEET_KEY, 302, this.BLOCK_SPRITE_SIZE);
+                tile.setPushPrefabsUp([this.player], 300, this.SPRITESHEET_KEY, 196);
                 tiles.push(tile);
             }
         }
@@ -1222,7 +1223,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return tiles;
     }
     createNormalTile(x, y) {
-        return new PlatformTile(this, x, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
+        return new PlatformTile(this, x, y, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
     }
     gotoEndGame() {
         clearTimeout(this.lastSpawnPlatformTimeout);
@@ -1275,7 +1276,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
-        QUI.createIconButton(this, 'tiles', 89, CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap, // position
+        QUI.createIconButton(this, 'tilemap', 89, CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1284,7 +1285,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 numAllowedJumps: 400,
                 playerType: CONST.PLAYER_TYPE.ANIMATED,
                 size: 21,
-                spritesheetKey: 'tiles',
+                spritesheetKey: 'tilemap',
                 spritesheetFacingLeft: false,
                 frameRate: 10,
                 frameStill: 79,

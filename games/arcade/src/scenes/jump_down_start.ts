@@ -60,7 +60,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
     );
 
     QUI.createIconButton(
-      this, 'tiles', 89,
+      this, 'tilemap', 89,
       CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap,  // position
       iconSize, iconSize,  // size
       () => {
@@ -70,7 +70,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
           numAllowedJumps: 400,
           playerType: CONST.PLAYER_TYPE.ANIMATED,
           size: 21,
-          spritesheetKey: 'tiles',
+          spritesheetKey: 'tilemap',
           spritesheetFacingLeft: false,
           frameRate: 10,
           frameStill: 79,

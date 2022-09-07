@@ -1,8 +1,10 @@
 let DEBUG_SCENE: Phaser.Scene;
 
 class SceneJumpDownMain extends QPhaser.Scene {
-  BLOCK_SPRITE_SIZE = 24;
+  BLOCK_SPRITE_SIZE = 20;
   PLAYER_SIZE = 32;
+
+  SPRITESHEET_KEY = 'tiles';
 
   // Tiles will be break into segments, each contains at this number of tiles,
   // each segment is a unit for special tile generation.
@@ -223,7 +225,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
       // 1/10 chance to create auto disappearing tiles
       for (const pos of tilePositions) {
         const tile = new TileSelfDestroy(
-          this, pos.x, pos.y, 'tiles', 3, this.BLOCK_SPRITE_SIZE);
+          this, pos.x, pos.y,
+          this.SPRITESHEET_KEY, 3, this.BLOCK_SPRITE_SIZE);
         tile.setDisappearAfterOverlappingWith([this.player!]);
         tiles.push(tile);
       }
@@ -232,10 +235,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
       for (const pos of tilePositions) {
         const tile = new TileForceJump(
           this, pos.x, pos.y,
-          'tiles', 302,
+          this.SPRITESHEET_KEY, 302,
           this.BLOCK_SPRITE_SIZE,
         );
-        tile.setPushPrefabsUp([this.player!], 300, 'tiles', 196);
+        tile.setPushPrefabsUp(
+          [this.player!], 300,
+          this.SPRITESHEET_KEY, 196);
         tiles.push(tile);
       }
     } else {
@@ -248,7 +253,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   private createNormalTile(x: number, y: number): PlatformTile {
     return new PlatformTile(
-      this, x, y, 'tiles', 123, this.BLOCK_SPRITE_SIZE);
+      this, x, y,
+      this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
   }
 
   private gotoEndGame() {
