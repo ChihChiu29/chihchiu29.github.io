@@ -465,19 +465,19 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     playerJumpSpeed = 250;
     // How many jumps are allowed when not on the groud.
     playerNumAllowedJumps = 1;
-    keys = {};
     INPUT_TYPE = {
         NEUTRAL: 'NEUTRAL',
         UP: 'UP',
         LEFT: 'LEFT',
         RIGHT: 'RIGHT',
     };
-    // Last few non-neutral input actions that finished (key up).
+    // Last few neutral input actions that finished (key up).
     recentInputs = [];
     // Last input action that can be ongoing (key down), can be neutral.
     lastInput = '';
     // Used to control when can double jump.
     numJumpsSinceLastLanding = new QTime.SluggishVariable(0, 50);
+    keys = {};
     init() {
         // Input.
         this.keys = QUI.createKeyMap(this.scene);
@@ -536,14 +536,6 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         else if (moveRight) {
             currentInput = this.INPUT_TYPE.RIGHT;
         }
-        if (currentInput !== this.lastInput) {
-            if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
-                this.recentInputs.unshift(this.lastInput);
-                this.recentInputs.splice(5);
-                console.log(this.lastInput);
-            }
-            this.lastInput = currentInput;
-        }
         // Handle move intentions.
         // The input actions in `this.recentInputs` are guaranteed to be
         // separated by another input action.
@@ -601,15 +593,29 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             }
             else {
                 // In air.
-                const numJump = this.numJumpsSinceLastLanding.get();
-                // -1 since the first jump has be on ground.
-                if (numJump < this.playerNumAllowedJumps - 1) {
-                    if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
-                        this.applyVelocity(0, -this.playerJumpSpeed);
-                        this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+                // We check currentInput not the same as lastInput because for
+                // air jump, we only want the jump to happen if user released UP
+                // then pressed it again. This is different than ground jump where
+                // holding UP can make the character jump.
+                if (currentInput !== this.lastInput) {
+                    const numJump = this.numJumpsSinceLastLanding.get();
+                    // -1 since the first jump has be on ground.
+                    if (numJump < this.playerNumAllowedJumps - 1) {
+                        if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
+                            this.applyVelocity(0, -this.playerJumpSpeed);
+                            this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+                        }
                     }
                 }
             }
+        }
+        // Post action tracking updates.
+        // Updates input tracking.
+        if (currentInput !== this.lastInput) {
+            this.recentInputs.unshift(this.lastInput);
+            this.recentInputs.splice(5);
+            this.lastInput = currentInput;
+            console.log(this.lastInput);
         }
         // For multi-jump.
         if (img.body.touching.down) {
