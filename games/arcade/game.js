@@ -355,14 +355,14 @@ var QTime;
         }
     }
     QTime.SequenceActionThrottler = SequenceActionThrottler;
-})(QTime || (QTime = {}));
+})(QTime || (QTime = {})); // QTime
 var QString;
 (function (QString) {
     function stringContains(str, substring) {
         return str.indexOf(substring) >= 0;
     }
     QString.stringContains = stringContains;
-})(QString || (QString = {}));
+})(QString || (QString = {})); // QString
 var QUI;
 (function (QUI) {
     function createKeyMap(scene) {
@@ -410,7 +410,7 @@ var QUI;
         return button;
     }
     QUI.createIconButton = createIconButton;
-})(QUI || (QUI = {}));
+})(QUI || (QUI = {})); // QUI
 var QMath;
 (function (QMath) {
     QMath.constants = {
@@ -418,7 +418,7 @@ var QMath;
         PI_ONE_QUARTER: Math.PI / 4,
         PI_THREE_QUARTER: Math.PI * 3 / 4,
     };
-})(QMath || (QMath = {}));
+})(QMath || (QMath = {})); // QMath
 // Base class for arcade platform player.
 // It is not directly useable.
 // When subclassing this class, create elements in `init`.
@@ -616,6 +616,42 @@ class PlatformTile extends QPhaser.ArcadePrefab {
         this.maybeActOnMainImg((img) => {
             this.scene.physics.add.overlap(img, gameObjs, callback);
         });
+    }
+}
+// A player that uses spritesheets for animation.
+class PlayerAnimatedSprite extends ArcadePlayerBase {
+    imageKey = '';
+    imageFrame = 0;
+    imageInitialSize = 32;
+    hasSpongeEffect = false;
+    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32, 
+    // whether the sprite would vary a bit in size periodically.
+    hasSpongeEffect = false) {
+        super(scene, imgInitialX, imgInitialY);
+        this.imageKey = spriteKey;
+        this.imageFrame = spriteFrame;
+        this.imageInitialSize = imageInitialSize;
+        this.hasSpongeEffect = hasSpongeEffect;
+    }
+    init() {
+        super.init();
+        // Head.
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey, this.imageFrame);
+        headSprite.setCollideWorldBounds(true);
+        headSprite.setBounce(0);
+        headSprite.setFrictionX(1);
+        headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
+        this.setMainImage(headSprite);
+        if (this.hasSpongeEffect) {
+            this.addInfiniteTween({
+                targets: headSprite,
+                displayWidth: this.imageInitialSize,
+                displayHeight: this.imageInitialSize,
+                duration: 200,
+                yoyo: true,
+                loop: -1,
+            });
+        }
     }
 }
 class PlayerKennyCat extends ArcadePlayerBase {

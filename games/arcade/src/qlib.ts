@@ -317,13 +317,13 @@ namespace QTime {
       }
     }
   }
-}
+}  // QTime
 
 namespace QString {
   export function stringContains(str: string, substring: string): boolean {
     return str.indexOf(substring) >= 0;
   }
-}
+}  // QString
 
 namespace QUI {
   export function createKeyMap(scene: Phaser.Scene) {
@@ -385,12 +385,17 @@ namespace QUI {
       .on('pointerdown', clickCallbackFn);
     return button;
   }
-}
+}  // QUI
 
 namespace QMath {
+  export interface QPoint {
+    x: number,
+    y: number,
+  }
+
   export const constants = {
     PI_ONE_HALF: Math.PI / 2,
     PI_ONE_QUARTER: Math.PI / 4,
     PI_THREE_QUARTER: Math.PI * 3 / 4,
   }
-}
+}  // QMath

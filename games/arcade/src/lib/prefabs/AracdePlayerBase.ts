@@ -45,7 +45,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   // For subclass to implement actions when player is moving left/right/neutral.
   protected whenMovingLeftRight(
     direction: string,  // INPUT_TYPE (only left/right/neutral)
-    isDashing: boolean,
+    isDashing: boolean,  // whether the player is dashing (double-same-input)
   ) { }
 
   // @abstract
