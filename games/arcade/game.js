@@ -710,40 +710,42 @@ class PlatformTile extends QPhaser.ArcadePrefab {
         });
     }
 }
-// A player that uses spritesheets for animation.
+// A fancy player that uses spritesheet for various animations.
 class PlayerAnimatedSprite extends ArcadePlayerBase {
-    imageKey = '';
-    imageFrame = 0;
-    imageInitialSize = 32;
-    hasSpongeEffect = false;
-    constructor(scene, imgInitialX, imgInitialY, spriteKey = 'scared', spriteFrame = 0, imageInitialSize = 32, 
-    // whether the sprite would vary a bit in size periodically.
-    hasSpongeEffect = false) {
+    cfg;
+    constructor(scene, imgInitialX, imgInitialY, playerData) {
         super(scene, imgInitialX, imgInitialY);
-        this.imageKey = spriteKey;
-        this.imageFrame = spriteFrame;
-        this.imageInitialSize = imageInitialSize;
-        this.hasSpongeEffect = hasSpongeEffect;
+        this.cfg = playerData;
     }
     init() {
         super.init();
         // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.imageKey, this.imageFrame);
+        const headSprite = this.scene.physics.add.sprite(0, 0, this.cfg.spriteKey, this.cfg.spriteFrame);
         headSprite.setCollideWorldBounds(true);
         headSprite.setBounce(0);
         headSprite.setFrictionX(1);
-        headSprite.setDisplaySize(this.imageInitialSize * 0.95, this.imageInitialSize * 0.95);
+        headSprite.setDisplaySize(this.cfg.size * 0.95, this.cfg.size * 0.95);
         this.setMainImage(headSprite);
-        if (this.hasSpongeEffect) {
+        if (this.cfg.hasSpongeEffect) {
             this.addInfiniteTween({
                 targets: headSprite,
-                displayWidth: this.imageInitialSize,
-                displayHeight: this.imageInitialSize,
+                displayWidth: this.cfg.size,
+                displayHeight: this.cfg.size,
                 duration: 200,
                 yoyo: true,
                 loop: -1,
             });
         }
+    }
+    whenMovingLeftRight(direction, isDashing) {
+        this.maybeActOnMainImg((img) => {
+            if (direction === this.INPUT_TYPE.LEFT) {
+                img.setFlipX(!this.cfg.facingLeft);
+            }
+            else if (direction === this.INPUT_TYPE.RIGHT) {
+                img.setFlipX(this.cfg.facingLeft);
+            }
+        });
     }
 }
 class PlayerKennyCat extends ArcadePlayerBase {
