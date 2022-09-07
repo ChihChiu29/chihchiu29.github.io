@@ -1,25 +1,3 @@
-interface PlayerProperties {
-  // Arcade player properties:
-  leftRightSpeed: number,
-  jumpSpeed: number,
-  numAllowedJumps: number,
-  leftRightDashSpeed?: number,  // undefined means disabled.
-
-  // Common:
-  playerType: string,  // CONST.PLAYER_TYPE
-  size: number,
-
-  // Required by PlayerSingleSprite:
-  spriteKey?: string,
-  spriteFrame?: number,
-  facingLeft?: boolean,
-  hasSpongeEffect?: boolean,  // whether the sprite would vary a bit in size periodically.
-
-  // Required by PlayerAnimatedSingleSheet:
-  spritesheetKey?: string,
-
-}
-
 class SceneJumpDownStart extends QPhaser.Scene {
   create(): void {
     const title = QUI.createTextTitle(
@@ -79,6 +57,29 @@ class SceneJumpDownStart extends QPhaser.Scene {
           spriteKey: 'pineapplecat',
           spriteFrame: 0,
           facingLeft: true,
+        });
+      },
+    );
+
+    QUI.createIconButton(
+      this, 'tiles', 82,
+      CONST.GAME_WIDTH * 1 / 4, instruction.y + gap * 2,  // position
+      iconSize, iconSize,  // size
+      () => {
+        this.startNewGame({
+          leftRightSpeed: 100,
+          jumpSpeed: 100,
+          numAllowedJumps: 400,
+          playerType: CONST.PLAYER_TYPE.ANIMATED,
+          size: 21,
+          spritesheetKey: 'tiles',
+          spritesheetFacingLeft: false,
+          frameRate: 10,
+          frameStill: 79,
+          frameRunStart: 80,
+          frameRunEnd: 81,
+          frameJumpStart: 86,
+          frameJumpEnd: 87,
         });
       },
     );

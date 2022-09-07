@@ -217,6 +217,8 @@ var QPhaser;
     // When adding/updating a new tween using `update`, the previous one will be deleted.
     class SingletonTween {
         existing;
+        // Note that removing a tween does not reset its properties, so you better
+        // manually reset the properties you want the tween to animate.
         update(tween) {
             if (this.existing && this.existing.isPlaying()) {
                 this.existing.stop();
@@ -494,14 +496,12 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         });
     }
     // @abstract
-    // Called by this class.
-    // For subclass to implement actions when player is moving left/right/neutral.
-    whenMovingLeftRight(direction, // INPUT_TYPE (only left/right/neutral)
-    isDashing) { }
-    // @abstract
-    // Called by this class
-    // For subclass to implement actions when player is jumping.
-    whenJumping(numOfRemainingJumps) { }
+    // For subclass to take actions in `update`, with given player 
+    // input action info.
+    takeExtraActionsDuringUpdate(direction, // INPUT_TYPE (only left/right/neutral)
+    isDashing, // whether the player is dashing (double-same-input)
+    inAir, // whether player is in air or grounded
+    isJumping) { }
     handleInput(img) {
         // First get user intention.
         // Keyboard based control.
@@ -541,38 +541,38 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
             currentInput = this.INPUT_TYPE.RIGHT;
         }
         // Handle move intentions.
+        // Collect these properties for subclass
+        let moveDirection = this.INPUT_TYPE.NEUTRAL;
+        let isDashing = false;
+        let inAir = !img.body.touching.down;
+        let isJumping = false; // action
         // The input actions in `this.recentInputs` are guaranteed to be
         // separated by another input action.
         const previousInputAction = this.recentInputs[this.recentInputs.length - 1];
         if (moveLeft) {
-            if (this.playerLeftRightDashSpeed) {
-                if (previousInputAction === this.INPUT_TYPE.LEFT) {
-                    // dash left
-                    img.setVelocity(-this.playerLeftRightDashSpeed);
-                    this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, true);
-                }
+            moveDirection = this.INPUT_TYPE.LEFT;
+            if (this.playerLeftRightDashSpeed && previousInputAction === this.INPUT_TYPE.LEFT) {
+                // dash left
+                img.setVelocity(-this.playerLeftRightDashSpeed);
+                isDashing = true;
             }
             else {
                 img.setVelocityX(-this.playerLeftRightSpeed);
-                this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
             }
         }
         else if (moveRight) {
-            if (this.playerLeftRightDashSpeed) {
-                if (previousInputAction === this.INPUT_TYPE.RIGHT) {
-                    // dash right
-                    img.setVelocity(this.playerLeftRightDashSpeed);
-                    this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, true);
-                }
+            moveDirection = this.INPUT_TYPE.RIGHT;
+            if (this.playerLeftRightDashSpeed && previousInputAction === this.INPUT_TYPE.RIGHT) {
+                // dash right
+                img.setVelocity(this.playerLeftRightDashSpeed);
+                isDashing = true;
             }
             else {
                 img.setVelocityX(this.playerLeftRightSpeed);
-                this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
             }
         }
         else {
             img.setVelocityX(0);
-            this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
         }
         // Separated if since up and left/right could co-happen.
         if (moveUp) {
@@ -591,7 +591,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
                     // If we are able to set, make a new jump.
                     if (this.playerNumAllowedJumps > 0) {
                         this.applyVelocity(0, -this.playerJumpSpeed);
-                        this.whenJumping(this.playerNumAllowedJumps - 1);
+                        isJumping = true;
                     }
                 }
             }
@@ -607,12 +607,14 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
                     if (numJump < this.playerNumAllowedJumps - 1) {
                         if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
                             this.applyVelocity(0, -this.playerJumpSpeed);
-                            this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+                            isJumping = true;
                         }
                     }
                 }
             }
         }
+        // Subclass actions.
+        this.takeExtraActionsDuringUpdate(moveDirection, isDashing, inAir, isJumping);
         // Post action tracking updates.
         // Updates input tracking.
         if (currentInput !== this.lastInput) {
@@ -712,38 +714,76 @@ class PlatformTile extends QPhaser.ArcadePrefab {
 }
 // A player with all animations from the same spritesheet.
 class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
+    ANIME_KEY = {
+        STILL: 'PlayerAnimatedSingleSheet_STILL',
+        RUN: 'PlayerAnimatedSingleSheet_RUN',
+        JUMP: 'PlayerAnimatedSingleSheet_JUMP',
+        DASH: 'PlayerAnimatedSingleSheet_DASH',
+    };
     cfg;
+    bloatEffect = new QPhaser.SingletonTween();
     constructor(scene, imgInitialX, imgInitialY, playerData) {
         super(scene, imgInitialX, imgInitialY);
         this.cfg = playerData;
     }
     init() {
         super.init();
-        // Head.
-        const headSprite = this.scene.physics.add.sprite(0, 0, this.cfg.spriteKey, this.cfg.spriteFrame);
-        headSprite.setCollideWorldBounds(true);
-        headSprite.setBounce(0);
-        headSprite.setFrictionX(1);
-        headSprite.setDisplaySize(this.cfg.size * 0.95, this.cfg.size * 0.95);
-        this.setMainImage(headSprite);
-        if (this.cfg.hasSpongeEffect) {
-            this.addInfiniteTween({
-                targets: headSprite,
-                displayWidth: this.cfg.size,
-                displayHeight: this.cfg.size,
-                duration: 200,
-                yoyo: true,
-                loop: -1,
-            });
-        }
+        const spritesheetKey = this.cfg.spritesheetKey;
+        const frameRate = this.cfg.frameRate;
+        const player = this.scene.physics.add.sprite(0, 0, spritesheetKey, this.cfg.frameStill);
+        player.setCollideWorldBounds(true);
+        player.setBounce(0);
+        player.setFrictionX(1);
+        player.setDisplaySize(this.cfg.size, this.cfg.size);
+        this.setMainImage(player);
+        this.scene.anims.create({
+            key: this.ANIME_KEY.STILL,
+            frames: [{ key: spritesheetKey, frame: this.cfg.frameStill }],
+            frameRate: frameRate,
+            repeat: -1
+        });
+        this.scene.anims.create({
+            key: this.ANIME_KEY.RUN,
+            frames: this.scene.anims.generateFrameNumbers(spritesheetKey, { start: this.cfg.frameRunStart, end: this.cfg.frameRunEnd }),
+            frameRate: frameRate,
+            repeat: -1
+        });
+        this.scene.anims.create({
+            key: this.ANIME_KEY.JUMP,
+            frames: this.scene.anims.generateFrameNumbers(spritesheetKey, { start: this.cfg.frameJumpStart, end: this.cfg.frameJumpEnd }),
+            frameRate: frameRate,
+            repeat: -1
+        });
     }
-    whenMovingLeftRight(direction, isDashing) {
+    takeExtraActionsDuringUpdate(direction, isDashing, inAir, isJumping) {
         this.maybeActOnMainImg((img) => {
-            if (direction === this.INPUT_TYPE.LEFT) {
-                img.setFlipX(!this.cfg.facingLeft);
+            if (direction !== this.INPUT_TYPE.NEUTRAL) {
+                if (inAir) {
+                    img.play(this.ANIME_KEY.JUMP);
+                }
+                else {
+                    img.play(this.ANIME_KEY.RUN);
+                }
+                if (this.cfg.spritesheetFacingLeft) {
+                    img.setFlipX(direction === this.INPUT_TYPE.RIGHT);
+                }
+                else {
+                    img.setFlipX(direction === this.INPUT_TYPE.LEFT);
+                }
             }
-            else if (direction === this.INPUT_TYPE.RIGHT) {
-                img.setFlipX(this.cfg.facingLeft);
+            else {
+                img.play(this.ANIME_KEY.STILL);
+            }
+            if (isJumping) {
+                img.setDisplaySize(this.cfg.size, this.cfg.size);
+                this.bloatEffect.update(this.scene.add.tween({
+                    targets: img,
+                    displayWidth: this.cfg.size * 1.5,
+                    displayHeight: this.cfg.size * 1.5,
+                    duration: 150,
+                    yoyo: true,
+                    loop: false,
+                }));
             }
         });
     }
@@ -832,7 +872,7 @@ class PlayerSingleSprite extends ArcadePlayerBase {
             });
         }
     }
-    whenMovingLeftRight(direction, isDashing) {
+    takeExtraActionsDuringUpdate(direction, isDashing, inAir, isJumping) {
         this.maybeActOnMainImg((img) => {
             if (direction === this.INPUT_TYPE.LEFT) {
                 img.setFlipX(!this.cfg.facingLeft);
@@ -1070,7 +1110,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        let player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
+        let player;
+        if (this.playerData.playerType === CONST.PLAYER_TYPE.ANIMATED) {
+            player = new PlayerAnimatedSingleSheet(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
+        }
+        else {
+            player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
+        }
         player.playerLeftRightSpeed = this.playerData.leftRightSpeed;
         player.playerLeftRightDashSpeed = this.playerData.leftRightDashSpeed;
         player.playerJumpSpeed = this.playerData.jumpSpeed;
@@ -1231,6 +1277,25 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
+        QUI.createIconButton(this, 'tiles', 82, CONST.GAME_WIDTH * 1 / 4, instruction.y + gap * 2, // position
+        iconSize, iconSize, // size
+        () => {
+            this.startNewGame({
+                leftRightSpeed: 100,
+                jumpSpeed: 100,
+                numAllowedJumps: 400,
+                playerType: CONST.PLAYER_TYPE.ANIMATED,
+                size: 21,
+                spritesheetKey: 'tiles',
+                spritesheetFacingLeft: false,
+                frameRate: 10,
+                frameStill: 79,
+                frameRunStart: 80,
+                frameRunEnd: 81,
+                frameJumpStart: 86,
+                frameJumpEnd: 87,
+            });
+        });
         // const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
         // congrats.setDisplaySize(200, 200);
         // congrats.setAngle(-20);
@@ -1250,33 +1315,5 @@ class SceneJumpDownStart extends QPhaser.Scene {
     }
     startNewGame(playerData) {
         this.scene.start(SCENE_KEYS.JumpDownMain, playerData);
-    }
-}
-class SceneJumpDownStartOld extends QPhaser.Scene {
-    create() {
-        const title = QUI.createTextTitle(this, [
-            'Welcome to',
-            'Cato Survival',
-            'Minigame!',
-        ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
-        const congrats = this.add.image(CONST.GAME_WIDTH / 2, title.y + 200, 'fight');
-        congrats.setDisplaySize(200, 200);
-        congrats.setAngle(-20);
-        this.add.tween({
-            targets: congrats,
-            angle: 20,
-            duration: 400,
-            yoyo: true,
-            loop: -1,
-        });
-        QUI.createButton(this, 'START', CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, () => {
-            this.startNewGame();
-        });
-        this.input.keyboard.once('keyup-ENTER', () => {
-            this.startNewGame();
-        }, this);
-    }
-    startNewGame() {
-        this.scene.start(SCENE_KEYS.JumpDownMain);
     }
 }

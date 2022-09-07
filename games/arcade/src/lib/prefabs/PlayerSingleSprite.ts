@@ -33,7 +33,12 @@ class PlayerSingleSprite extends ArcadePlayerBase {
     }
   }
 
-  protected override whenMovingLeftRight(direction: string, isDashing: boolean): void {
+  protected override takeExtraActionsDuringUpdate(
+    direction: string,
+    isDashing: boolean,
+    inAir: boolean,
+    isJumping: boolean,
+  ): void {
     this.maybeActOnMainImg((img) => {
       if (direction === this.INPUT_TYPE.LEFT) {
         img.setFlipX(!this.cfg!.facingLeft!);

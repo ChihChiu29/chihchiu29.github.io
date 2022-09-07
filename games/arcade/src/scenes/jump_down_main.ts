@@ -96,8 +96,14 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    let player = new PlayerSingleSprite(
-      this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData!);
+    let player: ArcadePlayerBase;
+    if (this.playerData!.playerType === CONST.PLAYER_TYPE.ANIMATED) {
+      player = new PlayerAnimatedSingleSheet(
+        this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData!);
+    } else {
+      player = new PlayerSingleSprite(
+        this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData!);
+    }
     player.playerLeftRightSpeed = this.playerData!.leftRightSpeed;
     player.playerLeftRightDashSpeed = this.playerData!.leftRightDashSpeed;
     player.playerJumpSpeed = this.playerData!.jumpSpeed;

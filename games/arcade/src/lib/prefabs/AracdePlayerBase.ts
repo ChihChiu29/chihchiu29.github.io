@@ -15,7 +15,6 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   // How many jumps are allowed when not on the groud.
   public playerNumAllowedJumps = 1;
 
-
   INPUT_TYPE = {
     NEUTRAL: 'NEUTRAL',
     UP: 'UP',
@@ -46,18 +45,13 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
   }
 
   // @abstract
-  // Called by this class.
-  // For subclass to implement actions when player is moving left/right/neutral.
-  protected whenMovingLeftRight(
+  // For subclass to take actions in `update`, with given player 
+  // input action info.
+  protected takeExtraActionsDuringUpdate(
     direction: string,  // INPUT_TYPE (only left/right/neutral)
     isDashing: boolean,  // whether the player is dashing (double-same-input)
-  ) { }
-
-  // @abstract
-  // Called by this class
-  // For subclass to implement actions when player is jumping.
-  protected whenJumping(
-    numOfRemainingJumps: number,  // for char that can multi-jump.
+    inAir: boolean,  // whether player is in air or grounded
+    isJumping: boolean,  // whether player is jumping
   ) { }
 
   private handleInput(img: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
@@ -98,34 +92,35 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
     }
 
     // Handle move intentions.
+    // Collect these properties for subclass
+    let moveDirection = this.INPUT_TYPE.NEUTRAL;
+    let isDashing = false;
+    let inAir = !img.body.touching.down;
+    let isJumping = false;  // action
+
     // The input actions in `this.recentInputs` are guaranteed to be
     // separated by another input action.
     const previousInputAction = this.recentInputs[this.recentInputs.length - 1];
     if (moveLeft) {
-      if (this.playerLeftRightDashSpeed) {
-        if (previousInputAction === this.INPUT_TYPE.LEFT) {
-          // dash left
-          img.setVelocity(-this.playerLeftRightDashSpeed);
-          this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, true);
-        }
+      moveDirection = this.INPUT_TYPE.LEFT;
+      if (this.playerLeftRightDashSpeed && previousInputAction === this.INPUT_TYPE.LEFT) {
+        // dash left
+        img.setVelocity(-this.playerLeftRightDashSpeed);
+        isDashing = true;
       } else {
         img.setVelocityX(-this.playerLeftRightSpeed);
-        this.whenMovingLeftRight(this.INPUT_TYPE.LEFT, false);
       }
     } else if (moveRight) {
-      if (this.playerLeftRightDashSpeed) {
-        if (previousInputAction === this.INPUT_TYPE.RIGHT) {
-          // dash right
-          img.setVelocity(this.playerLeftRightDashSpeed);
-          this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, true);
-        }
+      moveDirection = this.INPUT_TYPE.RIGHT;
+      if (this.playerLeftRightDashSpeed && previousInputAction === this.INPUT_TYPE.RIGHT) {
+        // dash right
+        img.setVelocity(this.playerLeftRightDashSpeed);
+        isDashing = true;
       } else {
         img.setVelocityX(this.playerLeftRightSpeed);
-        this.whenMovingLeftRight(this.INPUT_TYPE.RIGHT, false);
       }
     } else {
       img.setVelocityX(0);
-      this.whenMovingLeftRight(this.INPUT_TYPE.NEUTRAL, false);
     }
     // Separated if since up and left/right could co-happen.
     if (moveUp) {
@@ -144,7 +139,7 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
           // If we are able to set, make a new jump.
           if (this.playerNumAllowedJumps > 0) {
             this.applyVelocity(0, -this.playerJumpSpeed);
-            this.whenJumping(this.playerNumAllowedJumps - 1);
+            isJumping = true;
           }
         }
       } else {
@@ -159,12 +154,15 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
           if (numJump < this.playerNumAllowedJumps - 1) {
             if (this.numJumpsSinceLastLanding.maybeSet(numJump + 1)) {
               this.applyVelocity(0, -this.playerJumpSpeed);
-              this.whenJumping(this.playerNumAllowedJumps - numJump - 1);
+              isJumping = true;
             }
           }
         }
       }
     }
+
+    // Subclass actions.
+    this.takeExtraActionsDuringUpdate(moveDirection, isDashing, inAir, isJumping);
 
     // Post action tracking updates.
     // Updates input tracking.

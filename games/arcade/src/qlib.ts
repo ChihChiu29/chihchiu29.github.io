@@ -167,6 +167,8 @@ namespace QPhaser {
   export class SingletonTween {
     private existing?: Phaser.Tweens.Tween;
 
+    // Note that removing a tween does not reset its properties, so you better
+    // manually reset the properties you want the tween to animate.
     update(tween: Phaser.Tweens.Tween) {
       if (this.existing && this.existing.isPlaying()) {
         this.existing.stop();

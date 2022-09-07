@@ -2,11 +2,6 @@
     "section1": {
         "files": [
             {
-                "url": "assets/jl_blue2.png",
-                "type": "image",
-                "key": "dragon"
-            },
-            {
                 "url": "assets/fight.png",
                 "type": "image",
                 "key": "fight"
@@ -22,19 +17,9 @@
                 "key": "pineapplecat"
             },
             {
-                "url": "assets/platform.png",
-                "type": "image",
-                "key": "platform"
-            },
-            {
                 "url": "assets/scared.png",
                 "type": "image",
                 "key": "scared"
-            },
-            {
-                "url": "assets/spike.png",
-                "type": "image",
-                "key": "spike"
             },
             {
                 "url": "assets/tile_characters.png",
