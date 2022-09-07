@@ -710,8 +710,8 @@ class PlatformTile extends QPhaser.ArcadePrefab {
         });
     }
 }
-// A fancy player that uses spritesheet for various animations.
-class PlayerAnimatedSprite extends ArcadePlayerBase {
+// A player with all animations from the same spritesheet.
+class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
     cfg;
     constructor(scene, imgInitialX, imgInitialY, playerData) {
         super(scene, imgInitialX, imgInitialY);

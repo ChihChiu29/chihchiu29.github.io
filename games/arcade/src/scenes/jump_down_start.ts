@@ -14,6 +14,10 @@ interface PlayerProperties {
   spriteFrame?: number,
   facingLeft?: boolean,
   hasSpongeEffect?: boolean,  // whether the sprite would vary a bit in size periodically.
+
+  // Required by PlayerAnimatedSingleSheet:
+  spritesheetKey?: string,
+
 }
 
 class SceneJumpDownStart extends QPhaser.Scene {

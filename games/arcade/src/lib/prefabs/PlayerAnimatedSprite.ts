@@ -1,5 +1,5 @@
-// A fancy player that uses spritesheet for various animations.
-class PlayerAnimatedSprite extends ArcadePlayerBase {
+// A player with all animations from the same spritesheet.
+class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
   private cfg: PlayerProperties;
 
   constructor(
