@@ -12,4 +12,9 @@ namespace CONST {
   export const INPUT = {
     SMALL_TIME_INTERVAL_MS: 200,
   };
+
+  export const PLAYER_TYPE = {
+    DEFAULT: 'SINGLE_SPRITE',
+    ANIMATED: 'ANIMATED',
+  };
 }

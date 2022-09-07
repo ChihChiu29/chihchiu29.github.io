@@ -47,6 +47,10 @@ var CONST;
     CONST.INPUT = {
         SMALL_TIME_INTERVAL_MS: 200,
     };
+    CONST.PLAYER_TYPE = {
+        DEFAULT: 'SINGLE_SPRITE',
+        ANIMATED: 'ANIMATED',
+    };
 })(CONST || (CONST = {}));
 const TESTING = false;
 const SCENE_KEYS = {
@@ -1064,8 +1068,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Needs to be called after createSpikes.
     createPlayer() {
-        // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
-        const player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
+        let player = new PlayerSingleSprite(this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData);
         player.playerLeftRightSpeed = this.playerData.leftRightSpeed;
         player.playerLeftRightDashSpeed = this.playerData.leftRightDashSpeed;
         player.playerJumpSpeed = this.playerData.jumpSpeed;
@@ -1205,6 +1208,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 leftRightSpeed: 200,
                 jumpSpeed: 300,
                 numAllowedJumps: 1,
+                playerType: CONST.PLAYER_TYPE.DEFAULT,
                 size: 32,
                 spriteKey: 'scared',
                 spriteFrame: 0,
@@ -1218,6 +1222,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 leftRightSpeed: 120,
                 jumpSpeed: 200,
                 numAllowedJumps: 2,
+                playerType: CONST.PLAYER_TYPE.DEFAULT,
                 size: 48,
                 spriteKey: 'pineapplecat',
                 spriteFrame: 0,

@@ -96,9 +96,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Needs to be called after createSpikes.
   private createPlayer() {
-    // Makes player a bit smaller than sprite to make effects like falling through tiles easier.a
-    const player = new PlayerSingleSprite(
-      this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData!)
+    let player = new PlayerSingleSprite(
+      this, CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2, this.playerData!);
     player.playerLeftRightSpeed = this.playerData!.leftRightSpeed;
     player.playerLeftRightDashSpeed = this.playerData!.leftRightDashSpeed;
     player.playerJumpSpeed = this.playerData!.jumpSpeed;

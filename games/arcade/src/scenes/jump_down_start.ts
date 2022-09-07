@@ -5,7 +5,8 @@ interface PlayerProperties {
   numAllowedJumps: number,
   leftRightDashSpeed?: number,  // undefined means disabled.
 
-  // Common UI:
+  // Common:
+  playerType: string,  // CONST.PLAYER_TYPE
   size: number,
 
   // Required by PlayerSingleSprite:
@@ -51,6 +52,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
           leftRightSpeed: 200,
           jumpSpeed: 300,
           numAllowedJumps: 1,
+          playerType: CONST.PLAYER_TYPE.DEFAULT,
           size: 32,
           spriteKey: 'scared',
           spriteFrame: 0,
@@ -68,6 +70,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
           leftRightSpeed: 120,
           jumpSpeed: 200,
           numAllowedJumps: 2,
+          playerType: CONST.PLAYER_TYPE.DEFAULT,
           size: 48,
           spriteKey: 'pineapplecat',
           spriteFrame: 0,
