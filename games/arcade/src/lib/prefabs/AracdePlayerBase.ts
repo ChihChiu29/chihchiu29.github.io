@@ -86,12 +86,14 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
 
     // Update last and recent input actions.
     let currentInput = this.INPUT_TYPE.NEUTRAL;
-    if (moveLeft) {
+    // It could be both up and left/right, in which case we record up since
+    // left/right can be continously holding down but not jump.
+    if (moveUp) {
+      currentInput = this.INPUT_TYPE.UP;
+    } else if (moveLeft) {
       currentInput = this.INPUT_TYPE.LEFT;
     } else if (moveRight) {
       currentInput = this.INPUT_TYPE.RIGHT;
-    } else if (moveUp) {
-      currentInput = this.INPUT_TYPE.UP;
     }
     if (currentInput !== this.lastInput) {
       if (this.lastInput !== this.INPUT_TYPE.NEUTRAL) {
