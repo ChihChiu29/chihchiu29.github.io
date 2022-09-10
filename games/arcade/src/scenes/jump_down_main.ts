@@ -44,10 +44,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   create(): void {
     this.createBoundaries();
     this.createPlayer();
-    this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
     this.createPlatform(
       CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50,
-      this.platformSpawnWidthMax, this.platformMoveUpSpeed,
+      this.platformSpawnWidthMax, this.platformMoveUpInitialSpeed,
       false,  // no move left right
       false,  // use normal tiles only.
     );
@@ -149,7 +148,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
       CONST.GAME_HEIGHT + 50,
       Phaser.Math.FloatBetween(
         this.platformSpawnWidthMin, this.platformSpawnWidthMax),
-      this.platformMoveUpSpeed,
+      this.platformMoveUpInitialSpeed,
       true,
     );
   }
@@ -178,7 +177,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
     const tiles: ArcadeSprite[] = [];
     for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
       for (const tile of this.createTilesForSegments(
-        tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
+        tilePositions.slice(i, i + this.TILE_GENERATION_SIZE),
+        useSpecialTiles, moveUpSpeed,
+      )) {
         tiles.push(tile);
       }
     }
@@ -192,7 +193,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
       });
 
       tile.maybeActOnMainImg((img) => {
-        img.setVelocityY(-moveUpSpeed);
         if (platformShouldMove) {
           img.setVelocityX(platformMoveSpeed);
           this.add.tween({
@@ -212,7 +212,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   // Collisions with player and boundary are set in createPlatform.
   private createTilesForSegments(
     tilePositions: QPoint[],
-    useSpecialTiles: boolean = true): ArcadeSprite[] {
+    useSpecialTiles: boolean = true,
+    moveUpSpeed: number = 0,
+  ): ArcadeSprite[] {
     const tiles: ArcadeSprite[] = [];
     let choice = 100;  // default to use normal tiles only.
     if (useSpecialTiles) {
@@ -223,7 +225,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
       for (const pos of tilePositions) {
         const tile = new TileSelfDestroy(
           this, pos.x, pos.y,
-          this.SPRITESHEET_KEY, 3, this.BLOCK_SPRITE_SIZE);
+          this.SPRITESHEET_KEY, 3,
+          this.BLOCK_SPRITE_SIZE);
         tile.setDisappearAfterOverlappingWith([this.player!]);
         tiles.push(tile);
       }

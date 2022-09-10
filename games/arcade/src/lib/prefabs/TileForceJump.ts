@@ -1,5 +1,5 @@
 // A tile that bumps player up.
-class TileForceJump extends MovingUpTile {
+class TileForceJump extends TileMovingUp {
   // After touching these prefabs, this tile will disappear.
   public setPushPrefabsUp(
     prefabs: QPhaser.ArcadePrefab[],

@@ -769,20 +769,6 @@ class ItemAddTime extends ArcadeSprite {
         });
     }
 }
-// Base class for a platform tile that moves up.
-class MovingUpTile extends ArcadeSprite {
-    initialSpeed = 0;
-    multiplier = new QLib.PrimitiveRef(0);
-    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
-        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize);
-        this.initialSpeed = initialSpeed;
-        this.multiplier = speedMultiplier;
-    }
-    update(time, delta) {
-        super.update(time, delta);
-        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
-    }
-}
 // A player with all animations from the same spritesheet.
 class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
     ANIME_KEY = {
@@ -1007,7 +993,7 @@ class RotatingText extends QPhaser.Prefab {
     }
 }
 // A tile that bumps player up.
-class TileForceJump extends MovingUpTile {
+class TileForceJump extends TileMovingUp {
     // After touching these prefabs, this tile will disappear.
     setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
@@ -1043,7 +1029,7 @@ class TileForceJump extends MovingUpTile {
     }
 }
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends MovingUpTile {
+class TileSelfDestroy extends TileMovingUp {
     // After touching these prefabs, this tile will disappear.
     setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
@@ -1057,6 +1043,20 @@ class TileSelfDestroy extends MovingUpTile {
                 }
             });
         });
+    }
+}
+// Base class for a platform tile that moves up.
+class TileMovingUp extends ArcadeSprite {
+    initialSpeed = 0;
+    multiplier = new QLib.PrimitiveRef(0);
+    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize);
+        this.initialSpeed = initialSpeed;
+        this.multiplier = speedMultiplier;
+    }
+    update(time, delta) {
+        super.update(time, delta);
+        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
     }
 }
 class StartScene extends Phaser.Scene {
@@ -1143,8 +1143,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     create() {
         this.createBoundaries();
         this.createPlayer();
-        this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed;
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpSpeed, false, // no move left right
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpInitialSpeed, false, // no move left right
         false);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
@@ -1219,7 +1218,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
-        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpSpeed, true);
+        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpInitialSpeed, true);
     }
     // Lowest level function to create a platform.
     createPlatform(x, y, width, moveUpSpeed, canMoveLeftNRight = false, useSpecialTiles = true) {
@@ -1234,7 +1233,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
         const tiles = [];
         for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
-            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
+            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles, moveUpSpeed)) {
                 tiles.push(tile);
             }
         }
@@ -1245,7 +1244,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
                 tile.destroy();
             });
             tile.maybeActOnMainImg((img) => {
-                img.setVelocityY(-moveUpSpeed);
                 if (platformShouldMove) {
                     img.setVelocityX(platformMoveSpeed);
                     this.add.tween({
@@ -1262,7 +1260,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // A segment of tiles used together for creation of special tiles.
     // Each segment can only contain one type of special tiles.
     // Collisions with player and boundary are set in createPlatform.
-    createTilesForSegments(tilePositions, useSpecialTiles = true) {
+    createTilesForSegments(tilePositions, useSpecialTiles = true, moveUpSpeed = 0) {
         const tiles = [];
         let choice = 100; // default to use normal tiles only.
         if (useSpecialTiles) {
