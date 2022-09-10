@@ -29,8 +29,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
   private survivalTimeText?: Phaser.GameObjects.Text;
   private survivalTime = 0;
 
-  private timer?: Phaser.Time.TimerEvent;
-
   // Last SetTimeout ID for spawning platform.
   private lastSpawnPlatformTimeout = 0;
 
@@ -54,17 +52,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     this.startPlatformSpawnActions();
 
-    this.timer = this.time.addEvent({
-      delay: 3600 * 1000,
-      loop: true,
-    });
-
     DEBUG_SCENE = this;
   }
 
   update(totalTime: number, delta: number): void {
     super.update(totalTime, delta);
-    const time = this.timer!.getElapsedSeconds();
+    const time = this.timeSinceSceneStartMs / 1000;
     if (this.survivalTimeText) {
       this.survivalTimeText.setText(`${time.toFixed(1)}`);
       this.survivalTime = time;

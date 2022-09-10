@@ -145,12 +145,12 @@ namespace QPhaser {
     // total game time.
     // It's only used by base class as a way for tracking, and subclasses
     // and safely modify this for their needs.
-    protected timeSinceSceneStart = 0;
+    protected timeSinceSceneStartMs = 0;
 
     private registeredPrefabs = new Set<Prefab>();
 
     create() {
-      this.timeSinceSceneStart = 0;
+      this.timeSinceSceneStartMs = 0;
     }
 
     // Adds a new prefab to be managed.
@@ -169,7 +169,7 @@ namespace QPhaser {
     override update(time: number, delta: number): void {
       super.update(time, delta);
 
-      this.timeSinceSceneStart += delta;
+      this.timeSinceSceneStartMs += delta;
 
       for (const prefab of this.registeredPrefabs) {
         prefab.update(time, delta);

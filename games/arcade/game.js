@@ -201,10 +201,10 @@ var QPhaser;
         // total game time.
         // It's only used by base class as a way for tracking, and subclasses
         // and safely modify this for their needs.
-        timeSinceSceneStart = 0;
+        timeSinceSceneStartMs = 0;
         registeredPrefabs = new Set();
         create() {
-            this.timeSinceSceneStart = 0;
+            this.timeSinceSceneStartMs = 0;
         }
         // Adds a new prefab to be managed.
         addPrefab(prefab) {
@@ -219,7 +219,7 @@ var QPhaser;
         }
         update(time, delta) {
             super.update(time, delta);
-            this.timeSinceSceneStart += delta;
+            this.timeSinceSceneStartMs += delta;
             for (const prefab of this.registeredPrefabs) {
                 prefab.update(time, delta);
             }
@@ -1093,7 +1093,6 @@ class SceneJumpDownMain extends QPhaser.Scene {
     bottomBorder;
     survivalTimeText;
     survivalTime = 0;
-    timer;
     // Last SetTimeout ID for spawning platform.
     lastSpawnPlatformTimeout = 0;
     playerData;
@@ -1108,15 +1107,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
         false);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
-        this.timer = this.time.addEvent({
-            delay: 3600 * 1000,
-            loop: true,
-        });
         DEBUG_SCENE = this;
     }
     update(totalTime, delta) {
         super.update(totalTime, delta);
-        const time = this.timer.getElapsedSeconds();
+        const time = this.timeSinceSceneStartMs / 1000;
         if (this.survivalTimeText) {
             this.survivalTimeText.setText(`${time.toFixed(1)}`);
             this.survivalTime = time;
