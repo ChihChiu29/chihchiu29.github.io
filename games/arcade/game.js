@@ -712,6 +712,26 @@ class ArcadeSprite extends QPhaser.ArcadePrefab {
         });
     }
 }
+// Basic item class.
+class ItemBase extends ArcadeSprite {
+    constructor(scene, imgInitialX, imgInitialY, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY, spriteKey, frameIndex, tileInitialSize, /*isPlatform*/ false);
+    }
+}
+// Base class for a platform tile that moves up.
+class TileMovingUp extends ArcadeSprite {
+    initialSpeed = 0;
+    multiplier = new QLib.PrimitiveRef(0);
+    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY, spriteKey, frameIndex, tileInitialSize, /*isPlatform*/ true);
+        this.initialSpeed = initialSpeed;
+        this.multiplier = speedMultiplier;
+    }
+    update(time, delta) {
+        super.update(time, delta);
+        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
+    }
+}
 class ChatPopup extends Phaser.GameObjects.Container {
     text;
     border;
@@ -756,7 +776,7 @@ class ChatPopup extends Phaser.GameObjects.Container {
     }
 }
 // Item that adds time/score when collected.
-class ItemAddTime extends ArcadeSprite {
+class ItemAddTime extends ItemBase {
     setEffect(
     // Plural: maybe coop in the future?
     playerPrefabs, 
@@ -992,22 +1012,8 @@ class RotatingText extends QPhaser.Prefab {
         }
     }
 }
-// Base class for a platform tile that moves up.
-class TileBasicMovingUp extends ArcadeSprite {
-    initialSpeed = 0;
-    multiplier = new QLib.PrimitiveRef(0);
-    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
-        super(scene, imgInitialX, imgInitialY, spriteKey, frameIndex, tileInitialSize, /*isPlatform*/ true);
-        this.initialSpeed = initialSpeed;
-        this.multiplier = speedMultiplier;
-    }
-    update(time, delta) {
-        super.update(time, delta);
-        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
-    }
-}
 // A tile that bumps player up.
-class TileForceJump extends TileBasicMovingUp {
+class TileForceJump extends TileMovingUp {
     // After touching these prefabs, this tile will disappear.
     setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
@@ -1043,7 +1049,7 @@ class TileForceJump extends TileBasicMovingUp {
     }
 }
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends TileBasicMovingUp {
+class TileSelfDestroy extends TileMovingUp {
     // After touching these prefabs, this tile will disappear.
     setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
@@ -1111,6 +1117,7 @@ let DEBUG_SCENE;
 class SceneJumpDownMain extends QPhaser.Scene {
     BLOCK_SPRITE_SIZE = 20;
     PLAYER_SIZE = 32;
+    ITEM_SPRITE_SIZE = 16; // need to be smaller than block size.
     SPRITESHEET_KEY = 'tiles';
     // Tiles will be break into segments, each contains at this number of tiles,
     // each segment is a unit for special tile generation.
@@ -1226,6 +1233,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Lowest level function to create a platform.
     createPlatform(x, y, width, canMoveLeftNRight = false, useSpecialTiles = true) {
+        // First set up platform tiles.
         const platformShouldMove = canMoveLeftNRight && Phaser.Math.Between(1, 10) > 6;
         const platformMoveSpeed = Phaser.Math.Between(-this.platformMoveLeftRightRandomRange, this.platformMoveLeftRightRandomRange)
             * this.platformMoveLeftRightSpeedFactor;
@@ -1259,6 +1267,13 @@ class SceneJumpDownMain extends QPhaser.Scene {
                     });
                 }
             });
+        }
+        // Next setup items.
+        const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
+        if (itemTypeRandomChoice < 1000) {
+            const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
+            const { x, y } = tileChoice.getPosition();
+            const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE, this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
         }
     }
     // A segment of tiles used together for creation of special tiles.
@@ -1294,7 +1309,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return tiles;
     }
     createNormalTile(x, y) {
-        return new TileBasicMovingUp(this, x, y, this.platformMoveUpInitialSpeed, this.platformSpeedFactor, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
+        return new TileMovingUp(this, x, y, this.platformMoveUpInitialSpeed, this.platformSpeedFactor, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
     }
     gotoEndGame() {
         clearTimeout(this.lastSpawnPlatformTimeout);

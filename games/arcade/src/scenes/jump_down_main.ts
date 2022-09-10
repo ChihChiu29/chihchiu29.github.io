@@ -3,6 +3,7 @@ let DEBUG_SCENE: Phaser.Scene;
 class SceneJumpDownMain extends QPhaser.Scene {
   BLOCK_SPRITE_SIZE = 20;
   PLAYER_SIZE = 32;
+  ITEM_SPRITE_SIZE = 16;  // need to be smaller than block size.
 
   SPRITESHEET_KEY = 'tiles';
 
@@ -165,6 +166,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     canMoveLeftNRight: boolean = false,
     useSpecialTiles: boolean = true,
   ): void {
+    // First set up platform tiles.
     const platformShouldMove: boolean = canMoveLeftNRight && Phaser.Math.Between(1, 10) > 6;
     const platformMoveSpeed: number =
       Phaser.Math.Between(
@@ -207,6 +209,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
           });
         }
       });
+    }
+
+    // Next setup items.
+    const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
+    if (itemTypeRandomChoice < 1000) {
+      const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
+      const { x, y } = tileChoice.getPosition();
+      const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE,
+        this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
     }
   }
 
@@ -256,7 +267,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   private createNormalTile(x: number, y: number): ArcadeSprite {
-    return new TileBasicMovingUp(
+    return new TileMovingUp(
       this, x, y,
       this.platformMoveUpInitialSpeed, this.platformSpeedFactor,
       this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);

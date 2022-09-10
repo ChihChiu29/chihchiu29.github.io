@@ -1,5 +1,5 @@
 // Item that adds time/score when collected.
-abstract class ItemAddTime extends ArcadeSprite {
+class ItemAddTime extends ItemBase {
   public setEffect(
     // Plural: maybe coop in the future?
     playerPrefabs: QPhaser.ArcadePrefab[],
