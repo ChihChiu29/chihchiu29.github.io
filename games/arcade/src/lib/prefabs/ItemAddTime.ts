@@ -12,6 +12,7 @@ class ItemAddTime extends ItemBase {
     this.setOverlapWith(playerPrefabs, (self, other) => {
       addScoreFn(Phaser.Math.Between(
         addScoreMinMs, addScoreMaxMs));
+      this.destroy();
     });
   }
 }

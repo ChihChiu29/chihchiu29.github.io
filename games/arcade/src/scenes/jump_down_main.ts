@@ -218,6 +218,14 @@ class SceneJumpDownMain extends QPhaser.Scene {
       const { x, y } = tileChoice.getPosition();
       const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE,
         this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
+      item.setCollideWith(tiles);
+      item.setOverlapWithGameObjects([this.topBorder!], () => {
+        item.destroy();
+      });
+      item.setEffect([this.player!], (amountToAdd: number) => {
+        this.timeSinceSceneStartMs += amountToAdd;
+      });
+      this.addPrefab(item);
     }
   }
 
