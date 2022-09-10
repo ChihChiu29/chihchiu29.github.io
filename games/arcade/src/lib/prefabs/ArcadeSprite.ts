@@ -1,6 +1,6 @@
-// Base class for platform square tiles.
-// It can be used to create a basic tile.
-class PlatformTile extends QPhaser.ArcadePrefab {
+// Base class for a sprite in arcade.
+// Has APIs to specify collision behaviors.
+class ArcadeSprite extends QPhaser.ArcadePrefab {
   private tileInitialSize: number = 0;
 
   private spriteKey: string = '';
@@ -10,7 +10,10 @@ class PlatformTile extends QPhaser.ArcadePrefab {
     scene: Phaser.Scene,
     imgInitialX: number, imgInitialY: number,
     spriteKey: string, frameIndex: number = 0,
-    tileInitialSize: number = 20) {
+    tileInitialSize: number = 20,
+    // Platform sprite ignores gravity and is "immovable".
+    isPlatform: boolean = true,
+  ) {
     super(scene, imgInitialX, imgInitialY);
     this.tileInitialSize = tileInitialSize;
     this.spriteKey = spriteKey;
@@ -18,9 +21,11 @@ class PlatformTile extends QPhaser.ArcadePrefab {
 
     const img = this.scene.physics.add.sprite(
       this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
-    img.setImmovable(true);
-    img.body.allowGravity = false;
     img.setDisplaySize(tileInitialSize, tileInitialSize);
+    if (isPlatform) {
+      img.setImmovable(true);
+      img.body.allowGravity = false;
+    }
     this.setMainImage(img);
   }
 

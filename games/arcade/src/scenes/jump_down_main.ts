@@ -179,7 +179,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
       tilePositions.push({ x: blockX, y: y });
     }
 
-    const tiles: PlatformTile[] = [];
+    const tiles: ArcadeSprite[] = [];
     for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
       for (const tile of this.createTilesForSegments(
         tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
@@ -213,10 +213,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // A segment of tiles used together for creation of special tiles.
   // Each segment can only contain one type of special tiles.
+  // Collisions with player and boundary are set in createPlatform.
   private createTilesForSegments(
     tilePositions: QPoint[],
-    useSpecialTiles: boolean = true): PlatformTile[] {
-    const tiles: PlatformTile[] = [];
+    useSpecialTiles: boolean = true): ArcadeSprite[] {
+    const tiles: ArcadeSprite[] = [];
     let choice = 100;  // default to use normal tiles only.
     if (useSpecialTiles) {
       choice = Phaser.Math.Between(1, 100);
@@ -251,8 +252,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     return tiles;
   }
 
-  private createNormalTile(x: number, y: number): PlatformTile {
-    return new PlatformTile(
+  private createNormalTile(x: number, y: number): ArcadeSprite {
+    return new ArcadeSprite(
       this, x, y,
       this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
   }

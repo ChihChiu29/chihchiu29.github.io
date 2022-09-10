@@ -135,9 +135,23 @@ namespace QPhaser {
   }
 
   // Make it easy for a scene to use `QPrefab`s.
-  // Use `addPrefab` instead of `add.existing` when adding new `QPrefab` objects.
+  // Added several features:
+  //   - Prefab management. Use `addPrefab` instead of `add.existing` 
+  //     when adding new `QPrefab` objects.
+  //   - A timer.
   export class Scene extends Phaser.Scene {
+    // Time since scene starts; reset if the scene is recreated.
+    // This is different from the `time` passed to `update` which is the
+    // total game time.
+    // It's only used by base class as a way for tracking, and subclasses
+    // and safely modify this for their needs.
+    protected timeSinceSceneStart = 0;
+
     private registeredPrefabs = new Set<Prefab>();
+
+    create() {
+      this.timeSinceSceneStart = 0;
+    }
 
     // Adds a new prefab to be managed.
     addPrefab(prefab: Prefab) {
@@ -152,9 +166,10 @@ namespace QPhaser {
       prefab.destroy();
     }
 
-    // @Override
-    update(time: number, delta: number): void {
+    override update(time: number, delta: number): void {
       super.update(time, delta);
+
+      this.timeSinceSceneStart += delta;
 
       for (const prefab of this.registeredPrefabs) {
         prefab.update(time, delta);

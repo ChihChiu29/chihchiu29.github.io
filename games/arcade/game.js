@@ -68,6 +68,8 @@ else {
 var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.bestScores = [];
+    // Current global game speed.
+    GLOBAL.gameSpeed = 1.0;
 })(GLOBAL || (GLOBAL = {}));
 ;
 // My enhancement on top of native Phaser objects.
@@ -189,9 +191,21 @@ var QPhaser;
     }
     QPhaser.ArcadePrefab = ArcadePrefab;
     // Make it easy for a scene to use `QPrefab`s.
-    // Use `addPrefab` instead of `add.existing` when adding new `QPrefab` objects.
+    // Added several features:
+    //   - Prefab management. Use `addPrefab` instead of `add.existing` 
+    //     when adding new `QPrefab` objects.
+    //   - A timer.
     class Scene extends Phaser.Scene {
+        // Time since scene starts; reset if the scene is recreated.
+        // This is different from the `time` passed to `update` which is the
+        // total game time.
+        // It's only used by base class as a way for tracking, and subclasses
+        // and safely modify this for their needs.
+        timeSinceSceneStart = 0;
         registeredPrefabs = new Set();
+        create() {
+            this.timeSinceSceneStart = 0;
+        }
         // Adds a new prefab to be managed.
         addPrefab(prefab) {
             prefab.init();
@@ -203,9 +217,9 @@ var QPhaser;
             this.registeredPrefabs.delete(prefab);
             prefab.destroy();
         }
-        // @Override
         update(time, delta) {
             super.update(time, delta);
+            this.timeSinceSceneStart += delta;
             for (const prefab of this.registeredPrefabs) {
                 prefab.update(time, delta);
             }
@@ -630,6 +644,49 @@ class ArcadePlayerBase extends QPhaser.ArcadePrefab {
         }
     }
 }
+// Base class for a sprite in arcade.
+// Has APIs to specify collision behaviors.
+class ArcadeSprite extends QPhaser.ArcadePrefab {
+    tileInitialSize = 0;
+    spriteKey = '';
+    frameIndex = 0;
+    constructor(scene, imgInitialX, imgInitialY, spriteKey, frameIndex = 0, tileInitialSize = 20, 
+    // Platform sprite ignores gravity and is "immovable".
+    isPlatform = true) {
+        super(scene, imgInitialX, imgInitialY);
+        this.tileInitialSize = tileInitialSize;
+        this.spriteKey = spriteKey;
+        this.frameIndex = frameIndex;
+        const img = this.scene.physics.add.sprite(this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
+        img.setDisplaySize(tileInitialSize, tileInitialSize);
+        if (isPlatform) {
+            img.setImmovable(true);
+            img.body.allowGravity = false;
+        }
+        this.setMainImage(img);
+    }
+    // Sets that this tile collides with the given prefabs.
+    setCollideWith(prefabs) {
+        this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
+    }
+    // Sets that this tile collides with the given gameobjects.
+    setCollideWithGameObjects(gameObjs) {
+        this.maybeActOnMainImg((img) => {
+            this.scene.physics.add.collider(img, gameObjs);
+        });
+    }
+    // Sets that when this tile touch the given prefabs, what happens.
+    setOverlapWith(prefabs, callback) {
+        this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
+    }
+    // Sets that when this tile touch the given gameobjects, what happens.
+    // Callback is given (tile, other) as arguments.
+    setOverlapWithGameObjects(gameObjs, callback) {
+        this.maybeActOnMainImg((img) => {
+            this.scene.physics.add.overlap(img, gameObjs, callback);
+        });
+    }
+}
 class ChatPopup extends Phaser.GameObjects.Container {
     text;
     border;
@@ -673,42 +730,17 @@ class ChatPopup extends Phaser.GameObjects.Container {
         this.text.setColor('#037bfc');
     }
 }
-// Base class for platform square tiles.
-// It can be used to create a basic tile.
-class PlatformTile extends QPhaser.ArcadePrefab {
-    tileInitialSize = 0;
-    spriteKey = '';
-    frameIndex = 0;
-    constructor(scene, imgInitialX, imgInitialY, spriteKey, frameIndex = 0, tileInitialSize = 20) {
-        super(scene, imgInitialX, imgInitialY);
-        this.tileInitialSize = tileInitialSize;
-        this.spriteKey = spriteKey;
-        this.frameIndex = frameIndex;
-        const img = this.scene.physics.add.sprite(this.mainImgInitialX, this.mainImgInitialY, spriteKey, frameIndex);
-        img.setImmovable(true);
-        img.body.allowGravity = false;
-        img.setDisplaySize(tileInitialSize, tileInitialSize);
-        this.setMainImage(img);
-    }
-    // Sets that this tile collides with the given prefabs.
-    setCollideWith(prefabs) {
-        this.setCollideWithGameObjects(QPhaser.collectImgs(prefabs));
-    }
-    // Sets that this tile collides with the given gameobjects.
-    setCollideWithGameObjects(gameObjs) {
-        this.maybeActOnMainImg((img) => {
-            this.scene.physics.add.collider(img, gameObjs);
-        });
-    }
-    // Sets that when this tile touch the given prefabs, what happens.
-    setOverlapWith(prefabs, callback) {
-        this.setOverlapWithGameObjects(QPhaser.collectImgs(prefabs), callback);
-    }
-    // Sets that when this tile touch the given gameobjects, what happens.
-    // Callback is given (tile, other) as arguments.
-    setOverlapWithGameObjects(gameObjs, callback) {
-        this.maybeActOnMainImg((img) => {
-            this.scene.physics.add.overlap(img, gameObjs, callback);
+// Item that adds time/score when collected.
+class ItemAddTime extends ArcadeSprite {
+    setEffect(
+    // Plural: maybe coop in the future?
+    playerPrefabs, 
+    // The function to call to add time/score.
+    addScoreFn, 
+    // The score to add is a random number between these two.
+    addScoreMinMs = 1000, addScoreMaxMs = 5000) {
+        this.setOverlapWith(playerPrefabs, (self, other) => {
+            addScoreFn(Phaser.Math.Between(addScoreMinMs, addScoreMaxMs));
         });
     }
 }
@@ -936,7 +968,7 @@ class RotatingText extends QPhaser.Prefab {
     }
 }
 // A tile that bumps player up.
-class TileForceJump extends PlatformTile {
+class TileForceJump extends ArcadeSprite {
     // After touching these prefabs, this tile will disappear.
     setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
@@ -972,7 +1004,7 @@ class TileForceJump extends PlatformTile {
     }
 }
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends PlatformTile {
+class TileSelfDestroy extends ArcadeSprite {
     // After touching these prefabs, this tile will disappear.
     setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
@@ -1193,6 +1225,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // A segment of tiles used together for creation of special tiles.
     // Each segment can only contain one type of special tiles.
+    // Collisions with player and boundary are set in createPlatform.
     createTilesForSegments(tilePositions, useSpecialTiles = true) {
         const tiles = [];
         let choice = 100; // default to use normal tiles only.
@@ -1223,7 +1256,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return tiles;
     }
     createNormalTile(x, y) {
-        return new PlatformTile(this, x, y, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
+        return new ArcadeSprite(this, x, y, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
     }
     gotoEndGame() {
         clearTimeout(this.lastSpawnPlatformTimeout);
