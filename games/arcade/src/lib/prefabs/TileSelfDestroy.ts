@@ -1,5 +1,5 @@
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends ArcadeSprite {
+class TileSelfDestroy extends MovingUpTile {
   // After touching these prefabs, this tile will disappear.
   public setDisappearAfterOverlappingWith(
     prefabs: QPhaser.ArcadePrefab[],

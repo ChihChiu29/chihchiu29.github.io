@@ -72,6 +72,24 @@ var GLOBAL;
     GLOBAL.gameSpeed = 1.0;
 })(GLOBAL || (GLOBAL = {}));
 ;
+var QLib;
+(function (QLib) {
+    // Helps to wrap a primitive variable into a mutable object so you can
+    // pass reference to others and they can modify its value.
+    class PrimitiveRef {
+        value;
+        constructor(initialValue) {
+            this.value = initialValue;
+        }
+        set(value) {
+            this.value = value;
+        }
+        get() {
+            return this.value;
+        }
+    }
+    QLib.PrimitiveRef = PrimitiveRef;
+})(QLib || (QLib = {})); // QLib
 // My enhancement on top of native Phaser objects.
 var QPhaser;
 (function (QPhaser) {
@@ -177,6 +195,13 @@ var QPhaser;
             else {
                 return { x: 0, y: 0 };
             }
+        }
+        // Convenience functions to override velocities for x/y components.
+        setVelocityX(value) {
+            this.maybeActOnMainImg((img) => { img.setVelocityX(value); });
+        }
+        setVelocityY(value) {
+            this.maybeActOnMainImg((img) => { img.setVelocityY(value); });
         }
         // You can set mainImage directly using the property; but use this function to read it.
         getMainImg() {
@@ -744,6 +769,20 @@ class ItemAddTime extends ArcadeSprite {
         });
     }
 }
+// Base class for a platform tile that moves up.
+class MovingUpTile extends ArcadeSprite {
+    initialSpeed = 0;
+    multiplier = new QLib.PrimitiveRef(0);
+    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize);
+        this.initialSpeed = initialSpeed;
+        this.multiplier = speedMultiplier;
+    }
+    update(time, delta) {
+        super.update(time, delta);
+        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
+    }
+}
 // A player with all animations from the same spritesheet.
 class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
     ANIME_KEY = {
@@ -968,7 +1007,7 @@ class RotatingText extends QPhaser.Prefab {
     }
 }
 // A tile that bumps player up.
-class TileForceJump extends ArcadeSprite {
+class TileForceJump extends MovingUpTile {
     // After touching these prefabs, this tile will disappear.
     setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
@@ -1004,7 +1043,7 @@ class TileForceJump extends ArcadeSprite {
     }
 }
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends ArcadeSprite {
+class TileSelfDestroy extends MovingUpTile {
     // After touching these prefabs, this tile will disappear.
     setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
@@ -1093,6 +1132,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
     bottomBorder;
     survivalTimeText;
     survivalTime = 0;
+    // Multiplicative factor for platform move speed.
+    platformSpeedFactor = new QLib.PrimitiveRef(1);
     // Last SetTimeout ID for spawning platform.
     lastSpawnPlatformTimeout = 0;
     playerData;

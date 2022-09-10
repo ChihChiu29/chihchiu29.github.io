@@ -1,3 +1,23 @@
+namespace QLib {
+  // Helps to wrap a primitive variable into a mutable object so you can
+  // pass reference to others and they can modify its value.
+  export class PrimitiveRef<T> {
+    private value: T;
+
+    constructor(initialValue: T) {
+      this.value = initialValue;
+    }
+
+    set(value: T): void {
+      this.value = value;
+    }
+
+    get(): T {
+      return this.value;
+    }
+  }
+}  // QLib
+
 // My enhancement on top of native Phaser objects.
 namespace QPhaser {
   // Also make it easier to use infinite tween etc.
@@ -121,6 +141,14 @@ namespace QPhaser {
       } else {
         return { x: 0, y: 0 };
       }
+    }
+
+    // Convenience functions to override velocities for x/y components.
+    public setVelocityX(value: number) {
+      this.maybeActOnMainImg((img) => { img.setVelocityX(value); });
+    }
+    public setVelocityY(value: number) {
+      this.maybeActOnMainImg((img) => { img.setVelocityY(value); });
     }
 
     // You can set mainImage directly using the property; but use this function to read it.

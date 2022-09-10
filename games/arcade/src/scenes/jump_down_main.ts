@@ -29,6 +29,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   private survivalTimeText?: Phaser.GameObjects.Text;
   private survivalTime = 0;
 
+  // Multiplicative factor for platform move speed.
+  private platformSpeedFactor = new QLib.PrimitiveRef<number>(1);
+
   // Last SetTimeout ID for spawning platform.
   private lastSpawnPlatformTimeout = 0;
 
