@@ -1117,11 +1117,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
     TILE_GENERATION_SIZE = 4;
     // Use these parameters to change difficulty.
     platformMoveUpInitialSpeed = 30;
-    platformMoveUpSpeed = 0; // initialize in `create`.
     platformMoveLeftRightRandomRange = 10;
     platformMoveLeftRightSpeedFactor = 30;
     // For platform spawn.
-    // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
+    // A new platform will be spawn randomly around 
+    // delay = 120000 / current platform move up speed.
     platformSpawnDelayFactorMin = 90000;
     platformSpawnDelayFactorMax = 150000;
     platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
@@ -1140,6 +1140,8 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.playerData = playerData;
     }
     create() {
+        super.create();
+        this.platformSpeedFactor.set(1.0);
         this.createBoundaries();
         this.createPlayer();
         this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, false, // no move left right
@@ -1156,7 +1158,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
             this.survivalTime = time;
         }
         // Make game harder over time.
-        this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed + time * 0.8;
+        this.platformSpeedFactor.set(this.platformSpeedFactor.get() + delta / 20000);
     }
     createBoundaries() {
         const halfSpriteSize = this.BLOCK_SPRITE_SIZE / 2;
@@ -1210,10 +1212,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.survivalTimeText = statusText;
     }
     startPlatformSpawnActions() {
+        const currentSpeed = this.platformMoveUpInitialSpeed
+            * this.platformSpeedFactor.get();
         this.lastSpawnPlatformTimeout = setTimeout(() => {
             this.spawnPlatform();
             this.startPlatformSpawnActions();
-        }, Phaser.Math.FloatBetween(this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed, this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
+        }, Phaser.Math.FloatBetween(this.platformSpawnDelayFactorMin / currentSpeed, this.platformSpawnDelayFactorMax / currentSpeed));
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {

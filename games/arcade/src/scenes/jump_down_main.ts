@@ -12,12 +12,12 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   // Use these parameters to change difficulty.
   public platformMoveUpInitialSpeed = 30;
-  public platformMoveUpSpeed = 0;  // initialize in `create`.
   public platformMoveLeftRightRandomRange = 10;
   public platformMoveLeftRightSpeedFactor = 30;
 
   // For platform spawn.
-  // A new platform will be spawn randomly around delay=120000/platformMoveUpSpeed.
+  // A new platform will be spawn randomly around 
+  // delay = 120000 / current platform move up speed.
   public platformSpawnDelayFactorMin = 90000;
   public platformSpawnDelayFactorMax = 150000;
   public platformSpawnWidthMin = CONST.GAME_WIDTH / 10;
@@ -42,6 +42,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   create(): void {
+    super.create();
+    this.platformSpeedFactor.set(1.0);
+
     this.createBoundaries();
     this.createPlayer();
     this.createPlatform(
@@ -59,13 +62,15 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
   update(totalTime: number, delta: number): void {
     super.update(totalTime, delta);
+
     const time = this.timeSinceSceneStartMs / 1000;
     if (this.survivalTimeText) {
       this.survivalTimeText.setText(`${time.toFixed(1)}`);
       this.survivalTime = time;
     }
+
     // Make game harder over time.
-    this.platformMoveUpSpeed = this.platformMoveUpInitialSpeed + time * 0.8;
+    this.platformSpeedFactor.set(this.platformSpeedFactor.get() + delta / 20000);
   }
 
   private createBoundaries() {
@@ -133,12 +138,14 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   private startPlatformSpawnActions() {
+    const currentSpeed = this.platformMoveUpInitialSpeed
+      * this.platformSpeedFactor.get();
     this.lastSpawnPlatformTimeout = setTimeout(() => {
       this.spawnPlatform();
       this.startPlatformSpawnActions();
     }, Phaser.Math.FloatBetween(
-      this.platformSpawnDelayFactorMin / this.platformMoveUpSpeed,
-      this.platformSpawnDelayFactorMax / this.platformMoveUpSpeed));
+      this.platformSpawnDelayFactorMin / currentSpeed,
+      this.platformSpawnDelayFactorMax / currentSpeed));
   }
 
   // Spawn a new platform from bottom, needs to be called after createPlayer.
