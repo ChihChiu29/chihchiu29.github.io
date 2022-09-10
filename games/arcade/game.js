@@ -816,6 +816,18 @@ class ItemAddTime extends ItemBase {
         });
     }
 }
+// Item that reduces platform speed when collected.
+class ItemReduceSpeed extends ItemBase {
+    setEffect(playerPrefabs, speedMultiplier, 
+    // The speed multiplier will be reduced by a factor between these values.
+    speedReductionFactorMin = 0.5, speedReductionFactorMax = 0.9) {
+        this.setOverlapWith(playerPrefabs, (self, other) => {
+            const factor = Phaser.Math.FloatBetween(speedReductionFactorMin, speedReductionFactorMax);
+            speedMultiplier.set(speedMultiplier.get() * factor);
+            this.destroy();
+        });
+    }
+}
 // A player with all animations from the same spritesheet.
 class PlayerAnimatedSingleSheet extends ArcadePlayerBase {
     ANIME_KEY = {
@@ -1297,16 +1309,25 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
         // Next setup items.
         const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
-        if (itemTypeRandomChoice < 10) {
+        if (itemTypeRandomChoice < 20) {
             const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
             const { x, y } = tileChoice.getPosition();
-            const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE, this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
+            let item;
+            if (itemTypeRandomChoice < 10) {
+                const addTimeItem = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE, this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
+                addTimeItem.setEffect([this.player], (amountToAdd) => {
+                    this.timeSinceSceneStartMs += amountToAdd;
+                });
+                item = addTimeItem;
+            }
+            else {
+                const reduceSpeedItem = new ItemReduceSpeed(this, x, y - this.BLOCK_SPRITE_SIZE, this.SPRITESHEET_KEY, 876, this.ITEM_SPRITE_SIZE);
+                reduceSpeedItem.setEffect([this.player], this.platformSpeedFactor);
+                item = reduceSpeedItem;
+            }
             item.setCollideWith(tiles);
             item.setOverlapWithGameObjects([this.topBorder], () => {
                 item.destroy();
-            });
-            item.setEffect([this.player], (amountToAdd) => {
-                this.timeSinceSceneStartMs += amountToAdd;
             });
             this.addPrefab(item);
         }

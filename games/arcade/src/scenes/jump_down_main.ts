@@ -213,17 +213,30 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     // Next setup items.
     const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
-    if (itemTypeRandomChoice < 10) {
+    if (itemTypeRandomChoice < 20) {
       const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
       const { x, y } = tileChoice.getPosition();
-      const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE,
-        this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
+
+      let item: ItemBase;
+      if (itemTypeRandomChoice < 10) {
+        const addTimeItem = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE,
+          this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
+        addTimeItem.setEffect([this.player!], (amountToAdd: number) => {
+          this.timeSinceSceneStartMs += amountToAdd;
+        });
+
+        item = addTimeItem;
+      } else {
+        const reduceSpeedItem = new ItemReduceSpeed(this, x, y - this.BLOCK_SPRITE_SIZE,
+          this.SPRITESHEET_KEY, 876, this.ITEM_SPRITE_SIZE);
+        reduceSpeedItem.setEffect([this.player!], this.platformSpeedFactor);
+
+        item = reduceSpeedItem;
+      }
+
       item.setCollideWith(tiles);
       item.setOverlapWithGameObjects([this.topBorder!], () => {
         item.destroy();
-      });
-      item.setEffect([this.player!], (amountToAdd: number) => {
-        this.timeSinceSceneStartMs += amountToAdd;
       });
       this.addPrefab(item);
     }
