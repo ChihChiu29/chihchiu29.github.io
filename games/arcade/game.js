@@ -992,8 +992,22 @@ class RotatingText extends QPhaser.Prefab {
         }
     }
 }
+// Base class for a platform tile that moves up.
+class TileBasicMovingUp extends ArcadeSprite {
+    initialSpeed = 0;
+    multiplier = new QLib.PrimitiveRef(0);
+    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
+        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize, frameIndex, /*isPlatform*/ true);
+        this.initialSpeed = initialSpeed;
+        this.multiplier = speedMultiplier;
+    }
+    update(time, delta) {
+        super.update(time, delta);
+        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
+    }
+}
 // A tile that bumps player up.
-class TileForceJump extends TileMovingUp {
+class TileForceJump extends TileBasicMovingUp {
     // After touching these prefabs, this tile will disappear.
     setPushPrefabsUp(prefabs, speed = 100, 
     // Optionally use another sprite to show the "push up" effect.
@@ -1029,7 +1043,7 @@ class TileForceJump extends TileMovingUp {
     }
 }
 // A tile that disappears after player touches it.
-class TileSelfDestroy extends TileMovingUp {
+class TileSelfDestroy extends TileBasicMovingUp {
     // After touching these prefabs, this tile will disappear.
     setDisappearAfterOverlappingWith(prefabs, delayMs = 1500) {
         this.setOverlapWith(prefabs, (self, other) => {
@@ -1043,20 +1057,6 @@ class TileSelfDestroy extends TileMovingUp {
                 }
             });
         });
-    }
-}
-// Base class for a platform tile that moves up.
-class TileMovingUp extends ArcadeSprite {
-    initialSpeed = 0;
-    multiplier = new QLib.PrimitiveRef(0);
-    constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
-        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize);
-        this.initialSpeed = initialSpeed;
-        this.multiplier = speedMultiplier;
-    }
-    update(time, delta) {
-        super.update(time, delta);
-        this.setVelocityY(-this.initialSpeed * this.multiplier.get());
     }
 }
 class StartScene extends Phaser.Scene {
@@ -1143,7 +1143,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     create() {
         this.createBoundaries();
         this.createPlayer();
-        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, this.platformMoveUpInitialSpeed, false, // no move left right
+        this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, false, // no move left right
         false);
         this.createSurvivalTimer();
         this.startPlatformSpawnActions();
@@ -1218,10 +1218,11 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
     // Spawn a new platform from bottom, needs to be called after createPlayer.
     spawnPlatform() {
-        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), this.platformMoveUpInitialSpeed, true);
+        this.createPlatform(Phaser.Math.FloatBetween(0, CONST.GAME_WIDTH), CONST.GAME_HEIGHT + 50, Phaser.Math.FloatBetween(this.platformSpawnWidthMin, this.platformSpawnWidthMax), 
+        /*useSpecialTiles*/ true);
     }
     // Lowest level function to create a platform.
-    createPlatform(x, y, width, moveUpSpeed, canMoveLeftNRight = false, useSpecialTiles = true) {
+    createPlatform(x, y, width, canMoveLeftNRight = false, useSpecialTiles = true) {
         const platformShouldMove = canMoveLeftNRight && Phaser.Math.Between(1, 10) > 6;
         const platformMoveSpeed = Phaser.Math.Between(-this.platformMoveLeftRightRandomRange, this.platformMoveLeftRightRandomRange)
             * this.platformMoveLeftRightSpeedFactor;
@@ -1233,7 +1234,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
         const tiles = [];
         for (let i = 0; i < tilePositions.length; i += this.TILE_GENERATION_SIZE) {
-            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles, moveUpSpeed)) {
+            for (const tile of this.createTilesForSegments(tilePositions.slice(i, i + this.TILE_GENERATION_SIZE), useSpecialTiles)) {
                 tiles.push(tile);
             }
         }
@@ -1260,7 +1261,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
     // A segment of tiles used together for creation of special tiles.
     // Each segment can only contain one type of special tiles.
     // Collisions with player and boundary are set in createPlatform.
-    createTilesForSegments(tilePositions, useSpecialTiles = true, moveUpSpeed = 0) {
+    createTilesForSegments(tilePositions, useSpecialTiles = true) {
         const tiles = [];
         let choice = 100; // default to use normal tiles only.
         if (useSpecialTiles) {
@@ -1269,7 +1270,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         if (choice < 10) {
             // 1/10 chance to create auto disappearing tiles
             for (const pos of tilePositions) {
-                const tile = new TileSelfDestroy(this, pos.x, pos.y, this.SPRITESHEET_KEY, 3, this.BLOCK_SPRITE_SIZE);
+                const tile = new TileSelfDestroy(this, pos.x, pos.y, this.platformMoveUpInitialSpeed, this.platformSpeedFactor, this.SPRITESHEET_KEY, 3, this.BLOCK_SPRITE_SIZE);
                 tile.setDisappearAfterOverlappingWith([this.player]);
                 tiles.push(tile);
             }
@@ -1277,7 +1278,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         else if (choice < 20) {
             // 1/10 chance to create jump tiles
             for (const pos of tilePositions) {
-                const tile = new TileForceJump(this, pos.x, pos.y, this.SPRITESHEET_KEY, 302, this.BLOCK_SPRITE_SIZE);
+                const tile = new TileForceJump(this, pos.x, pos.y, this.platformMoveUpInitialSpeed, this.platformSpeedFactor, this.SPRITESHEET_KEY, 302, this.BLOCK_SPRITE_SIZE);
                 tile.setPushPrefabsUp([this.player], 300, this.SPRITESHEET_KEY, 196);
                 tiles.push(tile);
             }

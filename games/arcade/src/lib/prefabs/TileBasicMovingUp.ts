@@ -1,5 +1,5 @@
 // Base class for a platform tile that moves up.
-class TileMovingUp extends ArcadeSprite {
+class TileBasicMovingUp extends ArcadeSprite {
   private initialSpeed: number = 0;
   private multiplier = new QLib.PrimitiveRef<number>(0);
 
@@ -10,7 +10,8 @@ class TileMovingUp extends ArcadeSprite {
     spriteKey: string, frameIndex: number = 0,
     tileInitialSize: number = 20,
   ) {
-    super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize);
+    super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize,
+      frameIndex, /*isPlatform*/ true);
     this.initialSpeed = initialSpeed;
     this.multiplier = speedMultiplier;
   }
