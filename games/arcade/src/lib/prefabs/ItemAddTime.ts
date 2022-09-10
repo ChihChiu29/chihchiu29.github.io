@@ -10,8 +10,13 @@ class ItemAddTime extends ItemBase {
     addScoreMaxMs: number = 5000,
   ): void {
     this.setOverlapWith(playerPrefabs, (self, other) => {
-      addScoreFn(Phaser.Math.Between(
-        addScoreMinMs, addScoreMaxMs));
+      const amount = Phaser.Math.Between(addScoreMinMs, addScoreMaxMs);
+      addScoreFn(amount);
+      const { x, y } = this.getPosition();
+      const popupEffect = new EffectPopupText(this.scene, x, y,
+        [`+${(amount / 1000).toFixed(1)}`], 100, 400);
+      this.scene.add.existing(popupEffect);
+
       this.destroy();
     });
   }

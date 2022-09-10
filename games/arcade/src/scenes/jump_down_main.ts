@@ -213,7 +213,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
 
     // Next setup items.
     const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
-    if (itemTypeRandomChoice < 1000) {
+    if (itemTypeRandomChoice < 10) {
       const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
       const { x, y } = tileChoice.getPosition();
       const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE,

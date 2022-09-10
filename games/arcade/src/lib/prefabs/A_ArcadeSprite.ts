@@ -1,7 +1,7 @@
 // Base class for a sprite in arcade.
 // Has APIs to specify collision behaviors.
 class ArcadeSprite extends QPhaser.ArcadePrefab {
-  private tileInitialSize: number = 0;
+  protected tileInitialSize: number = 0;
 
   private spriteKey: string = '';
   private frameIndex: number = 0;

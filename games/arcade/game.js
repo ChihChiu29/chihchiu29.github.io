@@ -775,6 +775,28 @@ class ChatPopup extends Phaser.GameObjects.Container {
         this.text.setColor('#037bfc');
     }
 }
+class EffectPopupText extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, content, popupDeltaY, durationMs, fontSize = 36) {
+        super(scene, x, y);
+        const text = scene.add.text(x, y, content, {
+            fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
+            color: '#ebbd34',
+            strokeThickness: 1,
+            stroke: '#ebbd34',
+            align: 'center',
+        })
+            .setOrigin(0.5).setFontSize(fontSize);
+        scene.add.tween({
+            targets: text,
+            y: y - popupDeltaY,
+            duration: durationMs,
+            repeat: false,
+            onComplete: () => {
+                text.destroy();
+            },
+        });
+    }
+}
 // Item that adds time/score when collected.
 class ItemAddTime extends ItemBase {
     setEffect(
@@ -785,7 +807,11 @@ class ItemAddTime extends ItemBase {
     // The score to add is a random number between these two.
     addScoreMinMs = 1000, addScoreMaxMs = 5000) {
         this.setOverlapWith(playerPrefabs, (self, other) => {
-            addScoreFn(Phaser.Math.Between(addScoreMinMs, addScoreMaxMs));
+            const amount = Phaser.Math.Between(addScoreMinMs, addScoreMaxMs);
+            addScoreFn(amount);
+            const { x, y } = this.getPosition();
+            const popupEffect = new EffectPopupText(this.scene, x, y, [`+${(amount / 1000).toFixed(1)}`], 100, 400);
+            this.scene.add.existing(popupEffect);
             this.destroy();
         });
     }
@@ -1271,7 +1297,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         }
         // Next setup items.
         const itemTypeRandomChoice = Phaser.Math.Between(1, 100);
-        if (itemTypeRandomChoice < 1000) {
+        if (itemTypeRandomChoice < 10) {
             const tileChoice = tiles[Phaser.Math.Between(0, tiles.length - 1)];
             const { x, y } = tileChoice.getPosition();
             const item = new ItemAddTime(this, x, y - this.BLOCK_SPRITE_SIZE, this.SPRITESHEET_KEY, 896, this.ITEM_SPRITE_SIZE);
