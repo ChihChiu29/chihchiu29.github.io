@@ -10,8 +10,8 @@ class TileBasicMovingUp extends ArcadeSprite {
     spriteKey: string, frameIndex: number = 0,
     tileInitialSize: number = 20,
   ) {
-    super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize,
-      frameIndex, /*isPlatform*/ true);
+    super(scene, imgInitialX, imgInitialY, spriteKey,
+      frameIndex, tileInitialSize, /*isPlatform*/ true);
     this.initialSpeed = initialSpeed;
     this.multiplier = speedMultiplier;
   }

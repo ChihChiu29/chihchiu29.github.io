@@ -22,6 +22,11 @@
                 "key": "scared"
             },
             {
+                "url": "assets/tiles/tile_0068.png",
+                "type": "image",
+                "key": "tile_0068"
+            },
+            {
                 "url": "assets/tile_characters.png",
                 "frameConfig": {
                     "frameWidth": 24,

@@ -60,7 +60,7 @@ const SCENE_KEYS = {
 };
 let GAME_CHOICE;
 if (TESTING) {
-    GAME_CHOICE = SCENE_KEYS.JumpDownStart;
+    GAME_CHOICE = SCENE_KEYS.JumpDownMain;
 }
 else {
     GAME_CHOICE = SCENE_KEYS.JumpDownStart;
@@ -997,7 +997,7 @@ class TileBasicMovingUp extends ArcadeSprite {
     initialSpeed = 0;
     multiplier = new QLib.PrimitiveRef(0);
     constructor(scene, imgInitialX, imgInitialY, initialSpeed, speedMultiplier, spriteKey, frameIndex = 0, tileInitialSize = 20) {
-        super(scene, imgInitialX, imgInitialY, spriteKey, tileInitialSize, frameIndex, /*isPlatform*/ true);
+        super(scene, imgInitialX, imgInitialY, spriteKey, frameIndex, tileInitialSize, /*isPlatform*/ true);
         this.initialSpeed = initialSpeed;
         this.multiplier = speedMultiplier;
     }
@@ -1062,7 +1062,6 @@ class TileSelfDestroy extends TileBasicMovingUp {
 class StartScene extends Phaser.Scene {
     preload() {
         this.load.pack('root', 'assets/asset-pack.json');
-        this.load.pack('tiles', 'assets/tiles/asset-pack.json');
     }
     create() {
         this.scene.start(GAME_CHOICE);
@@ -1291,7 +1290,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         return tiles;
     }
     createNormalTile(x, y) {
-        return new ArcadeSprite(this, x, y, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
+        return new TileBasicMovingUp(this, x, y, this.platformMoveUpInitialSpeed, this.platformSpeedFactor, this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
     }
     gotoEndGame() {
         clearTimeout(this.lastSpawnPlatformTimeout);

@@ -249,8 +249,9 @@ class SceneJumpDownMain extends QPhaser.Scene {
   }
 
   private createNormalTile(x: number, y: number): ArcadeSprite {
-    return new ArcadeSprite(
+    return new TileBasicMovingUp(
       this, x, y,
+      this.platformMoveUpInitialSpeed, this.platformSpeedFactor,
       this.SPRITESHEET_KEY, 123, this.BLOCK_SPRITE_SIZE);
   }
 
