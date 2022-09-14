@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  NOT SET
 // @namespace    unknown.unknown@github.io
-// @version      1.20
+// @version      1.21
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -55,7 +55,7 @@
 
     const hostname = window.location.hostname;
     const pathname = window.location.pathname;
-    if (hostname === 'bluemediafiles.com') {
+    if (contains(hostname, 'bluemediafiles')) {
         runUntil(function() {
             const button = document.querySelector('#nut');
             if (button) {
