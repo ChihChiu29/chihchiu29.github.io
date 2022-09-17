@@ -79,7 +79,7 @@ const SCENE_KEYS = {
 };
 let GAME_CHOICE;
 if (TESTING) {
-    GAME_CHOICE = SCENE_KEYS.JumpDownStart;
+    GAME_CHOICE = SCENE_KEYS.JumpDownMain;
 }
 else {
     GAME_CHOICE = SCENE_KEYS.JumpDownStart;
@@ -465,10 +465,11 @@ var QUI;
 (function (QUI) {
     function createKeyMap(scene) {
         const keys = {};
-        keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-        keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-        keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-        keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        // Avoid wasd as it interfere with text input DOM elements.
+        keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         return keys;
     }
     QUI.createKeyMap = createKeyMap;

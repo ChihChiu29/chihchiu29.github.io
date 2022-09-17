@@ -408,10 +408,11 @@ namespace QString {
 namespace QUI {
   export function createKeyMap(scene: Phaser.Scene) {
     const keys: { [key: string]: Phaser.Input.Keyboard.Key } = {};
-    keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    // Avoid wasd as it interfere with text input DOM elements.
+    keys.W = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+    keys.A = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+    keys.S = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+    keys.D = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
     return keys;
   }
 
