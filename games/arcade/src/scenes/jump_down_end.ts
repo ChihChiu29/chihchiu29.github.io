@@ -38,7 +38,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
     FIREBASE.readHighScores().then((highScores: GLOBAL.HighScore[]) => {
       GLOBAL.bestScores = highScores;
       GLOBAL.bestScores.push({
-        fromUser: 'unknown',
+        fromUser: GLOBAL.playerNickname,
         score: this.lastScore,
       });
       // Sort without a sorting function somehow gives wired sort-by-string result.

@@ -4,6 +4,7 @@ window.addEventListener('load', function () {
     width: CONST.GAME_WIDTH,
     height: CONST.GAME_HEIGHT,
     type: Phaser.AUTO,
+    parent: 'container',
     fps: {
       target: 60,
       forceSetTimeOut: true,
@@ -15,11 +16,15 @@ window.addEventListener('load', function () {
         debug: TESTING,
       }
     },
-    transparent: true,
+    backgroundColor: '#dee4fa',
+    dom: {
+      createContainer: true
+    },
+    // transparent: true,
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-    }
+    },
   });
 
   game.scene.add('Boot', Boot, true);

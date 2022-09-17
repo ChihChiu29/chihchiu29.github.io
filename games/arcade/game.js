@@ -4,6 +4,7 @@ window.addEventListener('load', function () {
         width: CONST.GAME_WIDTH,
         height: CONST.GAME_HEIGHT,
         type: Phaser.AUTO,
+        parent: 'container',
         fps: {
             target: 60,
             forceSetTimeOut: true,
@@ -15,11 +16,15 @@ window.addEventListener('load', function () {
                 debug: TESTING,
             }
         },
-        transparent: true,
+        backgroundColor: '#dee4fa',
+        dom: {
+            createContainer: true
+        },
+        // transparent: true,
         scale: {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-        }
+        },
     });
     game.scene.add('Boot', Boot, true);
     game.scene.add('StartScene', StartScene);
@@ -74,7 +79,7 @@ const SCENE_KEYS = {
 };
 let GAME_CHOICE;
 if (TESTING) {
-    GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+    GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 }
 else {
     GAME_CHOICE = SCENE_KEYS.JumpDownStart;
@@ -83,6 +88,7 @@ var GLOBAL;
 (function (GLOBAL) {
     GLOBAL.NUM_HIGHSCORES = 20;
     GLOBAL.bestScores = [];
+    GLOBAL.playerNickname = 'nobody';
     // Current global game speed.
     GLOBAL.gameSpeed = 1.0;
 })(GLOBAL || (GLOBAL = {}));
@@ -1122,6 +1128,7 @@ class TileSelfDestroy extends TileMovingUp {
 class StartScene extends Phaser.Scene {
     preload() {
         this.load.pack('root', 'assets/asset-pack.json');
+        this.load.html('nameInput', 'assets/html/name_input.html');
     }
     create() {
         this.scene.start(GAME_CHOICE);
@@ -1158,7 +1165,7 @@ class SceneJumpDownEnd extends QPhaser.Scene {
         FIREBASE.readHighScores().then((highScores) => {
             GLOBAL.bestScores = highScores;
             GLOBAL.bestScores.push({
-                fromUser: 'unknown',
+                fromUser: GLOBAL.playerNickname,
                 score: this.lastScore,
             });
             // Sort without a sorting function somehow gives wired sort-by-string result.
@@ -1401,22 +1408,27 @@ class SceneJumpDownMain extends QPhaser.Scene {
     }
 }
 class SceneJumpDownStart extends QPhaser.Scene {
+    nameInputElement;
     create() {
         const title = QUI.createTextTitle(this, [
             'Welcome to',
             'Falling Cato',
             'Survival Game!',
         ], CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
-        const instruction = this.add.text(CONST.GAME_WIDTH / 2, title.y + 120, [
-            'Choose your character',
-            'and Good Luck!',
-        ])
-            .setOrigin(0.5)
-            .setFontSize(24);
+        // const instruction = this.add.text(
+        //   CONST.GAME_WIDTH / 2, title.y + 120,
+        //   [
+        //     'Choose your character',
+        //     'and Good Luck!',
+        //   ],
+        // )
+        //   .setOrigin(0.5)
+        //   .setFontSize(24);
+        const iconYStartValue = title.y + 80;
         const afterTextGap = 40;
         const gap = 40;
         const iconSize = CONST.GAME_WIDTH / 4;
-        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, instruction.y + afterTextGap + gap, // position
+        QUI.createIconButton(this, 'scared', 0, CONST.GAME_WIDTH / 4, iconYStartValue + afterTextGap + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1430,7 +1442,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
-        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, instruction.y + afterTextGap + gap, // position
+        QUI.createIconButton(this, 'pineapplecat', 0, CONST.GAME_WIDTH * 3 / 4, iconYStartValue + afterTextGap + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1444,7 +1456,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 facingLeft: true,
             });
         });
-        QUI.createIconButton(this, 'tilemap', 89, CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap, // position
+        QUI.createIconButton(this, 'tilemap', 89, CONST.GAME_WIDTH * 1 / 4, iconYStartValue + afterTextGap + gap + iconSize + gap, // position
         iconSize, iconSize, // size
         () => {
             this.startNewGame({
@@ -1463,8 +1475,16 @@ class SceneJumpDownStart extends QPhaser.Scene {
                 frameJumpEnd: 87,
             });
         });
+        this.nameInputElement = this.add.dom(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50)
+            .createFromCache('nameInput');
+        this.nameInputElement.getChildByID('name-input').value
+            = GLOBAL.playerNickname;
     }
     startNewGame(playerData) {
+        const playerNickname = this.nameInputElement.getChildByID('name-input').value;
+        if (playerNickname) {
+            GLOBAL.playerNickname = playerNickname;
+        }
         this.scene.start(SCENE_KEYS.JumpDownMain, playerData);
     }
 }

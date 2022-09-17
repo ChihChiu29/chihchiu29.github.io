@@ -1,4 +1,6 @@
 class SceneJumpDownStart extends QPhaser.Scene {
+  private nameInputElement: Phaser.GameObjects.DOMElement | undefined;
+
   create(): void {
     const title = QUI.createTextTitle(
       this,
@@ -9,23 +11,24 @@ class SceneJumpDownStart extends QPhaser.Scene {
       ],
       CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT / 2 - 150, 50);
 
-    const instruction = this.add.text(
-      CONST.GAME_WIDTH / 2, title.y + 120,
-      [
-        'Choose your character',
-        'and Good Luck!',
-      ],
-    )
-      .setOrigin(0.5)
-      .setFontSize(24);
+    // const instruction = this.add.text(
+    //   CONST.GAME_WIDTH / 2, title.y + 120,
+    //   [
+    //     'Choose your character',
+    //     'and Good Luck!',
+    //   ],
+    // )
+    //   .setOrigin(0.5)
+    //   .setFontSize(24);
 
+    const iconYStartValue = title.y + 80;
     const afterTextGap = 40;
     const gap = 40;
 
     const iconSize = CONST.GAME_WIDTH / 4;
     QUI.createIconButton(
       this, 'scared', 0,
-      CONST.GAME_WIDTH / 4, instruction.y + afterTextGap + gap,  // position
+      CONST.GAME_WIDTH / 4, iconYStartValue + afterTextGap + gap,  // position
       iconSize, iconSize,  // size
       () => {
         this.startNewGame({
@@ -43,7 +46,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
 
     QUI.createIconButton(
       this, 'pineapplecat', 0,
-      CONST.GAME_WIDTH * 3 / 4, instruction.y + afterTextGap + gap,  // position
+      CONST.GAME_WIDTH * 3 / 4, iconYStartValue + afterTextGap + gap,  // position
       iconSize, iconSize,  // size
       () => {
         this.startNewGame({
@@ -61,7 +64,7 @@ class SceneJumpDownStart extends QPhaser.Scene {
 
     QUI.createIconButton(
       this, 'tilemap', 89,
-      CONST.GAME_WIDTH * 1 / 4, instruction.y + afterTextGap + gap + iconSize + gap,  // position
+      CONST.GAME_WIDTH * 1 / 4, iconYStartValue + afterTextGap + gap + iconSize + gap,  // position
       iconSize, iconSize,  // size
       () => {
         this.startNewGame({
@@ -81,9 +84,20 @@ class SceneJumpDownStart extends QPhaser.Scene {
         });
       },
     );
+
+    this.nameInputElement = this.add.dom(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50)
+      .createFromCache('nameInput');
+    (this.nameInputElement.getChildByID('name-input') as HTMLInputElement).value
+      = GLOBAL.playerNickname;
+
   }
 
   private startNewGame(playerData: PlayerProperties) {
+    const playerNickname = (
+      this.nameInputElement!.getChildByID('name-input') as HTMLInputElement).value;
+    if (playerNickname) {
+      GLOBAL.playerNickname = playerNickname;
+    }
     this.scene.start(SCENE_KEYS.JumpDownMain, playerData);
   }
 }

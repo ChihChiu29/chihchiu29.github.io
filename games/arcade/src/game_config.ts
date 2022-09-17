@@ -8,7 +8,7 @@ const SCENE_KEYS = {
 
 let GAME_CHOICE: string;
 if (TESTING) {
-  GAME_CHOICE = SCENE_KEYS.JumpDownMain;
+  GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 } else {
   GAME_CHOICE = SCENE_KEYS.JumpDownStart;
 }
