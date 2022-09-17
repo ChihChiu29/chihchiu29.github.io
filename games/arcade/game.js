@@ -1227,6 +1227,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
         this.createPlatform(CONST.GAME_WIDTH / 2, CONST.GAME_HEIGHT - 50, this.platformSpawnWidthMax, false, // no move left right
         false);
         this.createSurvivalTimer();
+        this.createInputIndicators();
         this.startPlatformSpawnActions();
         DEBUG_SCENE = this;
     }
@@ -1290,6 +1291,19 @@ class SceneJumpDownMain extends QPhaser.Scene {
         statusText.setFontSize(60);
         statusText.setDepth(CONST.LAYERS.TEXT);
         this.survivalTimeText = statusText;
+    }
+    createInputIndicators() {
+        const leftRightGap = 50;
+        const bottomGap = 50;
+        // left
+        this.add.triangle(leftRightGap, CONST.GAME_HEIGHT - bottomGap, -25, 0, 0, 25, 0, -25, 0xfc62b7)
+            .setDepth(CONST.LAYERS.BACKGROUND);
+        // right
+        this.add.triangle(CONST.GAME_WIDTH - 25, CONST.GAME_HEIGHT - bottomGap, 25, 0, 0, -25, 0, 25, 0xfc62b7)
+            .setDepth(CONST.LAYERS.BACKGROUND);
+        // center
+        this.add.triangle(CONST.GAME_WIDTH / 2 + 25, CONST.GAME_HEIGHT - bottomGap, 0, -25, -25, 0, 25, 0, 0xfc62b7)
+            .setDepth(CONST.LAYERS.BACKGROUND);
     }
     startPlatformSpawnActions() {
         const currentSpeed = this.platformMoveUpInitialSpeed

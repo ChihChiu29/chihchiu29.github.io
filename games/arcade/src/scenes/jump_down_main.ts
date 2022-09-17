@@ -55,6 +55,7 @@ class SceneJumpDownMain extends QPhaser.Scene {
       false,  // use normal tiles only.
     );
     this.createSurvivalTimer();
+    this.createInputIndicators();
 
     this.startPlatformSpawnActions();
 
@@ -136,6 +137,35 @@ class SceneJumpDownMain extends QPhaser.Scene {
     statusText.setFontSize(60);
     statusText.setDepth(CONST.LAYERS.TEXT);
     this.survivalTimeText = statusText;
+  }
+
+  private createInputIndicators() {
+    const leftRightGap = 50;
+    const bottomGap = 50;
+    // left
+    this.add.triangle(
+      leftRightGap, CONST.GAME_HEIGHT - bottomGap,
+      -25, 0,
+      0, 25,
+      0, -25,
+      0xfc62b7)
+      .setDepth(CONST.LAYERS.BACKGROUND);
+    // right
+    this.add.triangle(
+      CONST.GAME_WIDTH - 25, CONST.GAME_HEIGHT - bottomGap,
+      25, 0,
+      0, -25,
+      0, 25,
+      0xfc62b7)
+      .setDepth(CONST.LAYERS.BACKGROUND);
+    // center
+    this.add.triangle(
+      CONST.GAME_WIDTH / 2 + 25, CONST.GAME_HEIGHT - bottomGap,
+      0, -25,
+      -25, 0,
+      25, 0,
+      0xfc62b7)
+      .setDepth(CONST.LAYERS.BACKGROUND);
   }
 
   private startPlatformSpawnActions() {
