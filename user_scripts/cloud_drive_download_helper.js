@@ -9,6 +9,8 @@
 // @match        https://bluemediafiles.com/*
 // @match        http://bluemediafiles.eu/*
 // @match        https://bluemediafiles.eu/*
+// @match        http://bluemediafiles.*/*
+// @match        https://bluemediafiles.*/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
