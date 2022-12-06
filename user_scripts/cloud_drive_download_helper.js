@@ -1,18 +1,16 @@
 // ==UserScript==
 // @name         CloudDriveDownloadHelper
 // @author       Unknown
-// @description  NOT SET
+// @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.23
+// @version      1.24
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
 // @match        http://bluemediafiles.eu/*
 // @match        https://bluemediafiles.eu/*
-// @match        http://bluemediafiles.*/*
-// @match        https://bluemediafiles.*/*
-// @match        http://bluemediafile.*/*
-// @match        https://bluemediafile.*/*
+// @match        http://bluemediafile.sbs/*
+// @match        https://bluemediafile.sbs/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
