@@ -1,5 +1,5 @@
 function main() {
-  testParser();
+  runTests();
 }
 
 window.addEventListener('load', function () {

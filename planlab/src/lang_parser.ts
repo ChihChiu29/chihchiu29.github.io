@@ -1,27 +1,7 @@
-interface Item {
-  name: string;  // key
-  // Spanning which columns (inclusive).
-  spanFromColumn: number;
-  spanUntilColumn: number;
-  // Capacity of the item.
-  capacityPercentage: number;
-  // Only for display
-  description?: string;
-}
-
-interface Group {
-  name: string;  // globally unique
-  depth: number;  // 0 means root
-  // Child groups; empty means it's a leaf.
-  children: string[];
-  // Items it contains, only for leaf groups.
-  items?: Item[];
-}
-
 class LangParser {
   // A map from a string to either a string
-  private groups: Map<string, Group> = new Map();
-  private maxGroupDepth = 0;
+  public groups: Map<string, Group> = new Map();
+  public maxGroupDepth = 0;
 
   constructor() {
   }
