@@ -1,6 +1,6 @@
 "use strict";
 function main() {
-    testLangParser();
+    testParser();
 }
 window.addEventListener('load', function () {
     main();
@@ -49,11 +49,34 @@ class LangParser {
      *  - Offline
      * - ML
      */
-    parseGroup(groupsYaml) {
+    parseGroupStructure(groupsYaml) {
         this.groups = new Map();
         this.parseGroupRecursive(groupsYaml, 0, this.groups);
         // Return only for testing.
         return this.groups;
+    }
+    /**
+     * Parses items that belong to a group.
+     *
+     * Requires group structure to be parsed first.
+     *
+     * Example input: parsed YAML object of:
+     * - RD:
+     *   - B: 1-4, 100, (TL)
+     *   - X: 1-4, 80, (Main IC)
+     * A.k.a: {RD: [{B: '...', X: '...'}]}
+     */
+    parseGroupItems(groupItemYaml) {
+        const groupItemConfig = groupItemYaml;
+        const groupName = this.getSingleKey(groupItemYaml);
+        // Key should be checked before calling this function.
+        const group = this.groups.get(groupName);
+        for (const itemConfig of groupItemConfig[groupName]) {
+            const itemName = this.getSingleKey(itemConfig);
+            group.items.push(this.parseItemConfig(itemName, itemConfig[itemName]));
+        }
+        // Return only for testing.
+        return group;
     }
     // Recursive parse groups, returns the names of the top level groups.
     parseGroupRecursive(subgroupYaml, currentDepth, groups) {
@@ -63,11 +86,12 @@ class LangParser {
             if (typeof (subgroup) !== 'object') {
                 // leaf
                 name = subgroup.toString();
-                groups.set(name, { name, depth: currentDepth, children: [] });
+                // Items will be filled later
+                groups.set(name, { name, depth: currentDepth, children: [], items: [] });
             }
             else {
                 // group with a single key
-                name = Object.keys(subgroup)[0];
+                name = this.getSingleKey(subgroup);
                 const subgroupNames = this.parseGroupRecursive(subgroup[name], currentDepth + 1, groups);
                 groups.set(name, { name, depth: currentDepth, children: subgroupNames });
             }
@@ -75,8 +99,28 @@ class LangParser {
         }
         return groupNames;
     }
+    // Parses a single item config of type '1-4, 80, (Main IC)'.
+    parseItemConfig(name, config) {
+        const item = { name, spanFromColumn: 0, spanUntilColumn: 0, capacityPercentage: 100 };
+        const configSegments = config.split(',').map(s => s.trim());
+        const spanSegments = configSegments[0].split('-');
+        item.spanFromColumn = Number(spanSegments[0]);
+        item.spanUntilColumn = Number(spanSegments[1]);
+        item.capacityPercentage = Number(configSegments[1]);
+        if (configSegments.length > 2) {
+            item.description = configSegments[2];
+        }
+        return item;
+    }
+    getSingleKey(obj) {
+        const keys = Object.keys(obj);
+        if (keys.length !== 1) {
+            throw `Object ${obj.toString()} needs to have only 1 key`;
+        }
+        return Object.keys(obj)[0];
+    }
 }
-function testLangParser() {
+function testParsingGroupStructure(parser) {
     const testData = jsyaml.load(`
     groups:
       - Exp:
@@ -87,6 +131,19 @@ function testLangParser() {
       - ML
     `);
     console.log(testData);
+    console.log(parser.parseGroupStructure(testData['groups']));
+}
+function testParsingGroupItems(parser) {
+    const testData = jsyaml.load(`
+    RD:
+      - B: 1-4, 100, (TL)
+      - X: 1-4, 80, (Main IC)
+    `);
+    console.log(testData);
+    console.log(parser.parseGroupItems(testData));
+}
+function testParser() {
     const parser = new LangParser();
-    console.log(parser.parseGroup(testData['groups']));
+    testParsingGroupStructure(parser);
+    testParsingGroupItems(parser);
 }

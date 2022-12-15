@@ -1,5 +1,5 @@
 function main() {
-  testLangParser();
+  testParser();
 }
 
 window.addEventListener('load', function () {
