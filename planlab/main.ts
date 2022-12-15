@@ -1,9 +1,7 @@
-console.log('hello world!');
+function main() {
+  testLangParser();
+}
 
-const test = jsyaml.load(`
-a:
- - b
- - c
-`);
-
-console.log(test);
+window.addEventListener('load', function () {
+  main();
+});
