@@ -191,7 +191,258 @@ var svg;
             return [elem];
         }
     }
-})(svg || (svg = {}));
+    /**
+     * A single line of text centered in a region.
+     */
+    class _CenteredText extends Shape {
+        text = '';
+        constructor(singleLineOfText) {
+            super();
+            this.text = singleLineOfText;
+        }
+        // @Implement
+        getElements(style) {
+            const elem = createSvgElement('text');
+            const center = this.getCenter();
+            setAttr(elem, 'x', center.x);
+            setAttr(elem, 'y', center.y);
+            setAttr(elem, 'font-size', style.textFontSize);
+            setAttr(elem, 'dominant-baseline', 'middle');
+            setAttr(elem, 'text-anchor', 'middle');
+            elem.textContent = this.text;
+            if (this.name) {
+                setAttr(elem, 'name', this.name);
+            }
+            return [elem];
+        }
+    }
+    /**
+     * A raw rect with border etc., no text.
+     */
+    class _Rect extends Shape {
+        CORNER_RADIUS = 5;
+        // @Implement
+        getElements(style) {
+            const elem = createSvgElement('rect');
+            setAttr(elem, 'x', this.x);
+            setAttr(elem, 'y', this.y);
+            setAttr(elem, 'width', this.width);
+            setAttr(elem, 'height', this.height);
+            setAttr(elem, 'rx', this.CORNER_RADIUS);
+            setAttr(elem, 'ry', this.CORNER_RADIUS);
+            setAttr(elem, 'stroke', style.lineColor);
+            setAttr(elem, 'stroke-width', style.borderWidth);
+            setAttr(elem, 'fill', this.bgColor);
+            setAttr(elem, 'fill-opacity', style.fillOpacity);
+            if (this.name) {
+                setAttr(elem, 'name', this.name);
+            }
+            return [elem];
+        }
+    }
+    /**
+     * A rect shape with some text support.
+     */
+    class Rect extends Shape {
+        // You should only use one of the following.
+        texts = []; // multiline texts starting from top-left corner.
+        centeredText = ''; // centered single line of text.
+        getElements(style) {
+            const elements = [];
+            const rect = new _Rect();
+            rect.copyProperties(this);
+            if (this.name) {
+                // Pass the name to the actual rect element.
+                rect.name = this.name;
+            }
+            elements.push(...rect.getElements(style));
+            if (this.texts.length) {
+                const multilineTexts = new MultilineTexts(this.texts);
+                multilineTexts.copyProperties(this);
+                elements.push(...multilineTexts.getElements(style));
+            }
+            if (this.centeredText) {
+                const centeredText = new _CenteredText(this.centeredText);
+                centeredText.copyProperties(this);
+                elements.push(...centeredText.getElements(style));
+            }
+            return elements;
+        }
+    }
+    /**
+     * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
+     */
+    class StackContainer extends Shape {
+        constructor() {
+            super();
+            // Shifts in x and y for each stacked shape.
+            this.shiftX = 10; // half of shiftY is a good choice.
+            this.shiftY = 25; // style.textFontSize + 10 is a good choice.
+            // Shapes to tile, background to foreground. All shapes will be set to the container's size.
+            this.shapes = [];
+        }
+        // @Override
+        getElements(style) {
+            if (!this.shapes.length) {
+                return [];
+            }
+            const numOfShapes = this.shapes.length;
+            const shapeWidth = this.width - this.shiftX * (numOfShapes - 1);
+            const shapeHeight = this.height - this.shiftY * (numOfShapes - 1);
+            const elements = [];
+            let accumulatedShiftX = 0;
+            let accumulatedShiftY = 0;
+            for (const shape of this.shapes) {
+                shape.x = this.x + accumulatedShiftX;
+                shape.y = this.y + accumulatedShiftY;
+                shape.width = shapeWidth;
+                shape.height = shapeHeight;
+                elements.push(...shape.getElements(style));
+                accumulatedShiftX += this.shiftX;
+                accumulatedShiftY += this.shiftY;
+            }
+            return elements;
+        }
+    }
+    /**
+     * Borderless container to show multiple shapes in tile layout.
+     */
+    class TileContainer extends Shape {
+        constructor() {
+            super();
+            // How many shapes to put per row. Affects how shapes are resized.
+            this.numOfShapesPerRow = 3;
+            // Gap size between shapes.
+            this.gapX = 10;
+            this.gapY = 10;
+            // Shapes to tile. All shapes will be reshaped according to the container's size.
+            this.shapes = [];
+        }
+        // @Override
+        getElements(style) {
+            if (!this.shapes.length) {
+                return [];
+            }
+            const numOfRows = Math.ceil(this.shapes.length / this.numOfShapesPerRow);
+            const shapeWidth = (this.width - (this.numOfShapesPerRow - 1) * this.gapX) / this.numOfShapesPerRow;
+            const shapeHeight = (this.height - (numOfRows - 1) * this.gapY) / numOfRows;
+            const elements = [];
+            for (const idx in this.shapes) {
+                const shape = this.shapes[idx];
+                const colIdx = idx % this.numOfShapesPerRow;
+                const rowIdx = Math.floor(idx / this.numOfShapesPerRow);
+                shape.x = this.x + (this.gapX + shapeWidth) * colIdx;
+                shape.y = this.y + (this.gapY + shapeHeight) * rowIdx;
+                shape.width = shapeWidth;
+                shape.height = shapeHeight;
+                elements.push(...shape.getElements(style));
+            }
+            return elements;
+        }
+    }
+    /**
+     * A container providing a title for a child shape.
+     */
+    class TitledContainer extends Shape {
+        constructor() {
+            super();
+            this.title = ''; // Title text.
+            this.childGapX = 10; // Child gap in x, affects both left and right of the child.
+            this.childGapY = 5; // Child gap in x, affects both top and bottom of the child.
+            this.childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
+            this.childShape = undefined; // Child shape. Will be resized when rendering.
+        }
+        // @Implement
+        getElements(style) {
+            if (!this.childShape) {
+                return [];
+            }
+            const elements = [];
+            const rect = new Rect();
+            rect.copyProperties(this);
+            rect.texts = [this.title];
+            if (this.name) {
+                rect.name = this.name;
+            }
+            elements.push(...rect.getElements(style));
+            this.childShape.x = this.x + this.childGapX;
+            this.childShape.y = this.y + this.childGapY + this.childShiftY;
+            this.childShape.width = this.width - this.childGapX * 2;
+            this.childShape.height = this.height - this.childGapY * 2 - this.childShiftY;
+            elements.push(...this.childShape.getElements(style));
+            return elements;
+        }
+    }
+    /**
+     * A raw polygon with border etc., no text.
+     */
+    class _Polygon extends Shape {
+        // Returns a list of vertices as one string like polygon element's points
+        // attribute.
+        // @Abstract
+        getPoints() {
+            throw new Error('not implemented');
+        }
+        // @Implement
+        getElements(style) {
+            const elem = createSvgElement('polygon');
+            setAttr(elem, 'points', this.getPoints());
+            setAttr(elem, 'stroke', style.lineColor);
+            setAttr(elem, 'stroke-width', style.borderWidth);
+            setAttr(elem, 'fill', this.bgColor);
+            setAttr(elem, 'fill-opacity', style.fillOpacity);
+            if (this.name) {
+                setAttr(elem, 'name', this.name);
+            }
+            return [elem];
+        }
+    }
+    /**
+     * A polygon with centered text support.
+     */
+    class ShapeWithCenteredText extends Shape {
+        constructor() {
+            super();
+            this.getShape = undefined; // function that returns a shape without text.
+            this.text = ''; // centered single line of text.
+        }
+        // @Implement
+        getElements(style) {
+            if (!this.getShape) {
+                throw new Error('you need to set getShape function first');
+            }
+            const elements = [];
+            const shape = this.getShape();
+            shape.copyProperties(this);
+            if (this.name) {
+                // Pass the name to the actual rect element.
+                shape.name = this.name;
+            }
+            elements.push(...shape.getElements(style));
+            if (this.text) {
+                const centeredText = new _CenteredText(this.text);
+                centeredText.copyProperties(this);
+                elements.push(...centeredText.getElements(style));
+            }
+            return elements;
+        }
+    }
+    /**
+     * A raw diamond shape without text. Use WithCenteredText to add text to it.
+     */
+    class Diamond extends _Polygon {
+        // @Implement
+        getPoints() {
+            const left = this.x;
+            const right = this.x + this.width;
+            const top = this.y;
+            const bottom = this.y + this.height;
+            const midX = this.x + this.width / 2;
+            const midY = this.y + this.height / 2;
+            return `${midX} ${top} ${right} ${midY} ${midX} ${bottom} ${left} ${midY}`;
+        }
+    }
+})(svg || (svg = {})); // namespace svg
 // const test = jsyaml.load(`
 // groups:
 //  - Exp Understanding
