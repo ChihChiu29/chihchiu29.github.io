@@ -1,27 +1,216 @@
-<html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Planlab</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-  <script src="lib/js-yaml.min.js"></script>
+  <title>PlanLab</title>
 
-  <script src="main.js"></script>
+  <script src="externallib/js-yaml.min.js"></script>
 
   <style>
+    #input {
+      height: 100%;
+      width: 100%;
+    }
+
+    #draw-area {
+      height: 100%;
+      width: 100%;
+    }
+
+    #report {
+      background-color: yellow;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      padding-left: 5px;
+      width: 100%;
+    }
+
+    .row {
+      margin-top: 5px;
+    }
+
     body {
-      background: black;
-      margin: 0;
-      padding: 0;
+      /* background-color: #e9ecef; */
+      background-color: #f5f8fa;
+    }
+
+    #bottom-space {
+      margin-bottom: 40px;
     }
   </style>
-
 </head>
 
 <body>
-</body>
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="display-4">Welcome to the PlanLab!</h1>
+      <p class="lead">
+        DiagramLab lets you draw relation diagrams using a simple declarative language.
+      </p>
+      <hr class="my-4">
+    </div>
+  </div>
+  <div class="container">
+    <p class="lead">
+      Quickstart
+    </p>
+    <ul>
+      <li>Use the textarea below to type in the code for generating a diagram.</li>
+      <li>Use the buttons to draw a diagram or export it as png.</li>
+      <li>When you draw a diagram the URL is updates so you can use it to regenerate the diagram.</li>
+      <li>The default example explains core syntax; expanding the keyword list to detailed syntax.</li>
+    </ul>
+    <details>
+      <summary>
+        <b>Keywords:</b>
+        <span id="reference"></span>
+      </summary>
+      <h3>Concept</h3>
+      <div>
+        All created objects are either "shape"s or as "link"s. Shapes are named, and they can be
+        moved, stacked, set background color, etc. Links are unnamed, and must connect to existing shapes.
+        When shapes are moved/resized, links will adjust automatically.
+      </div>
+      <h3>Reference</h3>
+      <div>
+        <ul class="list-unstyled">
+          <li>
+            <p>Basic elements:</p>
+            <ul>
+              <li>
+                Rect with multiline texts:
+                <pre>rect [rect name] [multiline text (break line with "\n")]</pre>
+              </li>
+              <li>
+                Rect with single line centered text:
+                <pre>crect [rect name] [single line text]</pre>
+              </li>
+              <li>
+                Multiline texts:
+                <pre>text [name] [multiline text (break line with "\n")]</pre>
+              </li>
+              <li>
+                Create a straight link with text (use "-->" for dashed line):
+                <pre>-> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]</pre>
+              </li>
+              <li>
+                Create a Bezier curve (shape guessed from two end points) link with text (use "~~>" for dashed line):
+                <pre>~> [from shape] [direction (up/down/left/right)] [to shape] [direction] [text along path]</pre>
+              </li>
+            </ul>
+          </li>
 
-</html>
+          <li>
+            <p>Common tranforms on shapes:</p>
+            <ul>
+              <li>
+                Move and resize a shape (rect etc.):
+                <pre>move [name] [left] [top] [width] [height]</pre>
+                <pre>cmove [name] [centerX] [centerY] [width] [height]</pre>
+                If width and height is not given (only 3 arguments are given), it will assume there is a
+                var ${defaultsize} and use it for size (see below for variable usage).
+              </li>
+              <li>
+                Change background color of a shape (rect etc.) or shapes:
+                <pre>bgcolor [shape name, or name*] [CSS color (single word)]</pre>
+                If shape name ends with a "*", all shape with names matching the string before "*" are colored.
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            <p>Composited elements:</p>
+            <ul>
+              <li>
+                Stack multiple shapes as children to a rect with a title:
+                <pre>stack [name of the stack shape] [list of shapes to stack> with [title text]</pre>
+              </li>
+              <li>
+                Tile multiple shapes as children for a new rect with a title:
+                <pre>tile [name of the stack shape] [number of shapes per row] [list of shapes to stack] with [title text] [usinggap [gapX] [gapY]]</pre>
+                You can optionally use the "usinggap" keyword to override the x/y gap size.
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            <p>Layout:</p>
+            <ul>
+              <li>
+                Using a grid:
+                <pre>grid [startX] [startY] [gapX] [gapY]</pre>
+                Creates variables "X1", "Y1", "X2", "Y2" etc. for coordinates on the grid, computed as:
+                X1 = startX, X2 = X1 + gapX, etc.
+              </li>
+              <li>
+                Move and resize a shape using a grid:
+                <pre>gridmove/gmove [name] [gridXIndex] [gridYIndex] width height</pre>
+                <pre>centeredgridmove/cgmove [name] [gridXIndex] [gridYIndex] width height</pre>
+                The syntax is like move and cmove, except that for the first two arguments, the index is
+                replaced by the corresponding var value. For example:
+                "gmove 1 2 200 50"
+                is equivalent to:
+                "move ${X1} ${Y1} 200 50"
+              </li>
+              <li>
+                Change viewport size:
+                <pre>viewport [left] [top] [width] [height]</pre>
+                The viewport affects the layout (margin etc.) of the generated png file.
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            <p>Advanced Usage:</p>
+            <ul>
+              <li>
+                Variable/macro (use it with "${name}"; contents will be blindly replaced):
+                <pre>var [var name] [string values]</pre>
+              </li>
+              <li>
+                Inline quote a property of a shape (must be known at the line):
+                <pre>${[shape name].[property]}</pre>
+                Supports properties: left, right, up, down, width, height.
+              </li>
+              <li>
+                Inline math evaluations:
+                <pre>[ math expression ]</pre>
+                You can use "[]" for non-math expression, but all math expression to the right of it will be ignored.
+              </li>
+              <li>
+                Any line starts with "//" is treated as a comment.
+              </li>
+            </ul>
+          </li>
+        </ul>
+    </details>
+    <hr class="my-4">
+    <div>
+      <button class="btn btn-primary" onclick="draw()">DRAW</button>
+      <a class="btn btn-secondary" href="/diagramlab/diagramlab.html">DEFAULT</a>
+      <button class="btn btn-secondary" onclick="save()">SAVE AS PNG</button>
+    </div>
+    <div class="row">
+      <div class="col-4">
+        <textarea id="input" spellcheck="false"></textarea>
+      </div>
+      <div class="col-8">
+        <div id="drawarea" style="border: solid"></div>
+      </div>
+
+    </div>
+    <div id="bottom-space"></div>
+  </div>
+  <span id="report">
+    <span id="location"></span>
+    <span id="name"></span>
+  </span>
+  <div id="save-action"></div>
+
+  <script src="main.js"></script>
+
+</body>
