@@ -1,15 +1,18 @@
 namespace svg {
+  export class ZSVGElement extends SVGElement {
+    public zValue: number = 1;
+  }
+
   function createSvgSvgElement(): SVGSVGElement {
     return document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   }
-  function createSvgElement(tagName: string): ZSVGElement {
+  export function createSvgElement(tagName: string): ZSVGElement {
     const elem = document.createElementNS('http://www.w3.org/2000/svg', tagName) as ZSVGElement;
     elem.zValue = 1;
     return elem;
   }
-
-  export class ZSVGElement extends SVGElement {
-    public zValue: number = 1;
+  export function setAttr(element: ZSVGElement, attributeName: string, attributeValue: string | number) {
+    element.setAttribute(attributeName, attributeValue.toString());
   }
 
   export class Style {
@@ -154,7 +157,7 @@ namespace svg {
     }
   }
 
-  abstract class Link {
+  export abstract class Link {
     public from: geometry.Point = { x: 0, y: 0 };
     public to: geometry.Point = { x: 100, y: 100 };
     public hasArrow: number = 1;  // 0: no arrow, 1: endarrow, 2: startarrow, 3: both
@@ -168,5 +171,40 @@ namespace svg {
     }
 
     public abstract getElements(/* Style */style: Style): ZSVGElement[];
+  }
+
+  /**
+    * Multiline texts, parent is optional.
+    */
+  class MultilineTexts extends Shape {
+    public GAP_LEFT = 5;  // space to the left of the text.
+
+    private linesOfTexts: string[] = [];
+
+    override copyProperties(other: Shape) {
+      this.x = other.x;
+      this.y = other.y;
+      this.bgColor = other.bgColor;
+      this.zValue = other.zValue;
+    }
+
+    override getElements(style: Style): ZSVGElement[] {
+      const elem = createSvgElement('text');
+      setAttr(elem, 'x', this.x);
+      setAttr(elem, 'y', this.y);
+      setAttr(elem, 'font-size', style.textFontSize);
+      if (this.name) {
+        setAttr(elem, 'name', this.name);
+      }
+
+      for (const lineOfText of this.linesOfTexts) {
+        const textElement = createSvgElement('tspan');
+        setAttr(textElement, 'x', this.x + this.GAP_LEFT);
+        setAttr(textElement, 'dy', style.textLineSpace);
+        textElement.textContent = lineOfText;
+        elem.append(textElement);
+      }
+      return [elem];
+    }
   }
 }

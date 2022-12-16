@@ -7,6 +7,10 @@ window.addEventListener('load', function () {
 });
 var svg;
 (function (svg) {
+    class ZSVGElement extends SVGElement {
+        zValue = 1;
+    }
+    svg.ZSVGElement = ZSVGElement;
     function createSvgSvgElement() {
         return document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     }
@@ -15,10 +19,11 @@ var svg;
         elem.zValue = 1;
         return elem;
     }
-    class ZSVGElement extends SVGElement {
-        zValue = 1;
+    svg.createSvgElement = createSvgElement;
+    function setAttr(element, attributeName, attributeValue) {
+        element.setAttribute(attributeName, attributeValue.toString());
     }
-    svg.ZSVGElement = ZSVGElement;
+    svg.setAttr = setAttr;
     class Style {
         borderWidth = 2;
         fillOpacity = 0.9;
@@ -153,6 +158,37 @@ var svg;
             for (const elem of this.getElements(renderer.style)) {
                 renderer.addElement(elem, this.Z_VALUE);
             }
+        }
+    }
+    svg.Link = Link;
+    /**
+      * Multiline texts, parent is optional.
+      */
+    class MultilineTexts extends Shape {
+        GAP_LEFT = 5; // space to the left of the text.
+        linesOfTexts = [];
+        copyProperties(other) {
+            this.x = other.x;
+            this.y = other.y;
+            this.bgColor = other.bgColor;
+            this.zValue = other.zValue;
+        }
+        getElements(style) {
+            const elem = createSvgElement('text');
+            setAttr(elem, 'x', this.x);
+            setAttr(elem, 'y', this.y);
+            setAttr(elem, 'font-size', style.textFontSize);
+            if (this.name) {
+                setAttr(elem, 'name', this.name);
+            }
+            for (const lineOfText of this.linesOfTexts) {
+                const textElement = createSvgElement('tspan');
+                setAttr(textElement, 'x', this.x + this.GAP_LEFT);
+                setAttr(textElement, 'dy', style.textLineSpace);
+                textElement.textContent = lineOfText;
+                elem.append(textElement);
+            }
+            return [elem];
         }
     }
 })(svg || (svg = {}));
