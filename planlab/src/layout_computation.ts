@@ -1,6 +1,8 @@
 namespace LayoutComputation {
   /**
    * Compute row indices of the items in the given group.
+   * 
+   * No-op for group with no items.
    */
   export function computeItemRowIndices(leafGroup: Group): void {
     const items = leafGroup.items;

@@ -1,9 +1,35 @@
+type ItemYaml = { [key: string]: string };
+
 class LangParser {
+  GROUP_STRUCT_KEYWORD = 'groups';
+
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
   public maxGroupDepth = 0;
 
   constructor() {
+  }
+
+  /**
+   * Entry point.
+   */
+  public parse(content: string) {
+    const contentYaml = jsyaml.load(content) as any;
+    // Get all groups.
+    this.parseGroupStructure(contentYaml[this.GROUP_STRUCT_KEYWORD] as any[]);
+
+    // Parse others.
+    for (const key of Object.keys(contentYaml)) {
+      if (this.groups.has(key)) {
+        // Group-item assignment.
+        this.parseGroupItems(key, contentYaml[key]);
+      }
+    }
+
+    // Compute row indices.
+    for (const group of this.groups.values()) {
+      LayoutComputation.computeItemRowIndices(group);
+    }
   }
 
   /**
@@ -30,19 +56,18 @@ class LangParser {
    * 
    * Requires group structure to be parsed first.
    * 
-   * Example input: parsed YAML object of:
+   * Example: to parse something like:
    * - RD:
    *   - B: 1-4, 100, (TL)
    *   - X: 1-4, 80, (Main IC)
-   * A.k.a: {RD: [{B: '...', X: '...'}]}
+   * Input: 'RD', [{B: '...', X: '...'}]
    */
-  public parseGroupItems(groupItemYaml: object): Group {
-    const groupItemConfig = groupItemYaml as { [key: string]: { [key: string]: string }[] };
-    const groupName = this.getSingleKey(groupItemYaml);
+  public parseGroupItems(name: string, items: ItemYaml[]): Group {
+    const groupName = name;
     // Key should be checked before calling this function.
     const group = this.groups.get(groupName)!;
 
-    for (const itemConfig of groupItemConfig[groupName]) {
+    for (const itemConfig of items) {
       const itemName = this.getSingleKey(itemConfig);
       group.items!.push(this.parseItemConfig(itemName, itemConfig[itemName]));
     }

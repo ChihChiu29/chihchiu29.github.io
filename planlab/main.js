@@ -33,10 +33,30 @@ groups:
 `;
 }
 class LangParser {
+    GROUP_STRUCT_KEYWORD = 'groups';
     // A map from a string to either a string
     groups = new Map();
     maxGroupDepth = 0;
     constructor() {
+    }
+    /**
+     * Entry point.
+     */
+    parse(content) {
+        const contentYaml = jsyaml.load(content);
+        // Get all groups.
+        this.parseGroupStructure(contentYaml[this.GROUP_STRUCT_KEYWORD]);
+        // Parse others.
+        for (const key of Object.keys(contentYaml)) {
+            if (this.groups.has(key)) {
+                // Group-item assignment.
+                this.parseGroupItems(key, contentYaml[key]);
+            }
+        }
+        // Compute row indices.
+        for (const group of this.groups.values()) {
+            LayoutComputation.computeItemRowIndices(group);
+        }
     }
     /**
      * Parses a group structure object into Group[].
@@ -60,18 +80,17 @@ class LangParser {
      *
      * Requires group structure to be parsed first.
      *
-     * Example input: parsed YAML object of:
+     * Example: to parse something like:
      * - RD:
      *   - B: 1-4, 100, (TL)
      *   - X: 1-4, 80, (Main IC)
-     * A.k.a: {RD: [{B: '...', X: '...'}]}
+     * Input: 'RD', [{B: '...', X: '...'}]
      */
-    parseGroupItems(groupItemYaml) {
-        const groupItemConfig = groupItemYaml;
-        const groupName = this.getSingleKey(groupItemYaml);
+    parseGroupItems(name, items) {
+        const groupName = name;
         // Key should be checked before calling this function.
         const group = this.groups.get(groupName);
-        for (const itemConfig of groupItemConfig[groupName]) {
+        for (const itemConfig of items) {
             const itemName = this.getSingleKey(itemConfig);
             group.items.push(this.parseItemConfig(itemName, itemConfig[itemName]));
         }
@@ -124,6 +143,8 @@ var LayoutComputation;
 (function (LayoutComputation) {
     /**
      * Compute row indices of the items in the given group.
+     *
+     * No-op for group with no items.
      */
     function computeItemRowIndices(leafGroup) {
         const items = leafGroup.items;
@@ -190,7 +211,6 @@ function testParsingGroupStructure(parser) {
         - Offline
       - ML
     `);
-    console.log(testData);
     console.log(parser.parseGroupStructure(testData['groups']));
 }
 function testParsingGroupItems(parser) {
@@ -199,8 +219,7 @@ function testParsingGroupItems(parser) {
       - B: 1-4, 100, (TL)
       - X: 1-4, 80, (Main IC)
     `);
-    console.log(testData);
-    console.log(parser.parseGroupItems(testData));
+    console.log(parser.parseGroupItems('RD', testData['RD']));
 }
 function testComputeItemRowIndices() {
     const testData = jsyaml.load(`
@@ -209,22 +228,41 @@ function testComputeItemRowIndices() {
       - X: 1-4, 80
       - B: 3-4, 100
     `);
-    console.log(testData);
     const parser = new LangParser();
     parser.parseGroupStructure(jsyaml.load(`
     groups:
       - RD
   `)['groups']);
-    const group = parser.parseGroupItems(testData);
+    const group = parser.parseGroupItems('RD', testData['RD']);
     LayoutComputation.computeItemRowIndices(group);
     console.log(group);
     assert(group.items[2].rowIndex == 0);
+}
+function testParse() {
+    const content = `
+    groups:
+      - Exp:
+        - Online:
+          - RD
+          - RR
+        - Offline
+      - ML
+
+    RD:
+      - B: 1-2, 100
+      - X: 1-4, 80
+      - B: 3-4, 100
+    `;
+    const parser = new LangParser();
+    parser.parse(content);
+    console.log(parser.groups);
 }
 function runTests() {
     const parser = new LangParser();
     testParsingGroupStructure(parser);
     testParsingGroupItems(parser);
     testComputeItemRowIndices();
+    testParse();
 }
 function assert(value) {
     if (!value) {
