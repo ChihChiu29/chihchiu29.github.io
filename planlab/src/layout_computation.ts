@@ -59,7 +59,12 @@ namespace LayoutComputation {
    * Needs to be called after `computeItemRowIndices` for all leaf groups.
    */
   export function computeGroupRowIndices(groups: Map<string, Group>): void {
+    let currentRowIndex = 0;
+    for (const group of groups.values()) {
+      if (group.depth !== 0) [
 
+      ]
+    }
   }
 
   function isSpaceFull(spaces: Map<string, boolean>, row: number, colFrom: number, colUntil: number): boolean {

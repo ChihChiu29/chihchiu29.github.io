@@ -516,7 +516,7 @@ class LangParser {
         }
     }
     /**
-     * Parses a group structure object into Group[].
+     * Parses a group structure object into Map<group, Group>.
      *
      * Example input: parsed YAML object of:
      * - Exp:
@@ -656,6 +656,11 @@ var LayoutComputation;
      * Needs to be called after `computeItemRowIndices` for all leaf groups.
      */
     function computeGroupRowIndices(groups) {
+        let currentRowIndex = 0;
+        for (const group of groups.values()) {
+            if (group.depth !== 0)
+                [];
+        }
     }
     LayoutComputation.computeGroupRowIndices = computeGroupRowIndices;
     function isSpaceFull(spaces, row, colFrom, colUntil) {
@@ -691,6 +696,12 @@ function testParsingGroupStructure(parser) {
       - ML
     `);
     console.log(parser.parseGroupStructure(testData['groups']));
+    assert(parser.groups.get('Exp')?.depth === 0);
+    assert(parser.groups.get('ML')?.depth === 0);
+    assert(parser.groups.get('Online')?.depth === 1);
+    assert(parser.groups.get('Offline')?.depth === 1);
+    assert(parser.groups.get('RD')?.depth === 2);
+    assert(parser.groups.get('RR')?.depth === 2);
 }
 function testParsingGroupItems(parser) {
     const testData = jsyaml.load(`
@@ -699,6 +710,17 @@ function testParsingGroupItems(parser) {
       - X: 1-4, 80, (Main IC)
     `);
     console.log(parser.parseGroupItems('RD', testData['RD']));
+    const rd = parser.groups.get('RD');
+    assert(rd.items[0].name === 'B');
+    assert(rd.items[0].spanFromColumn === 1);
+    assert(rd.items[0].spanUntilColumn === 4);
+    assert(rd.items[0].capacityPercentage === 100);
+    assert(rd.items[0].description === '(TL)');
+    assert(rd.items[1].name === 'X');
+    assert(rd.items[1].spanFromColumn === 1);
+    assert(rd.items[1].spanUntilColumn === 4);
+    assert(rd.items[1].capacityPercentage === 80);
+    assert(rd.items[1].description === '(Main IC)');
 }
 function testComputeItemRowIndices() {
     const testData = jsyaml.load(`
@@ -715,6 +737,7 @@ function testComputeItemRowIndices() {
     const group = parser.parseGroupItems('RD', testData['RD']);
     LayoutComputation.computeItemRowIndices(group);
     console.log(group);
+    // Test that "B" rowIndex is 0 instead of 2.
     assert(group.items[2].rowIndex == 0);
 }
 function testParse() {

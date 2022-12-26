@@ -33,7 +33,7 @@ class LangParser {
   }
 
   /**
-   * Parses a group structure object into Group[].
+   * Parses a group structure object into Map<group, Group>.
    * 
    * Example input: parsed YAML object of:
    * - Exp:
