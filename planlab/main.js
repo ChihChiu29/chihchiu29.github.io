@@ -36,64 +36,62 @@ RR:
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
-const SAVE_SVG_MARGIN = 5;
-function draw() {
+// Very likely we don't need this forever since Renderer has a similar margin in place already.
+const SAVE_SVG_MARGIN = 0;
+function draw(useGrid = true) {
     const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
     const parser = new LangParser();
     parser.parse(graphData);
     const renderer = new Renderer(document.querySelector(DRAW_AREA_SELECTOR), parser);
-    renderer.render();
+    const report = renderer.render(useGrid);
     // Since drawing has no error, safe to update URL.
     if (graphData !== DEFAULT_GRAPH) {
         window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
     }
+    return report;
 }
-// function save() {
-//   // References:
-//   //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
-//   //   - http://bl.ocks.org/biovisualize/8187844
-//   const drawResult = draw(/*useGrid*/false);
-//   const renderer = drawResult.renderer;
-//   const report = drawResult.report;
-//   const svgElement = document.querySelector('#drawarea svg') as SVGSVGElement;
-//   svgElement.setAttribute(
-//     'viewBox',
-//     `${report.minX - SAVE_SVG_MARGIN} 
-//       ${report.minY - SAVE_SVG_MARGIN}
-//       ${report.maxX - report.minX + SAVE_SVG_MARGIN * 2}
-//       ${report.maxY - report.minY + SAVE_SVG_MARGIN * 2}`);
-//   const { width, height } = svgElement.getBBox();
-//   var svgString = new XMLSerializer().serializeToString(svgElement);
-//   const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-//   let URL = window.URL || window.webkitURL || window;
-//   let blobURL = URL.createObjectURL(blob);
-//   const image = new Image();
-//   image.onload = () => {
-//     // Canvas references:
-//     //   - https://stackoverflow.com/questions/38061836/blurry-svg-in-canvas
-//     //   - https://stackoverflow.com/questions/24395076/canvas-generated-by-canvg-is-blurry-on-retina-screen
-//     let canvas = document.createElement('canvas');
-//     let context = canvas.getContext('2d');
-//     // In short:
-//     //   - devicePixelRatio decises how things are scaled on monitor.
-//     //   - to get a similar crisp feeling of the svg image, the canvas needs to be as large as viewport * scale factor.
-//     var pixelRatio = window.devicePixelRatio || 1;
-//     canvas.width = width;
-//     canvas.height = height;
-//     canvas.width *= pixelRatio;
-//     canvas.height *= pixelRatio;
-//     context.drawImage(image, 0, 0);
-//     let png = canvas.toDataURL();
-//     var link = document.createElement('a');
-//     link.download = 'diagram.png';
-//     link.style.opacity = "0";
-//     document.querySelector('#save-action').append(link);
-//     link.href = png;
-//     link.click();
-//     link.remove();
-//   };
-//   image.src = blobURL;
-// }
+function save() {
+    // References:
+    //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
+    //   - http://bl.ocks.org/biovisualize/8187844
+    const report = draw(/*useGrid*/ false);
+    const svgElement = document.querySelector('#drawarea svg');
+    svgElement.setAttribute('viewBox', `${report.dimension.x - SAVE_SVG_MARGIN} 
+      ${report.dimension.y - SAVE_SVG_MARGIN}
+      ${report.dimension.width + SAVE_SVG_MARGIN * 2}
+      ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
+    const { width, height } = svgElement.getBBox();
+    var svgString = new XMLSerializer().serializeToString(svgElement);
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    let URL = window.URL || window.webkitURL || window;
+    let blobURL = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => {
+        // Canvas references:
+        //   - https://stackoverflow.com/questions/38061836/blurry-svg-in-canvas
+        //   - https://stackoverflow.com/questions/24395076/canvas-generated-by-canvg-is-blurry-on-retina-screen
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        // In short:
+        //   - devicePixelRatio decises how things are scaled on monitor.
+        //   - to get a similar crisp feeling of the svg image, the canvas needs to be as large as viewport * scale factor.
+        var pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = width;
+        canvas.height = height;
+        canvas.width *= pixelRatio;
+        canvas.height *= pixelRatio;
+        context.drawImage(image, 0, 0);
+        let png = canvas.toDataURL();
+        var link = document.createElement('a');
+        link.download = 'diagram.png';
+        link.style.opacity = "0";
+        document.querySelector('#save-action').append(link);
+        link.href = png;
+        link.click();
+        link.remove();
+    };
+    image.src = blobURL;
+}
 function main() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -987,6 +985,14 @@ class Renderer {
         svgRenderer.height = this.graphHeight + this.EXTRA_MARGIN * 2;
         // Actual rendering.
         svgRenderer.draw();
+        return {
+            dimension: {
+                x: svgRenderer.left,
+                y: svgRenderer.top,
+                width: svgRenderer.width,
+                height: svgRenderer.height,
+            }
+        };
     }
     precomputePositions() {
         // Compute group widths.

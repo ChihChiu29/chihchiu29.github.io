@@ -31,6 +31,10 @@ class RendererStyleConfig {
   };
 }
 
+interface RenderReport {
+  dimension: geometry.BoundingRect;
+}
+
 class Renderer {
   // Extra space around the whole group (to show border etc.).
   EXTRA_MARGIN = 5;
@@ -60,7 +64,7 @@ class Renderer {
   }
 
   // Renders groups.
-  public render(showGrid = true): void {
+  public render(showGrid = true): RenderReport {
     // First compute layout.
     LayoutComputation.computeAllItemRowIndices(this.groups);
     LayoutComputation.computeGroupRowIndices(this.groups);
@@ -86,7 +90,6 @@ class Renderer {
       }
     }
 
-
     this.graphWidth = this.getItemLeft(maxItemCol) + this.style.itemColWidth;
     this.graphHeight = this.getRowTop(maxRow) - this.style.rowGap;
     svgRenderer.left = -this.EXTRA_MARGIN;
@@ -96,6 +99,15 @@ class Renderer {
 
     // Actual rendering.
     svgRenderer.draw();
+
+    return {
+      dimension: {
+        x: svgRenderer.left,
+        y: svgRenderer.top,
+        width: svgRenderer.width,
+        height: svgRenderer.height,
+      }
+    }
   }
 
   private precomputePositions(): void {
