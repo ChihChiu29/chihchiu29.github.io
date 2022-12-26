@@ -1,5 +1,5 @@
 "use strict";
-const PAGE_PATH = '/diagramlab/diagramlab.html';
+const PAGE_PATH = '/planlab/';
 const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# style setting
 # simple examples
