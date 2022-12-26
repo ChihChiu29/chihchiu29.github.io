@@ -607,12 +607,16 @@ var LayoutComputation;
      * No-op for group with no items.
      */
     function computeItemRowIndices(leafGroup) {
-        const items = leafGroup.items;
-        if (!items) {
+        if (!isLeafGroup(leafGroup)) {
             return;
         }
-        let maxNumberOfColumns = Math.max(...items.map(item => item.spanUntilColumn));
-        let maxNumberOfRows = items.length;
+        if (!hasItems(leafGroup)) {
+            leafGroup.rowSpan = 1;
+            return;
+        }
+        const items = leafGroup.items;
+        // let maxNumberOfColumns: number = Math.max(...items.map(item => item.spanUntilColumn));
+        // let maxNumberOfRows: number = items.length;
         // { `row,column`: occupied }
         const spaces = new Map();
         // Initializes row indices and spaces.
@@ -651,18 +655,46 @@ var LayoutComputation;
     }
     LayoutComputation.computeItemRowIndices = computeItemRowIndices;
     /**
-     * Compute row indices for all groups.
+     * Compute layout row indices for all groups.
      *
      * Needs to be called after `computeItemRowIndices` for all leaf groups.
      */
     function computeGroupRowIndices(groups) {
         let currentRowIndex = 0;
         for (const group of groups.values()) {
-            if (group.depth !== 0)
-                [];
+            if (group.depth !== 0) {
+                continue;
+            }
+            currentRowIndex += computeGroupIndicesRecursive(group, currentRowIndex, groups);
         }
     }
     LayoutComputation.computeGroupRowIndices = computeGroupRowIndices;
+    // Recursively compute row related indices for a single group and its children, returns the top-level / total row span.
+    function computeGroupIndicesRecursive(group, currentRowIndex, groups) {
+        group.fromRowIndex = currentRowIndex;
+        if (group.children && group.items) {
+            console.log('Error for group:');
+            console.log(group);
+            throw new Error('a group cannot have both children and items');
+        }
+        // Not leaf.
+        if (group.children) {
+            let rowSpan = 0;
+            for (const childGroupName of group.children) {
+                const childGroup = groups.get(childGroupName);
+                rowSpan += computeGroupIndicesRecursive(childGroup, currentRowIndex + rowSpan, groups);
+            }
+            group.rowSpan = rowSpan;
+        }
+        // For leaf group this is already set.
+        return group.rowSpan;
+    }
+    function isLeafGroup(group) {
+        return group.children.length === 0;
+    }
+    function hasItems(group) {
+        return group.items.length > 0;
+    }
     function isSpaceFull(spaces, row, colFrom, colUntil) {
         for (let colIdx = colFrom; colIdx <= colUntil; colIdx++) {
             if (spaces.get(getRowColKey(row, colIdx))) {
@@ -696,12 +728,12 @@ function testParsingGroupStructure(parser) {
       - ML
     `);
     console.log(parser.parseGroupStructure(testData['groups']));
-    assert(parser.groups.get('Exp')?.depth === 0);
-    assert(parser.groups.get('ML')?.depth === 0);
-    assert(parser.groups.get('Online')?.depth === 1);
-    assert(parser.groups.get('Offline')?.depth === 1);
-    assert(parser.groups.get('RD')?.depth === 2);
-    assert(parser.groups.get('RR')?.depth === 2);
+    assert(parser.groups.get('Exp')?.depth, 0);
+    assert(parser.groups.get('ML')?.depth, 0);
+    assert(parser.groups.get('Online')?.depth, 1);
+    assert(parser.groups.get('Offline')?.depth, 1);
+    assert(parser.groups.get('RD')?.depth, 2);
+    assert(parser.groups.get('RR')?.depth, 2);
 }
 function testParsingGroupItems(parser) {
     const testData = jsyaml.load(`
@@ -711,16 +743,16 @@ function testParsingGroupItems(parser) {
     `);
     console.log(parser.parseGroupItems('RD', testData['RD']));
     const rd = parser.groups.get('RD');
-    assert(rd.items[0].name === 'B');
-    assert(rd.items[0].spanFromColumn === 1);
-    assert(rd.items[0].spanUntilColumn === 4);
-    assert(rd.items[0].capacityPercentage === 100);
-    assert(rd.items[0].description === '(TL)');
-    assert(rd.items[1].name === 'X');
-    assert(rd.items[1].spanFromColumn === 1);
-    assert(rd.items[1].spanUntilColumn === 4);
-    assert(rd.items[1].capacityPercentage === 80);
-    assert(rd.items[1].description === '(Main IC)');
+    assert(rd.items[0].name, 'B');
+    assert(rd.items[0].spanFromColumn, 1);
+    assert(rd.items[0].spanUntilColumn, 4);
+    assert(rd.items[0].capacityPercentage, 100);
+    assert(rd.items[0].description, '(TL)');
+    assert(rd.items[1].name, 'X');
+    assert(rd.items[1].spanFromColumn, 1);
+    assert(rd.items[1].spanUntilColumn, 4);
+    assert(rd.items[1].capacityPercentage, 80);
+    assert(rd.items[1].description, '(Main IC)');
 }
 function testComputeItemRowIndices() {
     const testData = jsyaml.load(`
@@ -733,12 +765,36 @@ function testComputeItemRowIndices() {
     parser.parseGroupStructure(jsyaml.load(`
     groups:
       - RD
+      - RR
+  `)['groups']);
+    const group = parser.parseGroupItems('RD', testData['RD']);
+    const rd = parser.groups.get('RD');
+    const rr = parser.groups.get('RR');
+    LayoutComputation.computeItemRowIndices(rd);
+    LayoutComputation.computeItemRowIndices(rr);
+    console.log(parser.groups);
+    // Test that "B" rowIndex is 0 instead of 2.
+    assert(rd.items[2].rowIndex, 0);
+    assert(rd.rowSpan, 2);
+    assert(rr.rowSpan, 1);
+}
+function testComputeGroupRowIndices() {
+    const testData = jsyaml.load(`
+    RD:
+      - B: 1-2, 100
+      - X: 1-4, 80
+    `);
+    const parser = new LangParser();
+    parser.parseGroupStructure(jsyaml.load(`
+    groups:
+      - RD
+      - RR
   `)['groups']);
     const group = parser.parseGroupItems('RD', testData['RD']);
     LayoutComputation.computeItemRowIndices(group);
     console.log(group);
     // Test that "B" rowIndex is 0 instead of 2.
-    assert(group.items[2].rowIndex == 0);
+    assert(group.items[2].rowIndex, 0);
 }
 function testParse() {
     const content = `
@@ -766,8 +822,8 @@ function runTests() {
     testComputeItemRowIndices();
     testParse();
 }
-function assert(value) {
-    if (!value) {
-        throw `${value} is not true`;
+function assert(value, expectedValue) {
+    if (value !== expectedValue) {
+        throw `${value} does not equal to expected value ${expectedValue}`;
     }
 }

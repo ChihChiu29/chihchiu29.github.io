@@ -5,13 +5,17 @@ namespace LayoutComputation {
    * No-op for group with no items.
    */
   export function computeItemRowIndices(leafGroup: Group): void {
-    const items = leafGroup.items;
-    if (!items) {
+    if (!isLeafGroup(leafGroup)) {
+      return;
+    }
+    if (!hasItems(leafGroup)) {
+      leafGroup.rowSpan = 1;
       return;
     }
 
-    let maxNumberOfColumns: number = Math.max(...items.map(item => item.spanUntilColumn));
-    let maxNumberOfRows: number = items.length;
+    const items = leafGroup.items;
+    // let maxNumberOfColumns: number = Math.max(...items.map(item => item.spanUntilColumn));
+    // let maxNumberOfRows: number = items.length;
 
     // { `row,column`: occupied }
     const spaces = new Map<string, boolean>();
@@ -54,17 +58,49 @@ namespace LayoutComputation {
   }
 
   /**
-   * Compute row indices for all groups.
+   * Compute layout row indices for all groups.
    * 
    * Needs to be called after `computeItemRowIndices` for all leaf groups.
    */
   export function computeGroupRowIndices(groups: Map<string, Group>): void {
     let currentRowIndex = 0;
     for (const group of groups.values()) {
-      if (group.depth !== 0) [
-
-      ]
+      if (group.depth !== 0) {
+        continue;
+      }
+      currentRowIndex += computeGroupIndicesRecursive(group, currentRowIndex, groups);
     }
+  }
+
+  // Recursively compute row related indices for a single group and its children, returns the top-level / total row span.
+  function computeGroupIndicesRecursive(group: Group, currentRowIndex: number, groups: Map<string, Group>): number {
+    group.fromRowIndex = currentRowIndex;
+    if (group.children && group.items) {
+      console.log('Error for group:');
+      console.log(group);
+      throw new Error('a group cannot have both children and items');
+    }
+
+    // Not leaf.
+    if (group.children) {
+      let rowSpan = 0;
+      for (const childGroupName of group.children) {
+        const childGroup = groups.get(childGroupName)!;
+        rowSpan += computeGroupIndicesRecursive(childGroup, currentRowIndex + rowSpan, groups);
+      }
+      group.rowSpan = rowSpan;
+    }
+
+    // For leaf group this is already set.
+    return group.rowSpan;
+  }
+
+  function isLeafGroup(group: Group): boolean {
+    return group.children.length === 0;
+  }
+
+  function hasItems(group: Group): boolean {
+    return group.items.length > 0;
   }
 
   function isSpaceFull(spaces: Map<string, boolean>, row: number, colFrom: number, colUntil: number): boolean {

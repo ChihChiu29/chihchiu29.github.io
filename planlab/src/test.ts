@@ -10,12 +10,12 @@ function testParsingGroupStructure(parser: LangParser) {
     `) as { groups: any[] };
   console.log(parser.parseGroupStructure(testData['groups']));
 
-  assert(parser.groups.get('Exp')?.depth === 0);
-  assert(parser.groups.get('ML')?.depth === 0);
-  assert(parser.groups.get('Online')?.depth === 1);
-  assert(parser.groups.get('Offline')?.depth === 1);
-  assert(parser.groups.get('RD')?.depth === 2);
-  assert(parser.groups.get('RR')?.depth === 2);
+  assert(parser.groups.get('Exp')?.depth, 0);
+  assert(parser.groups.get('ML')?.depth, 0);
+  assert(parser.groups.get('Online')?.depth, 1);
+  assert(parser.groups.get('Offline')?.depth, 1);
+  assert(parser.groups.get('RD')?.depth, 2);
+  assert(parser.groups.get('RR')?.depth, 2);
 }
 
 function testParsingGroupItems(parser: LangParser) {
@@ -27,16 +27,16 @@ function testParsingGroupItems(parser: LangParser) {
   console.log(parser.parseGroupItems('RD', testData['RD']));
 
   const rd = parser.groups.get('RD')!;
-  assert(rd.items[0]!.name === 'B');
-  assert(rd.items[0]!.spanFromColumn === 1);
-  assert(rd.items[0]!.spanUntilColumn === 4);
-  assert(rd.items[0]!.capacityPercentage === 100);
-  assert(rd.items[0]!.description === '(TL)');
-  assert(rd.items[1]!.name === 'X');
-  assert(rd.items[1]!.spanFromColumn === 1);
-  assert(rd.items[1]!.spanUntilColumn === 4);
-  assert(rd.items[1]!.capacityPercentage === 80);
-  assert(rd.items[1]!.description === '(Main IC)');
+  assert(rd.items[0]!.name, 'B');
+  assert(rd.items[0]!.spanFromColumn, 1);
+  assert(rd.items[0]!.spanUntilColumn, 4);
+  assert(rd.items[0]!.capacityPercentage, 100);
+  assert(rd.items[0]!.description, '(TL)');
+  assert(rd.items[1]!.name, 'X');
+  assert(rd.items[1]!.spanFromColumn, 1);
+  assert(rd.items[1]!.spanUntilColumn, 4);
+  assert(rd.items[1]!.capacityPercentage, 80);
+  assert(rd.items[1]!.description, '(Main IC)');
 }
 
 function testComputeItemRowIndices() {
@@ -50,13 +50,41 @@ function testComputeItemRowIndices() {
   parser.parseGroupStructure((jsyaml.load(`
     groups:
       - RD
+      - RR
+  `) as { groups: any[] })['groups']);
+  const group = parser.parseGroupItems('RD', testData['RD']);
+
+  const rd = parser.groups.get('RD')!;
+  const rr = parser.groups.get('RR')!;
+  LayoutComputation.computeItemRowIndices(rd);
+  LayoutComputation.computeItemRowIndices(rr);
+
+  console.log(parser.groups);
+
+  // Test that "B" rowIndex is 0 instead of 2.
+  assert(rd.items[2]!.rowIndex, 0);
+  assert(rd.rowSpan, 2);
+  assert(rr.rowSpan, 1);
+}
+
+function testComputeGroupRowIndices() {
+  const testData = jsyaml.load(`
+    RD:
+      - B: 1-2, 100
+      - X: 1-4, 80
+    `) as { RD: ItemYaml[] };
+  const parser = new LangParser();
+  parser.parseGroupStructure((jsyaml.load(`
+    groups:
+      - RD
+      - RR
   `) as { groups: any[] })['groups']);
   const group = parser.parseGroupItems('RD', testData['RD']);
   LayoutComputation.computeItemRowIndices(group);
   console.log(group);
 
   // Test that "B" rowIndex is 0 instead of 2.
-  assert(group.items[2]!.rowIndex == 0);
+  assert(group.items[2]!.rowIndex, 0);
 }
 
 function testParse() {
