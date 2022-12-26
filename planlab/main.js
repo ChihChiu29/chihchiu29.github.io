@@ -45,8 +45,14 @@ function draw(useGrid = true) {
     const renderer = new Renderer(document.querySelector(DRAW_AREA_SELECTOR), parser);
     const report = renderer.render(useGrid);
     // Since drawing has no error, safe to update URL.
+    // The old way use URI encode, which cannot hanle "%" correctly -- keep it for a bit longer then delete (when base64 encoding proven to work).
+    // if (graphData !== DEFAULT_GRAPH) {
+    //   window.history.pushState(
+    //     'updated', 'Planlab',
+    //     `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
+    // }
     if (graphData !== DEFAULT_GRAPH) {
-        window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
+        window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${btoa(graphData)}`);
     }
     return report;
 }
@@ -98,7 +104,8 @@ function main() {
     const graphData = urlParams.get(GRAPH_URL_PARAM);
     const inputElement = document.querySelector(INPUT_ELEMENT_CSS);
     if (graphData) {
-        inputElement.value = decodeURIComponent(graphData);
+        // inputElement.value = decodeURIComponent(graphData);
+        inputElement.value = atob(graphData);
     }
     else {
         inputElement.value = DEFAULT_GRAPH;
