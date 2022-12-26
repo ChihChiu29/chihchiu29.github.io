@@ -7,6 +7,7 @@ interface CustomStyle {
 
 class LangParser {
   GROUP_STRUCT_KEYWORD = 'groups';
+  LAYOUT_KEYWORD = 'layout';
   STYLE_KEYWORD = 'styles';
 
   // A map from a string to either a string
@@ -35,9 +36,16 @@ class LangParser {
       }
     }
 
+    // Parse layout config.
+    const layoutConfig = contentYaml[this.STYLE_KEYWORD];
+    if (layoutConfig) {
+      this.parseLayoutConfig(layoutConfig);
+    }
+
     // Parse custom styles.
-    if (contentYaml[this.STYLE_KEYWORD]) {
-      this.parseStyles(contentYaml[contentYaml[this.STYLE_KEYWORD]]);
+    const customStyles = contentYaml[this.STYLE_KEYWORD];
+    if (customStyles) {
+      this.parseStyles(customStyles);
     }
   }
 
@@ -85,6 +93,23 @@ class LangParser {
 
     // Return only for testing.
     return group;
+  }
+
+  /**
+     * Parses layout related config.
+     * 
+     * See `customGroupWidths` for what properties can be used.
+     * 
+     * Example input: parsed YAML object of:
+     * - rowHeight: 50
+     * - customGroupWidths: [20, 30, 30]
+     */
+  public parseLayoutConfig(styles: any[]) {
+    for (const style of styles) {
+      const styleName = this.getSingleKey(style);
+      // @ts-ignore
+      this.rendererStyleConfig[styleName] = style[styleName];
+    }
   }
 
   /**

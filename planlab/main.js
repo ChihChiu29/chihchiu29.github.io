@@ -603,6 +603,7 @@ function createGroup() {
 }
 class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
+    LAYOUT_KEYWORD = 'layout';
     STYLE_KEYWORD = 'styles';
     // A map from a string to either a string
     groups = new Map();
@@ -625,9 +626,15 @@ class LangParser {
                 this.parseGroupItems(key, contentYaml[key]);
             }
         }
+        // Parse layout config.
+        const layoutConfig = contentYaml[this.STYLE_KEYWORD];
+        if (layoutConfig) {
+            this.parseLayoutConfig(layoutConfig);
+        }
         // Parse custom styles.
-        if (contentYaml[this.STYLE_KEYWORD]) {
-            this.parseStyles(contentYaml[contentYaml[this.STYLE_KEYWORD]]);
+        const customStyles = contentYaml[this.STYLE_KEYWORD];
+        if (customStyles) {
+            this.parseStyles(customStyles);
         }
     }
     /**
@@ -670,6 +677,22 @@ class LangParser {
         }
         // Return only for testing.
         return group;
+    }
+    /**
+       * Parses layout related config.
+       *
+       * See `customGroupWidths` for what properties can be used.
+       *
+       * Example input: parsed YAML object of:
+       * - rowHeight: 50
+       * - customGroupWidths: [20, 30, 30]
+       */
+    parseLayoutConfig(styles) {
+        for (const style of styles) {
+            const styleName = this.getSingleKey(style);
+            // @ts-ignore
+            this.rendererStyleConfig[styleName] = style[styleName];
+        }
     }
     /**
      * Parses styles for groups and for items.
@@ -1077,6 +1100,18 @@ function testParsingGroupItems(parser) {
     assert(rd.items[1].capacityPercentage, 80);
     assert(rd.items[1].description, '(Main IC)');
 }
+function testParseLayoutConfig() {
+    const testData = jsyaml.load(`
+    layout:
+      - rowHeight: 50
+      - customGroupWidths: [20, 40, 40]
+    `);
+    const parser = new LangParser();
+    parser.parseLayoutConfig(testData.layout);
+    console.log(parser.rendererStyleConfig);
+    assert(parser.rendererStyleConfig.rowHeight, 50);
+    assert(parser.rendererStyleConfig.customGroupWidths[2], 40);
+}
 function testParseStyles() {
     const testData = jsyaml.load(`
     styles:
@@ -1160,6 +1195,7 @@ function runTests() {
     const parser = new LangParser();
     testParsingGroupStructure(parser);
     testParsingGroupItems(parser);
+    testParseLayoutConfig();
     testParseStyles();
     testComputeItemRowIndices();
     testComputeGroupRowIndices();

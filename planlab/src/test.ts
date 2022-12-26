@@ -39,6 +39,21 @@ function testParsingGroupItems(parser: LangParser) {
   assert(rd.items[1]!.description, '(Main IC)');
 }
 
+function testParseLayoutConfig() {
+  const testData = jsyaml.load(`
+    layout:
+      - rowHeight: 50
+      - customGroupWidths: [20, 40, 40]
+    `) as { layout: any[] };
+  const parser = new LangParser();
+  parser.parseLayoutConfig(testData.layout);
+
+  console.log(parser.rendererStyleConfig);
+
+  assert(parser.rendererStyleConfig.rowHeight, 50);
+  assert(parser.rendererStyleConfig.customGroupWidths[2], 40);
+}
+
 function testParseStyles() {
   const testData = jsyaml.load(`
     styles:
@@ -135,6 +150,7 @@ function runTests() {
   const parser = new LangParser();
   testParsingGroupStructure(parser);
   testParsingGroupItems(parser);
+  testParseLayoutConfig();
   testParseStyles();
   testComputeItemRowIndices();
   testComputeGroupRowIndices();
