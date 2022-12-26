@@ -29,7 +29,7 @@ namespace svg {
    * Helper to draw an SVG. Create one per draw action.
    */
   export class SVGRenderer {
-    public hostElement: SVGSVGElement;
+    public hostElement: HTMLElement;
     public style: Style = new Style();
 
     public left: number = 0;
@@ -41,8 +41,14 @@ namespace svg {
 
     private elements: ZSVGElement[] = [];
 
-    constructor(hostElement: SVGSVGElement) {
+    constructor(hostElement: HTMLElement) {
       this.hostElement = hostElement;
+    }
+
+    public addShape(shape: Shape) {
+      for (const elem of shape.getElements(this.style)) {
+        this.addElement(elem, elem.zValue);
+      }
     }
 
     addElement(element: ZSVGElement, zValue: number) {
@@ -50,7 +56,7 @@ namespace svg {
       this.elements.push(element);
     }
 
-    draw() {
+    public draw() {
       let svgElement = this.hostElement.querySelector('svg');
       if (svgElement) {
         svgElement.remove();
@@ -113,12 +119,6 @@ namespace svg {
       this.height = other.height;
       this.bgColor = other.bgColor;
       this.zValue = other.zValue;
-    }
-
-    addTo(renderer: SVGRenderer): void {
-      for (const elem of this.getElements(renderer.style)) {
-        renderer.addElement(elem, this.zValue);
-      }
     }
 
     public abstract getElements(style: Style): ZSVGElement[];
@@ -272,7 +272,7 @@ namespace svg {
   /**
    * A rect shape with some text support.
    */
-  class Rect extends Shape {
+  export class Rect extends Shape {
     // You should only use one of the following.
     public texts: string[] = [];  // multiline texts starting from top-left corner.
     public centeredText: string = ''; // centered single line of text.

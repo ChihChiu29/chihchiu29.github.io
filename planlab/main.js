@@ -49,6 +49,11 @@ var svg;
         constructor(hostElement) {
             this.hostElement = hostElement;
         }
+        addShape(shape) {
+            for (const elem of shape.getElements(this.style)) {
+                this.addElement(elem, elem.zValue);
+            }
+        }
         addElement(element, zValue) {
             element.zValue = zValue;
             this.elements.push(element);
@@ -111,11 +116,6 @@ var svg;
             this.height = other.height;
             this.bgColor = other.bgColor;
             this.zValue = other.zValue;
-        }
-        addTo(renderer) {
-            for (const elem of this.getElements(renderer.style)) {
-                renderer.addElement(elem, this.zValue);
-            }
         }
         getCenter() {
             return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
@@ -273,6 +273,7 @@ var svg;
             return elements;
         }
     }
+    svg.Rect = Rect;
     /**
      * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
      */
@@ -495,7 +496,6 @@ class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
     // A map from a string to either a string
     groups = new Map();
-    maxGroupDepth = 0;
     rendererStyleConfig = new RendererStyleConfig();
     constructor() { }
     /**
@@ -513,7 +513,6 @@ class LangParser {
                 this.parseGroupItems(key, contentYaml[key]);
             }
         }
-        this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
     }
     /**
      * Parses a group structure object into Map<group, Group>.
@@ -739,17 +738,69 @@ class RendererStyleConfig {
 }
 class Renderer {
     drawArea;
-    constructor(svgElement) {
+    groups;
+    rendererStyleConfig;
+    // Postions.
+    // "left" values for groups of each depth.
+    groupLeftValues = [];
+    // Widths for groups of each depth.
+    groupWidths = [];
+    // Items will be draw using this "left" value as the starting point.
+    itemBaseLeftValue = 0;
+    constructor(svgElement, parser) {
+        this.groups = parser.groups;
         this.drawArea = svgElement;
+        this.rendererStyleConfig = parser.rendererStyleConfig;
     }
     // Renders groups.
-    render(parser) {
-        const groups = parser.groups;
-        const rendererStyleConfig = parser.rendererStyleConfig;
+    render() {
         // First compute layout.
-        LayoutComputation.computeAllItemRowIndices(groups);
-        LayoutComputation.computeGroupRowIndices(groups);
-        // Next draw groups recursively.
+        LayoutComputation.computeAllItemRowIndices(this.groups);
+        LayoutComputation.computeGroupRowIndices(this.groups);
+        // Next prepare style related compuation.
+        this.prepareStyle();
+        // Start drawing!
+        const svgRenderer = new svg.SVGRenderer(this.drawArea);
+        for (const group of this.groups.values()) {
+            for (const item of group.items) {
+                this.drawItem(item, svgRenderer);
+            }
+            this.drawGroup(group, svgRenderer);
+        }
+    }
+    prepareStyle() {
+        // Compute group widths.
+        this.groupWidths = [...this.rendererStyleConfig.customGroupWidths];
+        const maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
+        for (let i = 0; i <= maxGroupDepth; i++) {
+            if (!this.groupWidths[i]) {
+                this.groupWidths[i] = this.rendererStyleConfig.defaultGroupWidth;
+            }
+        }
+        let nextLeftValue = 0;
+        for (const [i, width] of this.groupWidths.entries()) {
+            this.groupLeftValues[i] = nextLeftValue;
+            nextLeftValue += width + this.rendererStyleConfig.groupGap;
+        }
+        this.itemBaseLeftValue = nextLeftValue;
+    }
+    drawGroup(group, renderer) {
+        const rect = new svg.Rect();
+        rect.centeredText = group.name;
+        rect.x = this.groupLeftValues[group.depth];
+        rect.y = this.getTop(group.rowIndex);
+        rect.width = this.groupWidths[group.depth];
+        rect.height = this.getHeight(group.rowSpan);
+    }
+    drawItem(item, renderer) {
+    }
+    // The the "top" value for an item with the given row index.
+    getTop(rowIndex) {
+        return rowIndex * (this.rendererStyleConfig.rowHeight + this.rendererStyleConfig.rowGap);
+    }
+    // The height of an item for the given row span.
+    getHeight(rowSpan) {
+        return rowSpan * this.rendererStyleConfig.rowHeight + (rowSpan - 1) * this.rendererStyleConfig.rowGap;
     }
 }
 function testParsingGroupStructure(parser) {

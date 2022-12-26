@@ -5,7 +5,6 @@ class LangParser {
 
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
-  public maxGroupDepth = 0;
 
   public rendererStyleConfig = new RendererStyleConfig();
 
@@ -27,8 +26,6 @@ class LangParser {
         this.parseGroupItems(key, contentYaml[key]);
       }
     }
-
-    this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
   }
 
   /**
