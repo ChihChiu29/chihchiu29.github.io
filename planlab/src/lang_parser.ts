@@ -52,6 +52,8 @@ class LangParser {
    * 
    * Requires group structure to be parsed first.
    * 
+   * Note that columns are 1-based but the result indices are 0-based.
+   * 
    * Example: to parse something like:
    * - RD:
    *   - B: 1-4, 100, (TL)
@@ -101,8 +103,8 @@ class LangParser {
     item.name = name;
     const configSegments = config.split(',').map(s => s.trim());
     const spanSegments = configSegments[0].split('-');
-    item.spanFromCol = Number(spanSegments[0]);
-    item.spanToCol = Number(spanSegments[1]);
+    item.spanFromCol = Number(spanSegments[0]) - 1;
+    item.spanToCol = Number(spanSegments[1]) - 1;
     item.capacityPercentage = Number(configSegments[1]);
     if (configSegments.length > 2) {
       item.description = configSegments[2];

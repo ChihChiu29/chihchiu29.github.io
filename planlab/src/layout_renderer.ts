@@ -51,12 +51,19 @@ class Renderer {
 
     // Start drawing!
     const svgRenderer = new svg.SVGRenderer(this.drawArea);
+    svgRenderer.left = 0;
+    svgRenderer.top = 0;
+    svgRenderer.width = 1000;
+    svgRenderer.height = 1000;
     for (const group of this.groups.values()) {
       for (const item of group.items) {
         this.drawItem(item, group, svgRenderer);
       }
       this.drawGroup(group, svgRenderer);
     }
+
+    // Actual rendering.
+    svgRenderer.draw();
   }
 
   private prepareStyle(): void {
@@ -83,6 +90,7 @@ class Renderer {
     rect.y = this.getTop(group.rowIndex);
     rect.width = this.groupWidths[group.depth];
     rect.height = this.getHeight(group.rowSpan);
+    rect.bgColor = this.getGroupBgColor(group);
 
     renderer.addShape(rect);
   }
@@ -102,6 +110,7 @@ class Renderer {
     rect.y = this.getTop(ownerGroup.rowIndex + item.rowIndex);
     rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
     rect.height = this.style.rowHeight;
+    rect.bgColor = this.getItemBgColor(item);
 
     renderer.addShape(rect);
   }
@@ -125,5 +134,21 @@ class Renderer {
   private getItemWidth(fromCol: number, toCol: number): number {
     const colSpan = toCol - fromCol;
     return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
+  }
+
+  private getGroupBgColor(group: Group): string {
+    if (group.customBgColor) {
+      return group.customBgColor;
+    } else {
+      return this.style.defaultGroupBgColor;
+    }
+  }
+
+  private getItemBgColor(item: Item): string {
+    if (item.customBgColor) {
+      return item.customBgColor;
+    } else {
+      return this.style.defaultItemBgColor;
+    }
   }
 }
