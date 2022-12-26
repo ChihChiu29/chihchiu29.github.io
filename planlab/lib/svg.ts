@@ -25,6 +25,14 @@ namespace svg {
     public textLineSpace = '1.2em';
   }
 
+  // Used to pass in any CSS style.
+  export type CssStyle = { [key: string]: string };
+  function applyCustomCssStyle(elem: ZSVGElement, cssStyle: CssStyle) {
+    for (const [key, value] of Object.entries(cssStyle)) {
+      setAttr(elem, key, value);
+    }
+  }
+
   /**
    * Helper to draw an SVG. Create one per draw action.
    */
@@ -180,6 +188,7 @@ namespace svg {
     public GAP_LEFT = 5;  // space to the left of the text.
 
     public linesOfTexts: string[] = [];
+    public customTextCssStyle: CssStyle = {};
 
     constructor(linesOfTexts: string[]) {
       super();
@@ -209,6 +218,8 @@ namespace svg {
         textElement.textContent = lineOfText;
         elem.append(textElement);
       }
+
+      applyCustomCssStyle(elem, this.customTextCssStyle);
       return [elem];
     }
   }
@@ -218,6 +229,7 @@ namespace svg {
    */
   class _CenteredText extends Shape {
     public text: string = '';
+    public customTextCssStyle: CssStyle = {};
 
     constructor(singleLineOfText: string) {
       super();
@@ -237,6 +249,7 @@ namespace svg {
       if (this.name) {
         setAttr(elem, 'name', this.name);
       }
+      applyCustomCssStyle(elem, this.customTextCssStyle);
       return [elem];
     }
   }
@@ -245,7 +258,9 @@ namespace svg {
    * A raw rect with border etc., no text.
    */
   class _Rect extends Shape {
-    CORNER_RADIUS = 5;
+    public CORNER_RADIUS = 5;
+
+    public customRectCssStyle: CssStyle = {};
 
     // @Implement
     override getElements(style: Style): ZSVGElement[] {
@@ -265,6 +280,7 @@ namespace svg {
       if (this.name) {
         setAttr(elem, 'name', this.name);
       }
+      applyCustomCssStyle(elem, this.customRectCssStyle);
       return [elem];
     }
   }
@@ -277,11 +293,16 @@ namespace svg {
     public texts: string[] = [];  // multiline texts starting from top-left corner.
     public centeredText: string = ''; // centered single line of text.
 
+    // Used to change rect and text styles.
+    public customRectCssStyle: CssStyle = {};
+    public customTextCssStyle: CssStyle = {};
+
     override getElements(style: Style): ZSVGElement[] {
       const elements = [];
 
       const rect = new _Rect();
       rect.copyProperties(this);
+      rect.customRectCssStyle = this.customRectCssStyle;
       if (this.name) {
         // Pass the name to the actual rect element.
         rect.name = this.name;
@@ -291,12 +312,14 @@ namespace svg {
       if (this.texts.length) {
         const multilineTexts = new MultilineTexts(this.texts);
         multilineTexts.copyProperties(this);
+        multilineTexts.customTextCssStyle = this.customTextCssStyle;
         elements.push(...multilineTexts.getElements(style));
       }
 
       if (this.centeredText) {
         const centeredText = new _CenteredText(this.centeredText);
         centeredText.copyProperties(this);
+        centeredText.customTextCssStyle = this.customTextCssStyle;
         elements.push(...centeredText.getElements(style));
       }
 
@@ -505,5 +528,7 @@ namespace svg {
       return `${midX} ${top} ${right} ${midY} ${midX} ${bottom} ${left} ${midY}`;
     }
   }
+
+
 
 }  // namespace svg

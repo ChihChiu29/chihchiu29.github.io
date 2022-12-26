@@ -126,6 +126,11 @@ var svg;
         textLineSpace = '1.2em';
     }
     svg.Style = Style;
+    function applyCustomCssStyle(elem, cssStyle) {
+        for (const [key, value] of Object.entries(cssStyle)) {
+            setAttr(elem, key, value);
+        }
+    }
     /**
      * Helper to draw an SVG. Create one per draw action.
      */
@@ -259,6 +264,7 @@ var svg;
     class MultilineTexts extends Shape {
         GAP_LEFT = 5; // space to the left of the text.
         linesOfTexts = [];
+        customTextCssStyle = {};
         constructor(linesOfTexts) {
             super();
             this.linesOfTexts = linesOfTexts;
@@ -284,6 +290,7 @@ var svg;
                 textElement.textContent = lineOfText;
                 elem.append(textElement);
             }
+            applyCustomCssStyle(elem, this.customTextCssStyle);
             return [elem];
         }
     }
@@ -292,6 +299,7 @@ var svg;
      */
     class _CenteredText extends Shape {
         text = '';
+        customTextCssStyle = {};
         constructor(singleLineOfText) {
             super();
             this.text = singleLineOfText;
@@ -309,6 +317,7 @@ var svg;
             if (this.name) {
                 setAttr(elem, 'name', this.name);
             }
+            applyCustomCssStyle(elem, this.customTextCssStyle);
             return [elem];
         }
     }
@@ -317,6 +326,7 @@ var svg;
      */
     class _Rect extends Shape {
         CORNER_RADIUS = 5;
+        customRectCssStyle = {};
         // @Implement
         getElements(style) {
             const elem = createSvgElement('rect');
@@ -333,6 +343,7 @@ var svg;
             if (this.name) {
                 setAttr(elem, 'name', this.name);
             }
+            applyCustomCssStyle(elem, this.customRectCssStyle);
             return [elem];
         }
     }
@@ -343,10 +354,14 @@ var svg;
         // You should only use one of the following.
         texts = []; // multiline texts starting from top-left corner.
         centeredText = ''; // centered single line of text.
+        // Used to change rect and text styles.
+        customRectCssStyle = {};
+        customTextCssStyle = {};
         getElements(style) {
             const elements = [];
             const rect = new _Rect();
             rect.copyProperties(this);
+            rect.customRectCssStyle = this.customRectCssStyle;
             if (this.name) {
                 // Pass the name to the actual rect element.
                 rect.name = this.name;
@@ -355,11 +370,13 @@ var svg;
             if (this.texts.length) {
                 const multilineTexts = new MultilineTexts(this.texts);
                 multilineTexts.copyProperties(this);
+                multilineTexts.customTextCssStyle = this.customTextCssStyle;
                 elements.push(...multilineTexts.getElements(style));
             }
             if (this.centeredText) {
                 const centeredText = new _CenteredText(this.centeredText);
                 centeredText.copyProperties(this);
+                centeredText.customTextCssStyle = this.customTextCssStyle;
                 elements.push(...centeredText.getElements(style));
             }
             return elements;
@@ -570,6 +587,8 @@ function createItem() {
         description: '',
         rowIndex: -1,
         customBgColor: '',
+        customRectStyle: {},
+        customTextStyle: {},
     };
 }
 // Creates a default group.
@@ -582,6 +601,8 @@ function createGroup() {
         rowIndex: -1,
         rowSpan: -1,
         customBgColor: '',
+        customRectStyle: {},
+        customTextStyle: {},
     };
 }
 class LangParser {
