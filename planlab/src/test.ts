@@ -52,7 +52,7 @@ function testComputeItemRowIndices() {
       - RD
       - RR
   `) as { groups: any[] })['groups']);
-  const group = parser.parseGroupItems('RD', testData['RD']);
+  parser.parseGroupItems('RD', testData['RD']);
 
   const rd = parser.groups.get('RD')!;
   const rr = parser.groups.get('RR')!;
@@ -76,15 +76,21 @@ function testComputeGroupRowIndices() {
   const parser = new LangParser();
   parser.parseGroupStructure((jsyaml.load(`
     groups:
-      - RD
-      - RR
+      - Exp:
+        - Online:
+          - RD
+          - RR
+        - Offline
+      - ML
   `) as { groups: any[] })['groups']);
-  const group = parser.parseGroupItems('RD', testData['RD']);
-  LayoutComputation.computeItemRowIndices(group);
-  console.log(group);
+  parser.parseGroupItems('RD', testData['RD']);
 
-  // Test that "B" rowIndex is 0 instead of 2.
-  assert(group.items[2]!.rowIndex, 0);
+  LayoutComputation.computeAllItemRowIndices(parser.groups);
+  LayoutComputation.computeGroupRowIndices(parser.groups);
+
+  console.log(parser.groups);
+
+  assert(parser.groups.get('ML')!.rowIndex, 4);
 }
 
 function testParse() {
@@ -113,5 +119,6 @@ function runTests() {
   testParsingGroupStructure(parser);
   testParsingGroupItems(parser);
   testComputeItemRowIndices();
+  testComputeGroupRowIndices();
   testParse();
 }

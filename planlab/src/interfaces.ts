@@ -34,7 +34,7 @@ interface Group {
   items: Item[];
 
   // Used for UI/layout.
-  fromRowIndex: number;  // start with which row.
+  rowIndex: number;  // start with which row.
   rowSpan: number;  // how many rows to span.
 }
 
@@ -45,7 +45,7 @@ function createGroup(): Group {
     depth: -1,
     children: [],
     items: [],
-    fromRowIndex: -1,
+    rowIndex: -1,
     rowSpan: -1,
   };
 }

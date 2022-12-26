@@ -1,4 +1,12 @@
 namespace LayoutComputation {
+
+  // Compute item row indices for all groups.
+  export function computeAllItemRowIndices(groups: Map<string, Group>) {
+    for (const group of groups.values()) {
+      computeItemRowIndices(group);
+    }
+  }
+
   /**
    * Compute row indices of the items in the given group.
    * 
@@ -74,15 +82,15 @@ namespace LayoutComputation {
 
   // Recursively compute row related indices for a single group and its children, returns the top-level / total row span.
   function computeGroupIndicesRecursive(group: Group, currentRowIndex: number, groups: Map<string, Group>): number {
-    group.fromRowIndex = currentRowIndex;
-    if (group.children && group.items) {
+    group.rowIndex = currentRowIndex;
+    if (hasChildren(group) && hasItems(group)) {
       console.log('Error for group:');
       console.log(group);
       throw new Error('a group cannot have both children and items');
     }
 
     // Not leaf.
-    if (group.children) {
+    if (hasChildren(group)) {
       let rowSpan = 0;
       for (const childGroupName of group.children) {
         const childGroup = groups.get(childGroupName)!;
@@ -96,7 +104,11 @@ namespace LayoutComputation {
   }
 
   function isLeafGroup(group: Group): boolean {
-    return group.children.length === 0;
+    return !hasChildren(group);
+  }
+
+  function hasChildren(group: Group): boolean {
+    return group.children.length > 0;
   }
 
   function hasItems(group: Group): boolean {

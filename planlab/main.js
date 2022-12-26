@@ -485,7 +485,7 @@ function createGroup() {
         depth: -1,
         children: [],
         items: [],
-        fromRowIndex: -1,
+        rowIndex: -1,
         rowSpan: -1,
     };
 }
@@ -601,6 +601,13 @@ class LangParser {
 }
 var LayoutComputation;
 (function (LayoutComputation) {
+    // Compute item row indices for all groups.
+    function computeAllItemRowIndices(groups) {
+        for (const group of groups.values()) {
+            computeItemRowIndices(group);
+        }
+    }
+    LayoutComputation.computeAllItemRowIndices = computeAllItemRowIndices;
     /**
      * Compute row indices of the items in the given group.
      *
@@ -671,14 +678,14 @@ var LayoutComputation;
     LayoutComputation.computeGroupRowIndices = computeGroupRowIndices;
     // Recursively compute row related indices for a single group and its children, returns the top-level / total row span.
     function computeGroupIndicesRecursive(group, currentRowIndex, groups) {
-        group.fromRowIndex = currentRowIndex;
-        if (group.children && group.items) {
+        group.rowIndex = currentRowIndex;
+        if (hasChildren(group) && hasItems(group)) {
             console.log('Error for group:');
             console.log(group);
             throw new Error('a group cannot have both children and items');
         }
         // Not leaf.
-        if (group.children) {
+        if (hasChildren(group)) {
             let rowSpan = 0;
             for (const childGroupName of group.children) {
                 const childGroup = groups.get(childGroupName);
@@ -690,7 +697,10 @@ var LayoutComputation;
         return group.rowSpan;
     }
     function isLeafGroup(group) {
-        return group.children.length === 0;
+        return !hasChildren(group);
+    }
+    function hasChildren(group) {
+        return group.children.length > 0;
     }
     function hasItems(group) {
         return group.items.length > 0;
@@ -767,7 +777,7 @@ function testComputeItemRowIndices() {
       - RD
       - RR
   `)['groups']);
-    const group = parser.parseGroupItems('RD', testData['RD']);
+    parser.parseGroupItems('RD', testData['RD']);
     const rd = parser.groups.get('RD');
     const rr = parser.groups.get('RR');
     LayoutComputation.computeItemRowIndices(rd);
@@ -787,14 +797,18 @@ function testComputeGroupRowIndices() {
     const parser = new LangParser();
     parser.parseGroupStructure(jsyaml.load(`
     groups:
-      - RD
-      - RR
+      - Exp:
+        - Online:
+          - RD
+          - RR
+        - Offline
+      - ML
   `)['groups']);
-    const group = parser.parseGroupItems('RD', testData['RD']);
-    LayoutComputation.computeItemRowIndices(group);
-    console.log(group);
-    // Test that "B" rowIndex is 0 instead of 2.
-    assert(group.items[2].rowIndex, 0);
+    parser.parseGroupItems('RD', testData['RD']);
+    LayoutComputation.computeAllItemRowIndices(parser.groups);
+    LayoutComputation.computeGroupRowIndices(parser.groups);
+    console.log(parser.groups);
+    assert(parser.groups.get('ML').rowIndex, 4);
 }
 function testParse() {
     const content = `
@@ -820,6 +834,7 @@ function runTests() {
     testParsingGroupStructure(parser);
     testParsingGroupItems(parser);
     testComputeItemRowIndices();
+    testComputeGroupRowIndices();
     testParse();
 }
 function assert(value, expectedValue) {
