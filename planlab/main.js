@@ -94,8 +94,8 @@ function main() {
     draw();
 }
 window.addEventListener('DOMContentLoaded', function () {
-    // runTests();
-    main();
+    runTests();
+    // main();
 });
 var svg;
 (function (svg) {
@@ -587,8 +587,6 @@ function createItem() {
         description: '',
         rowIndex: -1,
         customBgColor: '',
-        customRectStyle: {},
-        customTextStyle: {},
     };
 }
 // Creates a default group.
@@ -601,15 +599,16 @@ function createGroup() {
         rowIndex: -1,
         rowSpan: -1,
         customBgColor: '',
-        customRectStyle: {},
-        customTextStyle: {},
     };
 }
 class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
+    STYLE_KEYWORD = 'styles';
     // A map from a string to either a string
     groups = new Map();
     rendererStyleConfig = new RendererStyleConfig();
+    // Stores all custom styles for groups and items.
+    customStyles = new Map();
     constructor() { }
     /**
      * Entry point for parsing group configs.
@@ -625,6 +624,10 @@ class LangParser {
                 // Group-item assignment.
                 this.parseGroupItems(key, contentYaml[key]);
             }
+        }
+        // Parse custom styles.
+        if (contentYaml[this.STYLE_KEYWORD]) {
+            this.parseStyles(contentYaml[contentYaml[this.STYLE_KEYWORD]]);
         }
     }
     /**
@@ -667,6 +670,37 @@ class LangParser {
         }
         // Return only for testing.
         return group;
+    }
+    /**
+     * Parses styles for groups and for items.
+     *
+     * Example input: parsed YAML object of:
+     * - Exp:
+     *   - rect: { color: "#334455", stroke-size: 5 }
+     *   - text: { ... }
+     * - RD:
+     *   - text: { ... }
+     * - ...
+     */
+    parseStyles(entities) {
+        for (const entity of entities) {
+            const name = this.getSingleKey(entity);
+            const customStyles = {
+                rectStyle: {},
+                textStyle: {},
+            };
+            for (const styleGroup of entity[name]) {
+                const styleFor = this.getSingleKey(styleGroup);
+                const styles = styleGroup[styleFor];
+                if (styleFor === 'rect') {
+                    customStyles.rectStyle = styles;
+                }
+                else if (styleFor === 'text') {
+                    customStyles.textStyle = styles;
+                }
+            }
+            this.customStyles.set(name, customStyles);
+        }
     }
     // Recursive parse groups, returns the names of the top level groups.
     parseGroupRecursive(subgroupYaml, currentDepth, groups) {
@@ -1007,15 +1041,29 @@ function testParsingGroupItems(parser) {
     console.log(parser.parseGroupItems('RD', testData['RD']));
     const rd = parser.groups.get('RD');
     assert(rd.items[0].name, 'B');
-    assert(rd.items[0].spanFromCol, 1);
-    assert(rd.items[0].spanToCol, 4);
+    assert(rd.items[0].spanFromCol, 0);
+    assert(rd.items[0].spanToCol, 3);
     assert(rd.items[0].capacityPercentage, 100);
     assert(rd.items[0].description, '(TL)');
     assert(rd.items[1].name, 'X');
-    assert(rd.items[1].spanFromCol, 1);
-    assert(rd.items[1].spanToCol, 4);
+    assert(rd.items[1].spanFromCol, 0);
+    assert(rd.items[1].spanToCol, 3);
     assert(rd.items[1].capacityPercentage, 80);
     assert(rd.items[1].description, '(Main IC)');
+}
+function testParseStyles() {
+    const testData = jsyaml.load(`
+    styles:
+      - B:
+        - text: { font-weight: bold }
+      - BD:
+        - rect: { fill: red }
+    `);
+    const parser = new LangParser();
+    parser.parseStyles(testData['styles']);
+    console.log(parser.customStyles);
+    assert(parser.customStyles.get('B')?.textStyle['font-weight'], 'bold');
+    assert(parser.customStyles.get('BD')?.rectStyle['fill'], 'red');
 }
 function testComputeItemRowIndices() {
     const testData = jsyaml.load(`
@@ -1086,6 +1134,7 @@ function runTests() {
     const parser = new LangParser();
     testParsingGroupStructure(parser);
     testParsingGroupItems(parser);
+    testParseStyles();
     testComputeItemRowIndices();
     testComputeGroupRowIndices();
     testParse();

@@ -1,12 +1,20 @@
 type ItemYaml = { [key: string]: string };
 
+interface CustomStyle {
+  rectStyle: svg.CssStyle;
+  textStyle: svg.CssStyle;
+}
+
 class LangParser {
   GROUP_STRUCT_KEYWORD = 'groups';
+  STYLE_KEYWORD = 'styles';
 
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
 
   public rendererStyleConfig = new RendererStyleConfig();
+  // Stores all custom styles for groups and items.
+  public customStyles: Map<string, CustomStyle> = new Map();
 
   constructor() { }
 
@@ -25,6 +33,11 @@ class LangParser {
         // Group-item assignment.
         this.parseGroupItems(key, contentYaml[key]);
       }
+    }
+
+    // Parse custom styles.
+    if (contentYaml[this.STYLE_KEYWORD]) {
+      this.parseStyles(contentYaml[contentYaml[this.STYLE_KEYWORD]]);
     }
   }
 
@@ -72,6 +85,37 @@ class LangParser {
 
     // Return only for testing.
     return group;
+  }
+
+  /**
+   * Parses styles for groups and for items.
+   * 
+   * Example input: parsed YAML object of:
+   * - Exp:
+   *   - rect: { color: "#334455", stroke-size: 5 }
+   *   - text: { ... }
+   * - RD:
+   *   - text: { ... }
+   * - ...
+   */
+  public parseStyles(entities: any[]) {
+    for (const entity of entities) {
+      const name = this.getSingleKey(entity);
+      const customStyles = {
+        rectStyle: {},
+        textStyle: {},
+      };
+      for (const styleGroup of entity[name]) {
+        const styleFor = this.getSingleKey(styleGroup);
+        const styles = styleGroup[styleFor];
+        if (styleFor === 'rect') {
+          customStyles.rectStyle = styles;
+        } else if (styleFor === 'text') {
+          customStyles.textStyle = styles;
+        }
+      }
+      this.customStyles.set(name, customStyles);
+    }
   }
 
   // Recursive parse groups, returns the names of the top level groups.

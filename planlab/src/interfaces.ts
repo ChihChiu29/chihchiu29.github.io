@@ -18,10 +18,6 @@ interface Item {
   // Style.
   // It set, overrides default color option.
   customBgColor: string;
-  // These are used in the last, will override all others.
-  // Do NOT use these to set dimensions, only styles.
-  customRectStyle: svg.CssStyle;
-  customTextStyle: svg.CssStyle;
 }
 
 // Creates a default item.
@@ -34,8 +30,6 @@ function createItem(): Item {
     description: '',
     rowIndex: -1,
     customBgColor: '',
-    customRectStyle: {},
-    customTextStyle: {},
   };
 }
 
@@ -55,10 +49,6 @@ interface Group {
   // Style.
   // If set, overrides default color option.
   customBgColor: string,
-  // These are used in the last, will override all others.
-  // Do NOT use these to set dimensions, only styles.
-  customRectStyle: svg.CssStyle;
-  customTextStyle: svg.CssStyle;
 }
 
 // Creates a default group.
@@ -71,7 +61,5 @@ function createGroup(): Group {
     rowIndex: -1,
     rowSpan: -1,
     customBgColor: '',
-    customRectStyle: {},
-    customTextStyle: {},
   };
 }

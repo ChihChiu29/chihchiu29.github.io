@@ -28,15 +28,32 @@ function testParsingGroupItems(parser: LangParser) {
 
   const rd = parser.groups.get('RD')!;
   assert(rd.items[0]!.name, 'B');
-  assert(rd.items[0]!.spanFromCol, 1);
-  assert(rd.items[0]!.spanToCol, 4);
+  assert(rd.items[0]!.spanFromCol, 0);
+  assert(rd.items[0]!.spanToCol, 3);
   assert(rd.items[0]!.capacityPercentage, 100);
   assert(rd.items[0]!.description, '(TL)');
   assert(rd.items[1]!.name, 'X');
-  assert(rd.items[1]!.spanFromCol, 1);
-  assert(rd.items[1]!.spanToCol, 4);
+  assert(rd.items[1]!.spanFromCol, 0);
+  assert(rd.items[1]!.spanToCol, 3);
   assert(rd.items[1]!.capacityPercentage, 80);
   assert(rd.items[1]!.description, '(Main IC)');
+}
+
+function testParseStyles() {
+  const testData = jsyaml.load(`
+    styles:
+      - B:
+        - text: { font-weight: bold }
+      - BD:
+        - rect: { fill: red }
+    `) as { styles: any[] };
+  const parser = new LangParser();
+  parser.parseStyles(testData['styles']);
+
+  console.log(parser.customStyles);
+
+  assert(parser.customStyles.get('B')?.textStyle['font-weight'], 'bold');
+  assert(parser.customStyles.get('BD')?.rectStyle['fill'], 'red');
 }
 
 function testComputeItemRowIndices() {
@@ -118,6 +135,7 @@ function runTests() {
   const parser = new LangParser();
   testParsingGroupStructure(parser);
   testParsingGroupItems(parser);
+  testParseStyles();
   testComputeItemRowIndices();
   testComputeGroupRowIndices();
   testParse();
