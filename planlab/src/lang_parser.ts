@@ -7,11 +7,13 @@ class LangParser {
   public groups: Map<string, Group> = new Map();
   public maxGroupDepth = 0;
 
-  constructor() {
-  }
+  public rendererStyleConfig = new RendererStyleConfig();
+
+  constructor() { }
 
   /**
-   * Entry point.
+   * Entry point for parsing group configs.
+   * It does NOT compute layout.
    */
   public parse(content: string) {
     const contentYaml = jsyaml.load(content) as any;
@@ -26,10 +28,7 @@ class LangParser {
       }
     }
 
-    // Compute row indices.
-    for (const group of this.groups.values()) {
-      LayoutComputation.computeItemRowIndices(group);
-    }
+    this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
   }
 
   /**

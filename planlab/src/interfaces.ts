@@ -1,3 +1,4 @@
+// An item occupies a single row and can span multiple columns.
 interface Item {
   name: string;  // key
   // Spanning which columns (inclusive).
@@ -8,9 +9,13 @@ interface Item {
   // Only for display
   description: string;
 
-  // Used for UI/layout.
+  // Layout.
   // Row index starting from 0 within a leaf group.
   rowIndex: number;
+
+  // Style.
+  // It set, overrides default color option.
+  customBgColor: string;
 }
 
 // Creates a default item.
@@ -22,9 +27,11 @@ function createItem(): Item {
     capacityPercentage: -1,
     description: '',
     rowIndex: -1,
+    customBgColor: '',
   };
 }
 
+// A group can contain subgroups or items, and usually span multiple rows.
 interface Group {
   name: string;  // globally unique
   depth: number;  // 0 means root
@@ -33,9 +40,13 @@ interface Group {
   // Items it contains, leaf groups have empty items.
   items: Item[];
 
-  // Used for UI/layout.
+  // Layout.
   rowIndex: number;  // start with which row.
   rowSpan: number;  // how many rows to span.
+
+  // Style.
+  // If set, overrides default color option.
+  customBgColor: string,
 }
 
 // Creates a default group.
@@ -47,5 +58,6 @@ function createGroup(): Group {
     items: [],
     rowIndex: -1,
     rowSpan: -1,
+    customBgColor: '',
   };
 }

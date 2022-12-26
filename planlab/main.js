@@ -476,6 +476,7 @@ function createItem() {
         capacityPercentage: -1,
         description: '',
         rowIndex: -1,
+        customBgColor: '',
     };
 }
 // Creates a default group.
@@ -487,6 +488,7 @@ function createGroup() {
         items: [],
         rowIndex: -1,
         rowSpan: -1,
+        customBgColor: '',
     };
 }
 class LangParser {
@@ -494,10 +496,11 @@ class LangParser {
     // A map from a string to either a string
     groups = new Map();
     maxGroupDepth = 0;
-    constructor() {
-    }
+    rendererStyleConfig = new RendererStyleConfig();
+    constructor() { }
     /**
-     * Entry point.
+     * Entry point for parsing group configs.
+     * It does NOT compute layout.
      */
     parse(content) {
         const contentYaml = jsyaml.load(content);
@@ -510,10 +513,7 @@ class LangParser {
                 this.parseGroupItems(key, contentYaml[key]);
             }
         }
-        // Compute row indices.
-        for (const group of this.groups.values()) {
-            LayoutComputation.computeItemRowIndices(group);
-        }
+        this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
     }
     /**
      * Parses a group structure object into Map<group, Group>.
@@ -717,14 +717,39 @@ var LayoutComputation;
         return `${row},${col}`;
     }
 })(LayoutComputation || (LayoutComputation = {}));
-class LayoutRenderer {
-    drawArea;
+class RendererStyleConfig {
+    // Both groups and items.
+    // Height of each row.
+    rowHeight = 100;
+    rowGap = 10;
     // Whether to report capacity and capacity sum.
     reportCapacity = true;
+    // Items only.
+    // Width of a column for items.
+    itemColWidth = 300;
+    defaultItemBgColor = '#545961';
+    itemGap = 10;
+    // Groups only.
+    // Default width of group when not set in custom.
+    defaultGroupWidth = 200;
+    groupGap = 10;
+    // A map from group depth to width.
+    customGroupWidths = [];
+    defaultGroupBgColor = '#327ba8';
+}
+class Renderer {
+    drawArea;
     constructor(svgElement) {
         this.drawArea = svgElement;
     }
-    render(groups) {
+    // Renders groups.
+    render(parser) {
+        const groups = parser.groups;
+        const rendererStyleConfig = parser.rendererStyleConfig;
+        // First compute layout.
+        LayoutComputation.computeAllItemRowIndices(groups);
+        LayoutComputation.computeGroupRowIndices(groups);
+        // Next draw groups recursively.
     }
 }
 function testParsingGroupStructure(parser) {
