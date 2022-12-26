@@ -94,8 +94,8 @@ function main() {
     draw();
 }
 window.addEventListener('DOMContentLoaded', function () {
-    runTests();
-    // main();
+    // runTests();
+    main();
 });
 var svg;
 (function (svg) {
@@ -875,8 +875,14 @@ class RendererStyleConfig {
     // Items only.
     // Width of a column for items.
     itemColWidth = 300;
-    defaultItemBgColor = '#545961';
     itemColGap = 10;
+    defaultItemBgColor = '#ba3262';
+    defaultItemStyles = {
+        rectStyle: {},
+        textStyle: {
+            fill: 'white',
+        },
+    };
     // Groups only.
     // Default width of group when not set in custom.
     defaultGroupWidth = 200;
@@ -884,6 +890,10 @@ class RendererStyleConfig {
     // A map from group depth to width.
     customGroupWidths = [];
     defaultGroupBgColor = '#327ba8';
+    defaultGroupStyles = {
+        rectStyle: {},
+        textStyle: {},
+    };
 }
 class Renderer {
     // Set after `render`.
@@ -892,6 +902,7 @@ class Renderer {
     drawArea;
     groups;
     style;
+    customStyles;
     // Postions.
     // "left" values for groups of each depth.
     groupLeftValues = [];
@@ -903,6 +914,7 @@ class Renderer {
         this.groups = parser.groups;
         this.drawArea = svgElement;
         this.style = parser.rendererStyleConfig;
+        this.customStyles = parser.customStyles;
     }
     // Renders groups.
     render(showGrid = true) {
@@ -961,6 +973,7 @@ class Renderer {
         rect.width = this.groupWidths[group.depth];
         rect.height = this.getHeight(group.rowSpan);
         rect.bgColor = this.getGroupBgColor(group);
+        this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
         renderer.addShape(rect);
     }
     drawItem(item, ownerGroup, renderer) {
@@ -978,7 +991,20 @@ class Renderer {
         rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
         rect.height = this.style.rowHeight;
         rect.bgColor = this.getItemBgColor(item);
+        this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
         renderer.addShape(rect);
+    }
+    applyCustomStyles(rect, entityName, defaultCustomStyle) {
+        let finalCustomStyles;
+        const customStyles = this.customStyles.get(entityName);
+        if (customStyles) {
+            finalCustomStyles = { ...defaultCustomStyle, ...customStyles };
+        }
+        else {
+            finalCustomStyles = defaultCustomStyle;
+        }
+        rect.customRectCssStyle = finalCustomStyles.rectStyle;
+        rect.customTextCssStyle = finalCustomStyles.textStyle;
     }
     // The the "top" value for an item with the given row index.
     getRowTop(rowIndex) {

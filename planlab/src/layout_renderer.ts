@@ -9,8 +9,14 @@ class RendererStyleConfig {
   // Items only.
   // Width of a column for items.
   public itemColWidth = 300;
-  public defaultItemBgColor = '#545961';
   public itemColGap = 10;
+  public defaultItemBgColor = '#ba3262';
+  public defaultItemStyles: CustomStyle = {
+    rectStyle: {},
+    textStyle: {
+      fill: 'white',
+    },
+  };
 
   // Groups only.
   // Default width of group when not set in custom.
@@ -19,6 +25,10 @@ class RendererStyleConfig {
   // A map from group depth to width.
   public customGroupWidths = [];
   public defaultGroupBgColor = '#327ba8';
+  public defaultGroupStyles: CustomStyle = {
+    rectStyle: {},
+    textStyle: {},
+  };
 }
 
 class Renderer {
@@ -29,6 +39,7 @@ class Renderer {
   private drawArea: HTMLElement;
   private groups: Map<string, Group>;
   private style: RendererStyleConfig;
+  private customStyles: Map<string, CustomStyle>;
 
   // Postions.
   // "left" values for groups of each depth.
@@ -42,6 +53,7 @@ class Renderer {
     this.groups = parser.groups;
     this.drawArea = svgElement;
     this.style = parser.rendererStyleConfig;
+    this.customStyles = parser.customStyles;
   }
 
   // Renders groups.
@@ -108,6 +120,8 @@ class Renderer {
     rect.height = this.getHeight(group.rowSpan);
     rect.bgColor = this.getGroupBgColor(group);
 
+    this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
+
     renderer.addShape(rect);
   }
 
@@ -128,7 +142,21 @@ class Renderer {
     rect.height = this.style.rowHeight;
     rect.bgColor = this.getItemBgColor(item);
 
+    this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
+
     renderer.addShape(rect);
+  }
+
+  private applyCustomStyles(rect: svg.Rect, entityName: string, defaultCustomStyle: CustomStyle) {
+    let finalCustomStyles: CustomStyle;
+    const customStyles = this.customStyles.get(entityName);
+    if (customStyles) {
+      finalCustomStyles = { ...defaultCustomStyle, ...customStyles };
+    } else {
+      finalCustomStyles = defaultCustomStyle;
+    }
+    rect.customRectCssStyle = finalCustomStyles.rectStyle;
+    rect.customTextCssStyle = finalCustomStyles.textStyle;
   }
 
   // The the "top" value for an item with the given row index.

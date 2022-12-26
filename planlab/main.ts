@@ -108,6 +108,6 @@ function main() {
 }
 
 window.addEventListener('DOMContentLoaded', function () {
-  runTests();
-  // main();
+  // runTests();
+  main();
 });
