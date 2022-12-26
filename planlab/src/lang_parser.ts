@@ -7,7 +7,7 @@ interface CustomStyle {
 
 class LangParser {
   GROUP_STRUCT_KEYWORD = 'groups';
-  LAYOUT_KEYWORD = 'layout';
+  GLOBAL_CONFIG_KEYWORD = 'global';
   STYLE_KEYWORD = 'styles';
 
   // A map from a string to either a string
@@ -36,10 +36,10 @@ class LangParser {
       }
     }
 
-    // Parse layout config.
-    const layoutConfig = contentYaml[this.STYLE_KEYWORD];
-    if (layoutConfig) {
-      this.parseLayoutConfig(layoutConfig);
+    // Parse global config.
+    const globalConfig = contentYaml[this.GLOBAL_CONFIG_KEYWORD];
+    if (globalConfig) {
+      this.parseGlobalStyleConfig(globalConfig);
     }
 
     // Parse custom styles.
@@ -96,7 +96,7 @@ class LangParser {
   }
 
   /**
-     * Parses layout related config.
+     * Parses global style config.
      * 
      * See `customGroupWidths` for what properties can be used.
      * 
@@ -104,7 +104,7 @@ class LangParser {
      * - rowHeight: 50
      * - customGroupWidths: [20, 30, 30]
      */
-  public parseLayoutConfig(styles: any[]) {
+  public parseGlobalStyleConfig(styles: any[]) {
     for (const style of styles) {
       const styleName = this.getSingleKey(style);
       // @ts-ignore

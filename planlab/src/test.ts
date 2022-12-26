@@ -41,12 +41,12 @@ function testParsingGroupItems(parser: LangParser) {
 
 function testParseLayoutConfig() {
   const testData = jsyaml.load(`
-    layout:
+    global:
       - rowHeight: 50
       - customGroupWidths: [20, 40, 40]
-    `) as { layout: any[] };
+    `) as { global: any[] };
   const parser = new LangParser();
-  parser.parseLayoutConfig(testData.layout);
+  parser.parseGlobalStyleConfig(testData.global);
 
   console.log(parser.rendererStyleConfig);
 

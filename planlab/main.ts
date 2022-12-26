@@ -4,6 +4,20 @@ const GRAPH_URL_PARAM = 'g';
 
 const DEFAULT_GRAPH = `# style setting
 # simple examples
+global:  # global config for layout and style
+  - rowHeight: 25
+  - groupColGap: 5
+  - rowGap: 5
+  - itemColWidth: 100
+  - customGroupWidths: [40, 60, 60]
+  - defaultGroupBgColor: "#f7d577"
+
+styles:  # define styles for groups and items
+  - Exp:
+    - rect: { fill: grey }
+  - B:
+    - rect: { fill: darkblue }
+
 groups:
   - Exp:
     - Online:

@@ -21,7 +21,7 @@ class RendererStyleConfig {
   // Groups only.
   // Default width of group when not set in custom.
   public defaultGroupWidth = 200;
-  public groupGap = 10;
+  public groupColGap = 10;
   // A map from group depth to width.
   public customGroupWidths = [];
   public defaultGroupBgColor = '#327ba8';
@@ -106,7 +106,7 @@ class Renderer {
     let nextLeftValue = 0;
     for (const [i, width] of this.groupWidths.entries()) {
       this.groupLeftValues[i] = nextLeftValue;
-      nextLeftValue += width + this.style.groupGap;
+      nextLeftValue += width + this.style.groupColGap;
     }
     this.itemBaseLeftValue = nextLeftValue;
   }
@@ -151,7 +151,10 @@ class Renderer {
     let finalCustomStyles: CustomStyle;
     const customStyles = this.customStyles.get(entityName);
     if (customStyles) {
-      finalCustomStyles = { ...defaultCustomStyle, ...customStyles };
+      finalCustomStyles = {
+        rectStyle: { ...defaultCustomStyle.rectStyle, ...customStyles.rectStyle },
+        textStyle: { ...defaultCustomStyle.textStyle, ...customStyles.textStyle },
+      }
     } else {
       finalCustomStyles = defaultCustomStyle;
     }

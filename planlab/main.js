@@ -3,6 +3,20 @@ const PAGE_PATH = '/diagramlab/diagramlab.html';
 const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# style setting
 # simple examples
+global:  # global config for layout and style
+  - rowHeight: 25
+  - groupColGap: 5
+  - rowGap: 5
+  - itemColWidth: 100
+  - customGroupWidths: [40, 60, 60]
+  - defaultGroupBgColor: "#f7d577"
+
+styles:  # define styles for groups and items
+  - Exp:
+    - rect: { fill: grey }
+  - B:
+    - rect: { fill: darkblue }
+
 groups:
   - Exp:
     - Online:
@@ -603,7 +617,7 @@ function createGroup() {
 }
 class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
-    LAYOUT_KEYWORD = 'layout';
+    GLOBAL_CONFIG_KEYWORD = 'global';
     STYLE_KEYWORD = 'styles';
     // A map from a string to either a string
     groups = new Map();
@@ -626,10 +640,10 @@ class LangParser {
                 this.parseGroupItems(key, contentYaml[key]);
             }
         }
-        // Parse layout config.
-        const layoutConfig = contentYaml[this.STYLE_KEYWORD];
-        if (layoutConfig) {
-            this.parseLayoutConfig(layoutConfig);
+        // Parse global config.
+        const globalConfig = contentYaml[this.GLOBAL_CONFIG_KEYWORD];
+        if (globalConfig) {
+            this.parseGlobalStyleConfig(globalConfig);
         }
         // Parse custom styles.
         const customStyles = contentYaml[this.STYLE_KEYWORD];
@@ -679,7 +693,7 @@ class LangParser {
         return group;
     }
     /**
-       * Parses layout related config.
+       * Parses global style config.
        *
        * See `customGroupWidths` for what properties can be used.
        *
@@ -687,7 +701,7 @@ class LangParser {
        * - rowHeight: 50
        * - customGroupWidths: [20, 30, 30]
        */
-    parseLayoutConfig(styles) {
+    parseGlobalStyleConfig(styles) {
         for (const style of styles) {
             const styleName = this.getSingleKey(style);
             // @ts-ignore
@@ -909,7 +923,7 @@ class RendererStyleConfig {
     // Groups only.
     // Default width of group when not set in custom.
     defaultGroupWidth = 200;
-    groupGap = 10;
+    groupColGap = 10;
     // A map from group depth to width.
     customGroupWidths = [];
     defaultGroupBgColor = '#327ba8';
@@ -984,7 +998,7 @@ class Renderer {
         let nextLeftValue = 0;
         for (const [i, width] of this.groupWidths.entries()) {
             this.groupLeftValues[i] = nextLeftValue;
-            nextLeftValue += width + this.style.groupGap;
+            nextLeftValue += width + this.style.groupColGap;
         }
         this.itemBaseLeftValue = nextLeftValue;
     }
@@ -1021,7 +1035,10 @@ class Renderer {
         let finalCustomStyles;
         const customStyles = this.customStyles.get(entityName);
         if (customStyles) {
-            finalCustomStyles = { ...defaultCustomStyle, ...customStyles };
+            finalCustomStyles = {
+                rectStyle: { ...defaultCustomStyle.rectStyle, ...customStyles.rectStyle },
+                textStyle: { ...defaultCustomStyle.textStyle, ...customStyles.textStyle },
+            };
         }
         else {
             finalCustomStyles = defaultCustomStyle;
@@ -1102,12 +1119,12 @@ function testParsingGroupItems(parser) {
 }
 function testParseLayoutConfig() {
     const testData = jsyaml.load(`
-    layout:
+    global:
       - rowHeight: 50
       - customGroupWidths: [20, 40, 40]
     `);
     const parser = new LangParser();
-    parser.parseLayoutConfig(testData.layout);
+    parser.parseGlobalStyleConfig(testData.global);
     console.log(parser.rendererStyleConfig);
     assert(parser.rendererStyleConfig.rowHeight, 50);
     assert(parser.rendererStyleConfig.customGroupWidths[2], 40);
