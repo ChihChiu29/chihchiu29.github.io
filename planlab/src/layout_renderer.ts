@@ -32,6 +32,9 @@ class RendererStyleConfig {
 }
 
 class Renderer {
+  // Extra space around the whole group (to show border etc.).
+  EXTRA_MARGIN = 5;
+
   // Set after `render`.
   public graphWidth = 0;
   public graphHeight = 0;
@@ -83,12 +86,13 @@ class Renderer {
       }
     }
 
+
     this.graphWidth = this.getItemLeft(maxItemCol) + this.style.itemColWidth;
     this.graphHeight = this.getRowTop(maxRow) - this.style.rowGap;
-    svgRenderer.left = 0;
-    svgRenderer.top = 0;
-    svgRenderer.width = this.graphWidth;
-    svgRenderer.height = this.graphHeight;
+    svgRenderer.left = -this.EXTRA_MARGIN;
+    svgRenderer.top = -this.EXTRA_MARGIN;
+    svgRenderer.width = this.graphWidth + this.EXTRA_MARGIN * 2;
+    svgRenderer.height = this.graphHeight + this.EXTRA_MARGIN * 2;
 
     // Actual rendering.
     svgRenderer.draw();

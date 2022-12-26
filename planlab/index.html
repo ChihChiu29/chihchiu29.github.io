@@ -10,6 +10,10 @@
   <script src="externallib/js-yaml.min.js"></script>
 
   <style>
+    #input-wrapper {
+      height: 600px;
+    }
+
     #input {
       height: 100%;
       width: 100%;
@@ -37,10 +41,6 @@
       /* background-color: #e9ecef; */
       background-color: #f5f8fa;
     }
-
-    #bottom-space {
-      margin-bottom: 40px;
-    }
   </style>
 </head>
 
@@ -61,15 +61,11 @@
       <button class="btn btn-secondary" onclick="save()">SAVE AS PNG</button>
     </div>
     <div class="row">
-      <div class="col-4">
-        <textarea id="input" spellcheck="false"></textarea>
-      </div>
-      <div class="col-8">
-        <div id="drawarea" style="border: solid"></div>
-      </div>
-
+      <div id="drawarea" style="border: solid"></div>
     </div>
-    <div id="bottom-space"></div>
+    <div class="row" id="input-wrapper">
+      <textarea id="input" spellcheck="false"></textarea>
+    </div>
   </div>
 
   <div id="save-action"></div>
