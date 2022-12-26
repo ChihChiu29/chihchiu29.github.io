@@ -28,13 +28,13 @@ function testParsingGroupItems(parser: LangParser) {
 
   const rd = parser.groups.get('RD')!;
   assert(rd.items[0]!.name, 'B');
-  assert(rd.items[0]!.spanFromColumn, 1);
-  assert(rd.items[0]!.spanUntilColumn, 4);
+  assert(rd.items[0]!.spanFromCol, 1);
+  assert(rd.items[0]!.spanToCol, 4);
   assert(rd.items[0]!.capacityPercentage, 100);
   assert(rd.items[0]!.description, '(TL)');
   assert(rd.items[1]!.name, 'X');
-  assert(rd.items[1]!.spanFromColumn, 1);
-  assert(rd.items[1]!.spanUntilColumn, 4);
+  assert(rd.items[1]!.spanFromCol, 1);
+  assert(rd.items[1]!.spanToCol, 4);
   assert(rd.items[1]!.capacityPercentage, 80);
   assert(rd.items[1]!.description, '(Main IC)');
 }

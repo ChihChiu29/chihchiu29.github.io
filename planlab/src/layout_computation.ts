@@ -31,7 +31,7 @@ namespace LayoutComputation {
     // Initializes row indices and spaces.
     for (const [rowIdx, item] of items.entries()) {
       item.rowIndex = rowIdx;
-      for (let colIdx = item.spanFromColumn; colIdx <= item.spanUntilColumn; colIdx++) {
+      for (let colIdx = item.spanFromCol; colIdx <= item.spanToCol; colIdx++) {
         spaces.set(getRowColKey(rowIdx, colIdx), true);
       }
     }
@@ -42,8 +42,8 @@ namespace LayoutComputation {
       for (const item of items) {
         const rowIdx = item.rowIndex!;
         for (let tryRowIdx = 0; tryRowIdx < rowIdx; tryRowIdx++) {
-          if (!isSpaceFull(spaces, tryRowIdx, item.spanFromColumn, item.spanUntilColumn)) {
-            for (let colIdx = item.spanFromColumn; colIdx <= item.spanUntilColumn; colIdx++) {
+          if (!isSpaceFull(spaces, tryRowIdx, item.spanFromCol, item.spanToCol)) {
+            for (let colIdx = item.spanFromCol; colIdx <= item.spanToCol; colIdx++) {
               spaces.set(getRowColKey(tryRowIdx, colIdx), true);
               spaces.set(getRowColKey(rowIdx, colIdx), false);
             }

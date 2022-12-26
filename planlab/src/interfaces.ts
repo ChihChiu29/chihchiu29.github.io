@@ -2,8 +2,8 @@
 interface Item {
   name: string;  // key
   // Spanning which columns (inclusive).
-  spanFromColumn: number;
-  spanUntilColumn: number;
+  spanFromCol: number;
+  spanToCol: number;
   // Capacity of the item.
   capacityPercentage: number;
   // Only for display
@@ -22,8 +22,8 @@ interface Item {
 function createItem(): Item {
   return {
     name: '',
-    spanFromColumn: -1,
-    spanUntilColumn: -1,
+    spanFromCol: -1,
+    spanToCol: -1,
     capacityPercentage: -1,
     description: '',
     rowIndex: -1,

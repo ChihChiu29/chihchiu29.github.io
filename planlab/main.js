@@ -472,8 +472,8 @@ groups:
 function createItem() {
     return {
         name: '',
-        spanFromColumn: -1,
-        spanUntilColumn: -1,
+        spanFromCol: -1,
+        spanToCol: -1,
         capacityPercentage: -1,
         description: '',
         rowIndex: -1,
@@ -582,8 +582,8 @@ class LangParser {
         item.name = name;
         const configSegments = config.split(',').map(s => s.trim());
         const spanSegments = configSegments[0].split('-');
-        item.spanFromColumn = Number(spanSegments[0]);
-        item.spanUntilColumn = Number(spanSegments[1]);
+        item.spanFromCol = Number(spanSegments[0]);
+        item.spanToCol = Number(spanSegments[1]);
         item.capacityPercentage = Number(configSegments[1]);
         if (configSegments.length > 2) {
             item.description = configSegments[2];
@@ -628,7 +628,7 @@ var LayoutComputation;
         // Initializes row indices and spaces.
         for (const [rowIdx, item] of items.entries()) {
             item.rowIndex = rowIdx;
-            for (let colIdx = item.spanFromColumn; colIdx <= item.spanUntilColumn; colIdx++) {
+            for (let colIdx = item.spanFromCol; colIdx <= item.spanToCol; colIdx++) {
                 spaces.set(getRowColKey(rowIdx, colIdx), true);
             }
         }
@@ -638,8 +638,8 @@ var LayoutComputation;
             for (const item of items) {
                 const rowIdx = item.rowIndex;
                 for (let tryRowIdx = 0; tryRowIdx < rowIdx; tryRowIdx++) {
-                    if (!isSpaceFull(spaces, tryRowIdx, item.spanFromColumn, item.spanUntilColumn)) {
-                        for (let colIdx = item.spanFromColumn; colIdx <= item.spanUntilColumn; colIdx++) {
+                    if (!isSpaceFull(spaces, tryRowIdx, item.spanFromCol, item.spanToCol)) {
+                        for (let colIdx = item.spanFromCol; colIdx <= item.spanToCol; colIdx++) {
                             spaces.set(getRowColKey(tryRowIdx, colIdx), true);
                             spaces.set(getRowColKey(rowIdx, colIdx), false);
                         }
@@ -727,7 +727,7 @@ class RendererStyleConfig {
     // Width of a column for items.
     itemColWidth = 300;
     defaultItemBgColor = '#545961';
-    itemGap = 10;
+    itemColGap = 10;
     // Groups only.
     // Default width of group when not set in custom.
     defaultGroupWidth = 200;
@@ -739,7 +739,7 @@ class RendererStyleConfig {
 class Renderer {
     drawArea;
     groups;
-    rendererStyleConfig;
+    style;
     // Postions.
     // "left" values for groups of each depth.
     groupLeftValues = [];
@@ -750,7 +750,7 @@ class Renderer {
     constructor(svgElement, parser) {
         this.groups = parser.groups;
         this.drawArea = svgElement;
-        this.rendererStyleConfig = parser.rendererStyleConfig;
+        this.style = parser.rendererStyleConfig;
     }
     // Renders groups.
     render() {
@@ -763,24 +763,24 @@ class Renderer {
         const svgRenderer = new svg.SVGRenderer(this.drawArea);
         for (const group of this.groups.values()) {
             for (const item of group.items) {
-                this.drawItem(item, svgRenderer);
+                this.drawItem(item, group, svgRenderer);
             }
             this.drawGroup(group, svgRenderer);
         }
     }
     prepareStyle() {
         // Compute group widths.
-        this.groupWidths = [...this.rendererStyleConfig.customGroupWidths];
+        this.groupWidths = [...this.style.customGroupWidths];
         const maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
         for (let i = 0; i <= maxGroupDepth; i++) {
             if (!this.groupWidths[i]) {
-                this.groupWidths[i] = this.rendererStyleConfig.defaultGroupWidth;
+                this.groupWidths[i] = this.style.defaultGroupWidth;
             }
         }
         let nextLeftValue = 0;
         for (const [i, width] of this.groupWidths.entries()) {
             this.groupLeftValues[i] = nextLeftValue;
-            nextLeftValue += width + this.rendererStyleConfig.groupGap;
+            nextLeftValue += width + this.style.groupGap;
         }
         this.itemBaseLeftValue = nextLeftValue;
     }
@@ -791,16 +791,40 @@ class Renderer {
         rect.y = this.getTop(group.rowIndex);
         rect.width = this.groupWidths[group.depth];
         rect.height = this.getHeight(group.rowSpan);
+        renderer.addShape(rect);
     }
-    drawItem(item, renderer) {
+    drawItem(item, ownerGroup, renderer) {
+        let content = item.name;
+        if (this.style.reportCapacity) {
+            content += ` (${item.capacityPercentage}%)`;
+        }
+        if (item.description) {
+            content += ` ${item.description}`;
+        }
+        const rect = new svg.Rect();
+        rect.texts = [content];
+        rect.x = this.getItemLeft(item.spanFromCol);
+        rect.y = this.getTop(ownerGroup.rowIndex + item.rowIndex);
+        rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
+        rect.height = this.style.rowHeight;
+        renderer.addShape(rect);
     }
     // The the "top" value for an item with the given row index.
     getTop(rowIndex) {
-        return rowIndex * (this.rendererStyleConfig.rowHeight + this.rendererStyleConfig.rowGap);
+        return rowIndex * (this.style.rowHeight + this.style.rowGap);
     }
     // The height of an item for the given row span.
     getHeight(rowSpan) {
-        return rowSpan * this.rendererStyleConfig.rowHeight + (rowSpan - 1) * this.rendererStyleConfig.rowGap;
+        return rowSpan * this.style.rowHeight + (rowSpan - 1) * this.style.rowGap;
+    }
+    // The "left" value for an item.
+    getItemLeft(colIdx) {
+        return this.itemBaseLeftValue + colIdx * (this.style.itemColWidth + this.style.itemColGap);
+    }
+    // The width of an item.
+    getItemWidth(fromCol, toCol) {
+        const colSpan = toCol - fromCol;
+        return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
     }
 }
 function testParsingGroupStructure(parser) {
@@ -830,13 +854,13 @@ function testParsingGroupItems(parser) {
     console.log(parser.parseGroupItems('RD', testData['RD']));
     const rd = parser.groups.get('RD');
     assert(rd.items[0].name, 'B');
-    assert(rd.items[0].spanFromColumn, 1);
-    assert(rd.items[0].spanUntilColumn, 4);
+    assert(rd.items[0].spanFromCol, 1);
+    assert(rd.items[0].spanToCol, 4);
     assert(rd.items[0].capacityPercentage, 100);
     assert(rd.items[0].description, '(TL)');
     assert(rd.items[1].name, 'X');
-    assert(rd.items[1].spanFromColumn, 1);
-    assert(rd.items[1].spanUntilColumn, 4);
+    assert(rd.items[1].spanFromCol, 1);
+    assert(rd.items[1].spanToCol, 4);
     assert(rd.items[1].capacityPercentage, 80);
     assert(rd.items[1].description, '(Main IC)');
 }

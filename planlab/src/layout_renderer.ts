@@ -10,7 +10,7 @@ class RendererStyleConfig {
   // Width of a column for items.
   public itemColWidth = 300;
   public defaultItemBgColor = '#545961';
-  public itemGap = 10;
+  public itemColGap = 10;
 
   // Groups only.
   // Default width of group when not set in custom.
@@ -24,7 +24,7 @@ class RendererStyleConfig {
 class Renderer {
   private drawArea: HTMLElement;
   private groups: Map<string, Group>;
-  private rendererStyleConfig: RendererStyleConfig;
+  private style: RendererStyleConfig;
 
   // Postions.
   // "left" values for groups of each depth.
@@ -37,7 +37,7 @@ class Renderer {
   constructor(svgElement: HTMLElement, parser: LangParser) {
     this.groups = parser.groups;
     this.drawArea = svgElement;
-    this.rendererStyleConfig = parser.rendererStyleConfig;
+    this.style = parser.rendererStyleConfig;
   }
 
   // Renders groups.
@@ -53,7 +53,7 @@ class Renderer {
     const svgRenderer = new svg.SVGRenderer(this.drawArea);
     for (const group of this.groups.values()) {
       for (const item of group.items) {
-        this.drawItem(item, svgRenderer);
+        this.drawItem(item, group, svgRenderer);
       }
       this.drawGroup(group, svgRenderer);
     }
@@ -61,17 +61,17 @@ class Renderer {
 
   private prepareStyle(): void {
     // Compute group widths.
-    this.groupWidths = [...this.rendererStyleConfig.customGroupWidths];
+    this.groupWidths = [...this.style.customGroupWidths];
     const maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
     for (let i = 0; i <= maxGroupDepth; i++) {
       if (!this.groupWidths[i]) {
-        this.groupWidths[i] = this.rendererStyleConfig.defaultGroupWidth;
+        this.groupWidths[i] = this.style.defaultGroupWidth;
       }
     }
     let nextLeftValue = 0;
     for (const [i, width] of this.groupWidths.entries()) {
       this.groupLeftValues[i] = nextLeftValue;
-      nextLeftValue += width + this.rendererStyleConfig.groupGap;
+      nextLeftValue += width + this.style.groupGap;
     }
     this.itemBaseLeftValue = nextLeftValue;
   }
@@ -83,19 +83,47 @@ class Renderer {
     rect.y = this.getTop(group.rowIndex);
     rect.width = this.groupWidths[group.depth];
     rect.height = this.getHeight(group.rowSpan);
+
+    renderer.addShape(rect);
   }
 
-  private drawItem(item: Item, renderer: svg.SVGRenderer): void {
+  private drawItem(item: Item, ownerGroup: Group, renderer: svg.SVGRenderer): void {
+    let content: string = item.name;
+    if (this.style.reportCapacity) {
+      content += ` (${item.capacityPercentage}%)`;
+    }
+    if (item.description) {
+      content += ` ${item.description}`;
+    }
 
+    const rect = new svg.Rect();
+    rect.texts = [content];
+    rect.x = this.getItemLeft(item.spanFromCol);
+    rect.y = this.getTop(ownerGroup.rowIndex + item.rowIndex);
+    rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
+    rect.height = this.style.rowHeight;
+
+    renderer.addShape(rect);
   }
 
   // The the "top" value for an item with the given row index.
   private getTop(rowIndex: number): number {
-    return rowIndex * (this.rendererStyleConfig.rowHeight + this.rendererStyleConfig.rowGap);
+    return rowIndex * (this.style.rowHeight + this.style.rowGap);
   }
 
   // The height of an item for the given row span.
   private getHeight(rowSpan: number): number {
-    return rowSpan * this.rendererStyleConfig.rowHeight + (rowSpan - 1) * this.rendererStyleConfig.rowGap;
+    return rowSpan * this.style.rowHeight + (rowSpan - 1) * this.style.rowGap;
+  }
+
+  // The "left" value for an item.
+  private getItemLeft(colIdx: number): number {
+    return this.itemBaseLeftValue + colIdx * (this.style.itemColWidth + this.style.itemColGap);
+  }
+
+  // The width of an item.
+  private getItemWidth(fromCol: number, toCol: number): number {
+    const colSpan = toCol - fromCol;
+    return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
   }
 }
