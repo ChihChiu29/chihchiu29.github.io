@@ -831,6 +831,9 @@ class RendererStyleConfig {
     defaultGroupBgColor = '#327ba8';
 }
 class Renderer {
+    // Set after `render`.
+    graphWidth = 0;
+    graphHeight = 0;
     drawArea;
     groups;
     style;
@@ -847,28 +850,39 @@ class Renderer {
         this.style = parser.rendererStyleConfig;
     }
     // Renders groups.
-    render() {
+    render(showGrid = true) {
         // First compute layout.
         LayoutComputation.computeAllItemRowIndices(this.groups);
         LayoutComputation.computeGroupRowIndices(this.groups);
         // Next prepare style related compuation.
-        this.prepareStyle();
+        this.precomputePositions();
         // Start drawing!
+        let maxItemCol = -1; // 1-based
+        let maxRow = -1; // this is really the "next" row
         const svgRenderer = new svg.SVGRenderer(this.drawArea);
-        svgRenderer.left = 0;
-        svgRenderer.top = 0;
-        svgRenderer.width = 1000;
-        svgRenderer.height = 1000;
+        svgRenderer.useGrid = showGrid;
         for (const group of this.groups.values()) {
             for (const item of group.items) {
                 this.drawItem(item, group, svgRenderer);
+                if (item.spanToCol > maxItemCol) {
+                    maxItemCol = item.spanToCol;
+                }
             }
             this.drawGroup(group, svgRenderer);
+            if (group.rowIndex + group.rowSpan > maxRow) {
+                maxRow = group.rowIndex + group.rowSpan;
+            }
         }
+        this.graphWidth = this.getItemLeft(maxItemCol) + this.style.itemColWidth;
+        this.graphHeight = this.getRowTop(maxRow) - this.style.rowGap;
+        svgRenderer.left = 0;
+        svgRenderer.top = 0;
+        svgRenderer.width = this.graphWidth;
+        svgRenderer.height = this.graphHeight;
         // Actual rendering.
         svgRenderer.draw();
     }
-    prepareStyle() {
+    precomputePositions() {
         // Compute group widths.
         this.groupWidths = [...this.style.customGroupWidths];
         const maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
@@ -888,7 +902,7 @@ class Renderer {
         const rect = new svg.Rect();
         rect.centeredText = group.name;
         rect.x = this.groupLeftValues[group.depth];
-        rect.y = this.getTop(group.rowIndex);
+        rect.y = this.getRowTop(group.rowIndex);
         rect.width = this.groupWidths[group.depth];
         rect.height = this.getHeight(group.rowSpan);
         rect.bgColor = this.getGroupBgColor(group);
@@ -905,14 +919,14 @@ class Renderer {
         const rect = new svg.Rect();
         rect.texts = [content];
         rect.x = this.getItemLeft(item.spanFromCol);
-        rect.y = this.getTop(ownerGroup.rowIndex + item.rowIndex);
+        rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
         rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
         rect.height = this.style.rowHeight;
         rect.bgColor = this.getItemBgColor(item);
         renderer.addShape(rect);
     }
     // The the "top" value for an item with the given row index.
-    getTop(rowIndex) {
+    getRowTop(rowIndex) {
         return rowIndex * (this.style.rowHeight + this.style.rowGap);
     }
     // The height of an item for the given row span.
