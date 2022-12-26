@@ -467,6 +467,28 @@ groups:
   - ML
 `;
 }
+// Creates a default item.
+function createItem() {
+    return {
+        name: '',
+        spanFromColumn: -1,
+        spanUntilColumn: -1,
+        capacityPercentage: -1,
+        description: '',
+        rowIndex: -1,
+    };
+}
+// Creates a default group.
+function createGroup() {
+    return {
+        name: '',
+        depth: -1,
+        children: [],
+        items: [],
+        fromRowIndex: -1,
+        rowSpan: -1,
+    };
+}
 class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
     // A map from a string to either a string
@@ -537,25 +559,28 @@ class LangParser {
         const groupNames = [];
         for (const subgroup of subgroupYaml) {
             let name;
+            const group = createGroup();
             if (typeof (subgroup) !== 'object') {
                 // leaf
                 name = subgroup.toString();
-                // Items will be filled later
-                groups.set(name, { name, depth: currentDepth, children: [], items: [] });
             }
             else {
-                // group with a single key
+                // group object with a single key
                 name = this.getSingleKey(subgroup);
                 const subgroupNames = this.parseGroupRecursive(subgroup[name], currentDepth + 1, groups);
-                groups.set(name, { name, depth: currentDepth, children: subgroupNames });
+                group.children = subgroupNames;
             }
+            group.name = name;
+            group.depth = currentDepth;
+            groups.set(name, group);
             groupNames.push(name);
         }
         return groupNames;
     }
     // Parses a single item config of type '1-4, 80, (Main IC)'.
     parseItemConfig(name, config) {
-        const item = { name, spanFromColumn: 0, spanUntilColumn: 0, capacityPercentage: 100 };
+        const item = createItem();
+        item.name = name;
         const configSegments = config.split(',').map(s => s.trim());
         const spanSegments = configSegments[0].split('-');
         item.spanFromColumn = Number(spanSegments[0]);
@@ -622,8 +647,17 @@ var LayoutComputation;
                 break;
             }
         }
+        leafGroup.rowSpan = Math.max(...(items.map(i => i.rowIndex))) + 1;
     }
     LayoutComputation.computeItemRowIndices = computeItemRowIndices;
+    /**
+     * Compute row indices for all groups.
+     *
+     * Needs to be called after `computeItemRowIndices` for all leaf groups.
+     */
+    function computeGroupRowIndices(groups) {
+    }
+    LayoutComputation.computeGroupRowIndices = computeGroupRowIndices;
     function isSpaceFull(spaces, row, colFrom, colUntil) {
         for (let colIdx = colFrom; colIdx <= colUntil; colIdx++) {
             if (spaces.get(getRowColKey(row, colIdx))) {
@@ -636,6 +670,16 @@ var LayoutComputation;
         return `${row},${col}`;
     }
 })(LayoutComputation || (LayoutComputation = {}));
+class LayoutRenderer {
+    drawArea;
+    // Whether to report capacity and capacity sum.
+    reportCapacity = true;
+    constructor(svgElement) {
+        this.drawArea = svgElement;
+    }
+    render(groups) {
+    }
+}
 function testParsingGroupStructure(parser) {
     const testData = jsyaml.load(`
     groups:

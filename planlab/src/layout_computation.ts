@@ -49,6 +49,17 @@ namespace LayoutComputation {
         break;
       }
     }
+
+    leafGroup.rowSpan = Math.max(...(items.map(i => i.rowIndex))) + 1;
+  }
+
+  /**
+   * Compute row indices for all groups.
+   * 
+   * Needs to be called after `computeItemRowIndices` for all leaf groups.
+   */
+  export function computeGroupRowIndices(groups: Map<string, Group>): void {
+
   }
 
   function isSpaceFull(spaces: Map<string, boolean>, row: number, colFrom: number, colUntil: number): boolean {

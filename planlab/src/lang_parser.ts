@@ -81,17 +81,19 @@ class LangParser {
     const groupNames = [];
     for (const subgroup of subgroupYaml) {
       let name;
+      const group = createGroup();
       if (typeof (subgroup) !== 'object') {
         // leaf
         name = subgroup.toString();
-        // Items will be filled later
-        groups.set(name, { name, depth: currentDepth, children: [], items: [] });
       } else {
-        // group with a single key
+        // group object with a single key
         name = this.getSingleKey(subgroup);
         const subgroupNames = this.parseGroupRecursive(subgroup[name], currentDepth + 1, groups);
-        groups.set(name, { name, depth: currentDepth, children: subgroupNames });
+        group.children = subgroupNames;
       }
+      group.name = name;
+      group.depth = currentDepth;
+      groups.set(name, group);
       groupNames.push(name);
     }
     return groupNames;
@@ -99,7 +101,8 @@ class LangParser {
 
   // Parses a single item config of type '1-4, 80, (Main IC)'.
   private parseItemConfig(name: string, config: string): Item {
-    const item: Item = { name, spanFromColumn: 0, spanUntilColumn: 0, capacityPercentage: 100 };
+    const item = createItem();
+    item.name = name;
     const configSegments = config.split(',').map(s => s.trim());
     const spanSegments = configSegments[0].split('-');
     item.spanFromColumn = Number(spanSegments[0]);
