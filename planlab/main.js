@@ -167,6 +167,10 @@ var svg;
     class MultilineTexts extends Shape {
         GAP_LEFT = 5; // space to the left of the text.
         linesOfTexts = [];
+        constructor(linesOfTexts) {
+            super();
+            this.linesOfTexts = linesOfTexts;
+        }
         copyProperties(other) {
             this.x = other.x;
             this.y = other.y;
@@ -273,13 +277,13 @@ var svg;
      * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
      */
     class StackContainer extends Shape {
+        // Shifts in x and y for each stacked shape.
+        shiftX = 10; // half of shiftY is a good choice.
+        shiftY = 25; // style.textFontSize + 10 is a good choice.
+        // Shapes to tile, background to foreground. All shapes will be set to the container's size.
+        shapes = [];
         constructor() {
             super();
-            // Shifts in x and y for each stacked shape.
-            this.shiftX = 10; // half of shiftY is a good choice.
-            this.shiftY = 25; // style.textFontSize + 10 is a good choice.
-            // Shapes to tile, background to foreground. All shapes will be set to the container's size.
-            this.shapes = [];
         }
         // @Override
         getElements(style) {
@@ -308,15 +312,15 @@ var svg;
      * Borderless container to show multiple shapes in tile layout.
      */
     class TileContainer extends Shape {
+        // How many shapes to put per row. Affects how shapes are resized.
+        numOfShapesPerRow = 3;
+        // Gap size between shapes.
+        gapX = 10;
+        gapY = 10;
+        // Shapes to tile. All shapes will be reshaped according to the container's size.
+        shapes = [];
         constructor() {
             super();
-            // How many shapes to put per row. Affects how shapes are resized.
-            this.numOfShapesPerRow = 3;
-            // Gap size between shapes.
-            this.gapX = 10;
-            this.gapY = 10;
-            // Shapes to tile. All shapes will be reshaped according to the container's size.
-            this.shapes = [];
         }
         // @Override
         getElements(style) {
@@ -327,8 +331,7 @@ var svg;
             const shapeWidth = (this.width - (this.numOfShapesPerRow - 1) * this.gapX) / this.numOfShapesPerRow;
             const shapeHeight = (this.height - (numOfRows - 1) * this.gapY) / numOfRows;
             const elements = [];
-            for (const idx in this.shapes) {
-                const shape = this.shapes[idx];
+            for (const [idx, shape] of this.shapes.entries()) {
                 const colIdx = idx % this.numOfShapesPerRow;
                 const rowIdx = Math.floor(idx / this.numOfShapesPerRow);
                 shape.x = this.x + (this.gapX + shapeWidth) * colIdx;
@@ -344,13 +347,13 @@ var svg;
      * A container providing a title for a child shape.
      */
     class TitledContainer extends Shape {
+        title = ''; // Title text.
+        childGapX = 10; // Child gap in x, affects both left and right of the child.
+        childGapY = 5; // Child gap in x, affects both top and bottom of the child.
+        childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
+        childShape; // Child shape. Will be resized when rendering.
         constructor() {
             super();
-            this.title = ''; // Title text.
-            this.childGapX = 10; // Child gap in x, affects both left and right of the child.
-            this.childGapY = 5; // Child gap in x, affects both top and bottom of the child.
-            this.childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
-            this.childShape = undefined; // Child shape. Will be resized when rendering.
         }
         // @Implement
         getElements(style) {
@@ -377,12 +380,6 @@ var svg;
      * A raw polygon with border etc., no text.
      */
     class _Polygon extends Shape {
-        // Returns a list of vertices as one string like polygon element's points
-        // attribute.
-        // @Abstract
-        getPoints() {
-            throw new Error('not implemented');
-        }
         // @Implement
         getElements(style) {
             const elem = createSvgElement('polygon');
@@ -401,10 +398,10 @@ var svg;
      * A polygon with centered text support.
      */
     class ShapeWithCenteredText extends Shape {
+        getShape; // function that returns a shape without text.
+        text = ''; // centered single line of text.
         constructor() {
             super();
-            this.getShape = undefined; // function that returns a shape without text.
-            this.text = ''; // centered single line of text.
         }
         // @Implement
         getElements(style) {

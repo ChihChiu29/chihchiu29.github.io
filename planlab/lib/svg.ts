@@ -170,7 +170,7 @@ namespace svg {
       }
     }
 
-    public abstract getElements(style: Style: Style): ZSVGElement[];
+    public abstract getElements(style: Style): ZSVGElement[];
   }
 
   /**
@@ -179,7 +179,12 @@ namespace svg {
   class MultilineTexts extends Shape {
     public GAP_LEFT = 5;  // space to the left of the text.
 
-    private linesOfTexts: string[] = [];
+    public linesOfTexts: string[] = [];
+
+    constructor(linesOfTexts: string[]) {
+      super();
+      this.linesOfTexts = linesOfTexts;
+    }
 
     override copyProperties(other: Shape) {
       this.x = other.x;
@@ -303,14 +308,15 @@ namespace svg {
    * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
    */
   class StackContainer extends Shape {
+
+    // Shifts in x and y for each stacked shape.
+    public shiftX = 10;  // half of shiftY is a good choice.
+    public shiftY = 25;  // style.textFontSize + 10 is a good choice.
+    // Shapes to tile, background to foreground. All shapes will be set to the container's size.
+    public shapes: Shape[] = [];
+
     constructor() {
       super();
-
-      // Shifts in x and y for each stacked shape.
-      this.shiftX = 10;  // half of shiftY is a good choice.
-      this.shiftY = 25;  // style.textFontSize + 10 is a good choice.
-      // Shapes to tile, background to foreground. All shapes will be set to the container's size.
-      this.shapes = [];
     }
 
     // @Override
@@ -344,16 +350,16 @@ namespace svg {
    * Borderless container to show multiple shapes in tile layout.
    */
   class TileContainer extends Shape {
+    // How many shapes to put per row. Affects how shapes are resized.
+    public numOfShapesPerRow = 3;
+    // Gap size between shapes.
+    public gapX = 10;
+    public gapY = 10;
+    // Shapes to tile. All shapes will be reshaped according to the container's size.
+    public shapes: Shape[] = [];
+
     constructor() {
       super();
-
-      // How many shapes to put per row. Affects how shapes are resized.
-      this.numOfShapesPerRow = 3;
-      // Gap size between shapes.
-      this.gapX = 10;
-      this.gapY = 10;
-      // Shapes to tile. All shapes will be reshaped according to the container's size.
-      this.shapes = [];
     }
 
     // @Override
@@ -367,9 +373,7 @@ namespace svg {
       const shapeHeight = (this.height - (numOfRows - 1) * this.gapY) / numOfRows;
 
       const elements = [];
-      for (const idx in this.shapes) {
-        const shape = this.shapes[idx];
-
+      for (const [idx, shape] of this.shapes.entries()) {
         const colIdx = idx % this.numOfShapesPerRow;
         const rowIdx = Math.floor(idx / this.numOfShapesPerRow);
         shape.x = this.x + (this.gapX + shapeWidth) * colIdx;
@@ -387,14 +391,14 @@ namespace svg {
    * A container providing a title for a child shape.
    */
   class TitledContainer extends Shape {
+    public title = '';  // Title text.
+    public childGapX = 10;  // Child gap in x, affects both left and right of the child.
+    public childGapY = 5;  // Child gap in x, affects both top and bottom of the child.
+    public childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
+    public childShape?: Shape;  // Child shape. Will be resized when rendering.
+
     constructor() {
       super();
-
-      this.title = '';  // Title text.
-      this.childGapX = 10;  // Child gap in x, affects both left and right of the child.
-      this.childGapY = 5;  // Child gap in x, affects both top and bottom of the child.
-      this.childShiftY = 20; // Child shift in y (to avoid title text), affects only top. `style.textFontSize + 10` is a good choice.
-      this.childShape = undefined;  // Child shape. Will be resized when rendering.
     }
 
     // @Implement
@@ -426,14 +430,11 @@ namespace svg {
   /**
    * A raw polygon with border etc., no text.
    */
-  class _Polygon extends Shape {
+  abstract class _Polygon extends Shape {
 
     // Returns a list of vertices as one string like polygon element's points
     // attribute.
-    // @Abstract
-    getPoints() {
-      throw new Error('not implemented');
-    }
+    abstract getPoints(): string;
 
     // @Implement
     override getElements(style: Style): ZSVGElement[] {
@@ -456,11 +457,11 @@ namespace svg {
    * A polygon with centered text support.
    */
   class ShapeWithCenteredText extends Shape {
+    public getShape?: () => Shape;  // function that returns a shape without text.
+    public text = '';  // centered single line of text.
+
     constructor() {
       super();
-
-      this.getShape = undefined;  // function that returns a shape without text.
-      this.text = '';  // centered single line of text.
     }
 
     // @Implement
@@ -494,7 +495,7 @@ namespace svg {
   class Diamond extends _Polygon {
 
     // @Implement
-    getPoints() {
+    override getPoints(): string {
       const left = this.x;
       const right = this.x + this.width;
       const top = this.y;
@@ -504,6 +505,5 @@ namespace svg {
       return `${midX} ${top} ${right} ${midY} ${midX} ${bottom} ${left} ${midY}`;
     }
   }
-
 
 }  // namespace svg
