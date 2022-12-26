@@ -17,6 +17,8 @@ styles:  # define styles for groups and items
     - rect: { fill: grey }
   - B:
     - rect: { fill: darkblue }
+  - Y:
+    - rect: { fill: darkgreen }
 
 groups:
   - Exp:
@@ -34,6 +36,9 @@ RD:
 RR:
   - B: 1-1, 100
   - X: 2-4, 80
+
+ML:
+  - Y: 1-4, 100, TL & Main IC
 `;
 
 const INPUT_ELEMENT_CSS = '#input';
