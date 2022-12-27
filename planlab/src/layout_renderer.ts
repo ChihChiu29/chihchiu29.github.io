@@ -154,7 +154,7 @@ class Renderer {
 
   private drawItem(item: Item, ownerGroup: Group, renderer: svg.SVGRenderer): void {
     let content: string = item.name;
-    if (this.style.reportCapacity && item.capacityPercentage) {
+    if (this.style.reportCapacity && item.capacityPercentage && item.capacityPercentage > 0) {
       content += ` (${item.capacityPercentage}%)`;
     }
     if (item.description) {

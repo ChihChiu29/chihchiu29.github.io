@@ -24,7 +24,7 @@ Quarters (HIDE):
   - Q4: 4-4
 
 RD:
-  # Syntax: column span (1-2), capacity (100), description (TL)
+  # Syntax: column span (from-to, 1-based), capacity (<0 hides it), description
   - B: 1-2, 100, TL
   - X: 1-4, 80, Main IC
   - B: 3-4, 100, TL
