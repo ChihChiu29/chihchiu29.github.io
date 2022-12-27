@@ -26,28 +26,33 @@ class LangParser {
    * It does NOT compute layout.
    */
   public parse(content: string) {
-    const contentYaml = jsyaml.load(content) as any;
-    // Get all groups.
-    this.parseGroupStructure(contentYaml[this.GROUP_STRUCT_KEYWORD] as any[]);
+    try {
+      const contentYaml = jsyaml.load(content) as any;
 
-    // Parse others.
-    for (const key of Object.keys(contentYaml)) {
-      if (this.groups.has(key)) {
-        // Group-item assignment.
-        this.parseGroupItems(key, contentYaml[key]);
+      // Get all groups.
+      this.parseGroupStructure(contentYaml[this.GROUP_STRUCT_KEYWORD] as any[]);
+
+      // Parse others.
+      for (const key of Object.keys(contentYaml)) {
+        if (this.groups.has(key)) {
+          // Group-item assignment.
+          this.parseGroupItems(key, contentYaml[key]);
+        }
       }
-    }
 
-    // Parse global config.
-    const globalConfig = contentYaml[this.GLOBAL_CONFIG_KEYWORD];
-    if (globalConfig) {
-      this.parseGlobalStyleConfig(globalConfig);
-    }
+      // Parse global config.
+      const globalConfig = contentYaml[this.GLOBAL_CONFIG_KEYWORD];
+      if (globalConfig) {
+        this.parseGlobalStyleConfig(globalConfig);
+      }
 
-    // Parse custom styles.
-    const customStyles = contentYaml[this.STYLE_KEYWORD];
-    if (customStyles) {
-      this.parseStyles(customStyles);
+      // Parse custom styles.
+      const customStyles = contentYaml[this.STYLE_KEYWORD];
+      if (customStyles) {
+        this.parseStyles(customStyles);
+      }
+    } catch (error) {
+      alert(error);
     }
   }
 
