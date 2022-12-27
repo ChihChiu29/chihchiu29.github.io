@@ -107,7 +107,7 @@ namespace LayoutComputation {
     return !hasChildren(group);
   }
 
-  function hasChildren(group: Group): boolean {
+  export function hasChildren(group: Group): boolean {
     return group.children.length > 0;
   }
 

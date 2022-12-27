@@ -46,6 +46,7 @@ class Renderer {
 
   private drawArea: HTMLElement;
   private groups: Map<string, Group>;
+  private maxGroupDepth: number = -1;
   private style: RendererStyleConfig;
   private customStyles: Map<string, CustomStyle>;
 
@@ -115,8 +116,8 @@ class Renderer {
   private precomputePositions(): void {
     // Compute group widths.
     this.groupWidths = [...this.style.customGroupWidths];
-    const maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
-    for (let i = 0; i <= maxGroupDepth; i++) {
+    this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
+    for (let i = 0; i <= this.maxGroupDepth; i++) {
       if (!this.groupWidths[i]) {
         this.groupWidths[i] = this.style.defaultGroupWidth;
       }
@@ -134,8 +135,12 @@ class Renderer {
     rect.text = group.name;
     rect.x = this.groupLeftValues[group.depth];
     rect.y = this.getRowTop(group.rowIndex);
-    rect.width = this.groupWidths[group.depth];
-    rect.height = this.getHeight(group.rowSpan);
+    if (LayoutComputation.hasChildren(group)) {
+      rect.width = this.groupWidths[group.depth];
+    } else {
+      rect.width = this.getGroupWidth(group.depth);
+    }
+    rect.height = this.getRowSpanHeight(group.rowSpan);
     rect.bgColor = this.getGroupBgColor(group);
 
     this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
@@ -187,8 +192,14 @@ class Renderer {
   }
 
   // The height of an item for the given row span.
-  private getHeight(rowSpan: number): number {
+  private getRowSpanHeight(rowSpan: number): number {
     return rowSpan * this.style.rowHeight + (rowSpan - 1) * this.style.rowGap;
+  }
+
+  // Compute the width of a group for the given depth.
+  private getGroupWidth(depth: number) {
+    const remainingDepths = this.groupWidths.slice(depth, this.maxGroupDepth + 1);
+    return remainingDepths.reduce((sum, next) => sum + next, 0) + (remainingDepths.length - 1) * this.style.groupColGap;
   }
 
   // The "left" value for an item.
