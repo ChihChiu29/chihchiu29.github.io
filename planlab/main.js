@@ -68,6 +68,10 @@ function draw(useGrid = true) {
     if (graphData !== DEFAULT_GRAPH) {
         window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${btoa(graphData)}`);
     }
+    // Report mouse location when moving.
+    const svgElement = document.querySelector('#drawarea svg');
+    svgElement.removeEventListener('mousemove', reportLocationListener);
+    svgElement.addEventListener('mousemove', reportLocationListener, false);
     return report;
 }
 function save() {
@@ -111,6 +115,14 @@ function save() {
         link.remove();
     };
     image.src = blobURL;
+}
+function reportLocationListener(evt) {
+    const svgElement = document.querySelector('#drawarea svg');
+    const pt = svgElement.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const { x, y } = pt.matrixTransform(svgElement.getScreenCTM().inverse());
+    document.querySelector('#report #location').innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
 }
 function main() {
     const queryString = window.location.search;
@@ -169,6 +181,7 @@ var svg;
      */
     class SVGRenderer {
         hostElement;
+        svgElement;
         style = new Style();
         left = 0;
         top = 0;
@@ -178,9 +191,15 @@ var svg;
         elements = [];
         constructor(hostElement) {
             this.hostElement = hostElement;
+            let svgElement = this.hostElement.querySelector('svg');
+            if (svgElement) {
+                svgElement.remove();
+            }
+            this.svgElement = createSvgSvgElement();
+            this.hostElement.append(this.svgElement);
         }
         addShape(shape) {
-            for (const elem of shape.getElements(this.style)) {
+            for (const elem of shape.getElements(this.style, this.svgElement)) {
                 this.addElement(elem, elem.zValue);
             }
         }
@@ -189,11 +208,7 @@ var svg;
             this.elements.push(element);
         }
         draw() {
-            let svgElement = this.hostElement.querySelector('svg');
-            if (svgElement) {
-                svgElement.remove();
-            }
-            svgElement = createSvgSvgElement();
+            const svgElement = this.svgElement;
             svgElement.setAttribute('viewBox', `${this.left} ${this.top} ${this.width} ${this.height}`);
             // For arrow, see: http://thenewcode.com/1068/Making-Arrows-in-SVG
             // For grid, see: https://stackoverflow.com/questions/14208673/how-to-draw-grid-using-html5-and-canvas-or-svg
@@ -224,7 +239,6 @@ var svg;
             for (const element of this.elements.sort((e1, e2) => { return e1.zValue - e2.zValue; })) {
                 svgElement.append(element);
             }
-            this.hostElement.append(svgElement);
         }
     }
     svg.SVGRenderer = SVGRenderer;
@@ -291,6 +305,48 @@ var svg;
         }
     }
     svg.Link = Link;
+    // From: https://github.com/dowjones/svg-text
+    class MagicText extends Shape {
+        text;
+        textAlignToCenter = true; // otherwise to left
+        textverticalAlignToCenter = true; // otherwise to top
+        outerWidth; // with of texts; default to element width
+        customTextCssStyle = {};
+        constructor(text) {
+            super();
+            this.text = text;
+        }
+        copyProperties(other) {
+            this.x = other.x;
+            this.y = other.y;
+            this.bgColor = other.bgColor;
+            this.zValue = other.zValue;
+        }
+        getElements(style, svgElement) {
+            const center = this.getCenter();
+            // Requires `svg-text.js` in HTML.
+            // @ts-ignore
+            const SvgText = window.SvgText.default;
+            const svgTextOption = {
+                text: this.text,
+                element: svgElement,
+                x: this.textAlignToCenter ? center.x : this.x,
+                y: this.textverticalAlignToCenter ? center.y : this.y,
+                outerWidth: this.outerWidth ? this.outerWidth : this.width,
+                outerHeight: this.height,
+                align: this.textAlignToCenter ? 'center' : 'left',
+                verticalAlign: this.textverticalAlignToCenter ? 'middle' : 'top',
+                textOverflow: 'ellipsis',
+            };
+            const svgText = new SvgText(svgTextOption);
+            const elem = svgText.text;
+            if (this.name) {
+                setAttr(elem, 'name', this.name);
+            }
+            applyCustomCssStyle(elem, this.customTextCssStyle);
+            return [elem];
+        }
+    }
     /**
       * Multiline texts, parent is optional.
       */
@@ -308,7 +364,7 @@ var svg;
             this.bgColor = other.bgColor;
             this.zValue = other.zValue;
         }
-        getElements(style) {
+        getElements(style, svgElement) {
             const elem = createSvgElement('text');
             setAttr(elem, 'x', this.x);
             setAttr(elem, 'y', this.y);
@@ -338,7 +394,7 @@ var svg;
             this.text = singleLineOfText;
         }
         // @Implement
-        getElements(style) {
+        getElements(style, svgElement) {
             const elem = createSvgElement('text');
             const center = this.getCenter();
             setAttr(elem, 'x', center.x);
@@ -361,7 +417,7 @@ var svg;
         CORNER_RADIUS = 5;
         customRectCssStyle = {};
         // @Implement
-        getElements(style) {
+        getElements(style, svgElement) {
             const elem = createSvgElement('rect');
             setAttr(elem, 'x', this.x);
             setAttr(elem, 'y', this.y);
@@ -384,13 +440,14 @@ var svg;
      * A rect shape with some text support.
      */
     class Rect extends Shape {
-        // You should only use one of the following.
-        texts = []; // multiline texts starting from top-left corner.
-        centeredText = ''; // centered single line of text.
+        text = '';
+        textAlignToCenter = true; // otherwise to left
+        textverticalAlignToCenter = true; // otherwise to top
+        outerWidth; // with of texts; default to element width
         // Used to change rect and text styles.
         customRectCssStyle = {};
         customTextCssStyle = {};
-        getElements(style) {
+        getElements(style, svgElement) {
             const elements = [];
             const rect = new _Rect();
             rect.copyProperties(this);
@@ -399,23 +456,54 @@ var svg;
                 // Pass the name to the actual rect element.
                 rect.name = this.name;
             }
-            elements.push(...rect.getElements(style));
-            if (this.texts.length) {
-                const multilineTexts = new MultilineTexts(this.texts);
-                multilineTexts.copyProperties(this);
-                multilineTexts.customTextCssStyle = this.customTextCssStyle;
-                elements.push(...multilineTexts.getElements(style));
-            }
-            if (this.centeredText) {
-                const centeredText = new _CenteredText(this.centeredText);
-                centeredText.copyProperties(this);
-                centeredText.customTextCssStyle = this.customTextCssStyle;
-                elements.push(...centeredText.getElements(style));
+            elements.push(...rect.getElements(style, svgElement));
+            if (this.text) {
+                const textElem = new MagicText(this.text);
+                textElem.copyProperties(this);
+                textElem.textAlignToCenter = this.textAlignToCenter;
+                textElem.outerWidth = this.outerWidth;
+                textElem.customTextCssStyle = this.customTextCssStyle;
+                elements.push(...textElem.getElements(style, svgElement));
             }
             return elements;
         }
     }
     svg.Rect = Rect;
+    // /**
+    //  * A rect shape with some text support.
+    //  */
+    // export class Rect extends Shape {
+    //   // You should only use one of the following.
+    //   public texts: string[] = [];  // multiline texts starting from top-left corner.
+    //   public centeredText: string = ''; // centered single line of text.
+    //   // Used to change rect and text styles.
+    //   public customRectCssStyle: CssStyle = {};
+    //   public customTextCssStyle: CssStyle = {};
+    //   override getElements(style: Style): ZSVGElement[] {
+    //     const elements = [];
+    //     const rect = new _Rect();
+    //     rect.copyProperties(this);
+    //     rect.customRectCssStyle = this.customRectCssStyle;
+    //     if (this.name) {
+    //       // Pass the name to the actual rect element.
+    //       rect.name = this.name;
+    //     }
+    //     elements.push(...rect.getElements(style));
+    //     if (this.texts.length) {
+    //       const multilineTexts = new MultilineTexts(this.texts);
+    //       multilineTexts.copyProperties(this);
+    //       multilineTexts.customTextCssStyle = this.customTextCssStyle;
+    //       elements.push(...multilineTexts.getElements(style));
+    //     }
+    //     if (this.centeredText) {
+    //       const centeredText = new _CenteredText(this.centeredText);
+    //       centeredText.copyProperties(this);
+    //       centeredText.customTextCssStyle = this.customTextCssStyle;
+    //       elements.push(...centeredText.getElements(style));
+    //     }
+    //     return elements;
+    //   }
+    // }
     /**
      * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
      */
@@ -429,7 +517,7 @@ var svg;
             super();
         }
         // @Override
-        getElements(style) {
+        getElements(style, svgElement) {
             if (!this.shapes.length) {
                 return [];
             }
@@ -444,7 +532,7 @@ var svg;
                 shape.y = this.y + accumulatedShiftY;
                 shape.width = shapeWidth;
                 shape.height = shapeHeight;
-                elements.push(...shape.getElements(style));
+                elements.push(...shape.getElements(style, svgElement));
                 accumulatedShiftX += this.shiftX;
                 accumulatedShiftY += this.shiftY;
             }
@@ -466,7 +554,7 @@ var svg;
             super();
         }
         // @Override
-        getElements(style) {
+        getElements(style, svgElement) {
             if (!this.shapes.length) {
                 return [];
             }
@@ -481,7 +569,7 @@ var svg;
                 shape.y = this.y + (this.gapY + shapeHeight) * rowIdx;
                 shape.width = shapeWidth;
                 shape.height = shapeHeight;
-                elements.push(...shape.getElements(style));
+                elements.push(...shape.getElements(style, svgElement));
             }
             return elements;
         }
@@ -499,23 +587,24 @@ var svg;
             super();
         }
         // @Implement
-        getElements(style) {
+        getElements(style, svgElement) {
             if (!this.childShape) {
                 return [];
             }
             const elements = [];
             const rect = new Rect();
             rect.copyProperties(this);
-            rect.texts = [this.title];
+            rect.text = this.title;
+            rect.textverticalAlignToCenter = false;
             if (this.name) {
                 rect.name = this.name;
             }
-            elements.push(...rect.getElements(style));
+            elements.push(...rect.getElements(style, svgElement));
             this.childShape.x = this.x + this.childGapX;
             this.childShape.y = this.y + this.childGapY + this.childShiftY;
             this.childShape.width = this.width - this.childGapX * 2;
             this.childShape.height = this.height - this.childGapY * 2 - this.childShiftY;
-            elements.push(...this.childShape.getElements(style));
+            elements.push(...this.childShape.getElements(style, svgElement));
             return elements;
         }
     }
@@ -524,7 +613,7 @@ var svg;
      */
     class _Polygon extends Shape {
         // @Implement
-        getElements(style) {
+        getElements(style, svgElement) {
             const elem = createSvgElement('polygon');
             setAttr(elem, 'points', this.getPoints());
             setAttr(elem, 'stroke', style.lineColor);
@@ -547,7 +636,7 @@ var svg;
             super();
         }
         // @Implement
-        getElements(style) {
+        getElements(style, svgElement) {
             if (!this.getShape) {
                 throw new Error('you need to set getShape function first');
             }
@@ -558,11 +647,11 @@ var svg;
                 // Pass the name to the actual rect element.
                 shape.name = this.name;
             }
-            elements.push(...shape.getElements(style));
+            elements.push(...shape.getElements(style, svgElement));
             if (this.text) {
                 const centeredText = new _CenteredText(this.text);
                 centeredText.copyProperties(this);
-                elements.push(...centeredText.getElements(style));
+                elements.push(...centeredText.getElements(style, svgElement));
             }
             return elements;
         }
@@ -1034,7 +1123,7 @@ class Renderer {
     }
     drawGroup(group, renderer) {
         const rect = new svg.Rect();
-        rect.centeredText = group.name;
+        rect.text = group.name;
         rect.x = this.groupLeftValues[group.depth];
         rect.y = this.getRowTop(group.rowIndex);
         rect.width = this.groupWidths[group.depth];
@@ -1052,7 +1141,8 @@ class Renderer {
             content += ` ${item.description}`;
         }
         const rect = new svg.Rect();
-        rect.texts = [content];
+        rect.textAlignToCenter = false;
+        rect.text = content;
         rect.x = this.getItemLeft(item.spanFromCol);
         rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
         rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);

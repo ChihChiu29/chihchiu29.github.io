@@ -131,7 +131,7 @@ class Renderer {
 
   private drawGroup(group: Group, renderer: svg.SVGRenderer): void {
     const rect = new svg.Rect();
-    rect.centeredText = group.name;
+    rect.text = group.name;
     rect.x = this.groupLeftValues[group.depth];
     rect.y = this.getRowTop(group.rowIndex);
     rect.width = this.groupWidths[group.depth];
@@ -153,7 +153,8 @@ class Renderer {
     }
 
     const rect = new svg.Rect();
-    rect.texts = [content];
+    rect.textAlignToCenter = false;
+    rect.text = content;
     rect.x = this.getItemLeft(item.spanFromCol);
     rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
     rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);

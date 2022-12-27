@@ -77,6 +77,11 @@ function draw(useGrid = true): RenderReport {
       `${PAGE_PATH}?g=${btoa(graphData)}`);
   }
 
+  // Report mouse location when moving.
+  const svgElement = document.querySelector('#drawarea svg')!;
+  svgElement.removeEventListener('mousemove', reportLocationListener);
+  svgElement.addEventListener('mousemove', reportLocationListener, false);
+
   return report;
 }
 
@@ -126,6 +131,14 @@ function save() {
     link.remove();
   };
   image.src = blobURL;
+}
+
+function reportLocationListener(evt: any) {
+  const svgElement = document.querySelector('#drawarea svg') as SVGSVGElement;
+  const pt = svgElement.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  const { x, y } = pt.matrixTransform(svgElement.getScreenCTM()!.inverse());
+  (document.querySelector('#report #location')! as HTMLElement).innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
 }
 
 function main() {

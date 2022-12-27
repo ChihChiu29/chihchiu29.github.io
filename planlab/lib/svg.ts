@@ -38,6 +38,7 @@ namespace svg {
    */
   export class SVGRenderer {
     public hostElement: HTMLElement;
+    private svgElement: SVGSVGElement;
     public style: Style = new Style();
 
     public left: number = 0;
@@ -51,10 +52,17 @@ namespace svg {
 
     constructor(hostElement: HTMLElement) {
       this.hostElement = hostElement;
+
+      let svgElement = this.hostElement.querySelector('svg');
+      if (svgElement) {
+        svgElement.remove();
+      }
+      this.svgElement = createSvgSvgElement();
+      this.hostElement.append(this.svgElement);
     }
 
     public addShape(shape: Shape) {
-      for (const elem of shape.getElements(this.style)) {
+      for (const elem of shape.getElements(this.style, this.svgElement)) {
         this.addElement(elem, elem.zValue);
       }
     }
@@ -65,11 +73,7 @@ namespace svg {
     }
 
     public draw() {
-      let svgElement = this.hostElement.querySelector('svg');
-      if (svgElement) {
-        svgElement.remove();
-      }
-      svgElement = createSvgSvgElement();
+      const svgElement = this.svgElement;
       svgElement.setAttribute('viewBox', `${this.left} ${this.top} ${this.width} ${this.height}`);
 
       // For arrow, see: http://thenewcode.com/1068/Making-Arrows-in-SVG
@@ -102,8 +106,6 @@ namespace svg {
       for (const element of this.elements.sort((e1, e2) => { return e1.zValue - e2.zValue; })) {
         svgElement.append(element);
       }
-
-      this.hostElement.append(svgElement);
     }
   }
 
@@ -129,7 +131,7 @@ namespace svg {
       this.zValue = other.zValue;
     }
 
-    public abstract getElements(style: Style): ZSVGElement[];
+    public abstract getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
 
     getCenter(): geometry.Point {
       return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
@@ -181,6 +183,54 @@ namespace svg {
     public abstract getElements(style: Style): ZSVGElement[];
   }
 
+  // From: https://github.com/dowjones/svg-text
+  class MagicText extends Shape {
+    public text: string;
+    public textAlignToCenter = true;  // otherwise to left
+    public textverticalAlignToCenter = true;  // otherwise to top
+    public outerWidth?: number; // with of texts; default to element width
+    public customTextCssStyle: CssStyle = {};
+
+    constructor(text: string) {
+      super();
+      this.text = text;
+    }
+
+    override copyProperties(other: Shape) {
+      this.x = other.x;
+      this.y = other.y;
+      this.bgColor = other.bgColor;
+      this.zValue = other.zValue;
+    }
+
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+      const center = this.getCenter();
+
+      // Requires `svg-text.js` in HTML.
+      // @ts-ignore
+      const SvgText = window.SvgText.default;
+      const svgTextOption = {
+        text: this.text,
+        element: svgElement,
+        x: this.textAlignToCenter ? center.x : this.x,
+        y: this.textverticalAlignToCenter ? center.y : this.y,
+        outerWidth: this.outerWidth ? this.outerWidth : this.width,
+        outerHeight: this.height,
+        align: this.textAlignToCenter ? 'center' : 'left',
+        verticalAlign: this.textverticalAlignToCenter ? 'middle' : 'top',
+        textOverflow: 'ellipsis',
+      };
+      const svgText = new SvgText(svgTextOption);
+      const elem = svgText.text;
+
+      if (this.name) {
+        setAttr(elem, 'name', this.name);
+      }
+      applyCustomCssStyle(elem, this.customTextCssStyle);
+      return [elem];
+    }
+  }
+
   /**
     * Multiline texts, parent is optional.
     */
@@ -202,7 +252,7 @@ namespace svg {
       this.zValue = other.zValue;
     }
 
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('text');
       setAttr(elem, 'x', this.x);
       setAttr(elem, 'y', this.y);
@@ -237,7 +287,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('text');
       const center = this.getCenter();
       setAttr(elem, 'x', center.x);
@@ -263,7 +313,7 @@ namespace svg {
     public customRectCssStyle: CssStyle = {};
 
     // @Implement
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('rect');
       setAttr(elem, 'x', this.x);
       setAttr(elem, 'y', this.y);
@@ -289,15 +339,16 @@ namespace svg {
    * A rect shape with some text support.
    */
   export class Rect extends Shape {
-    // You should only use one of the following.
-    public texts: string[] = [];  // multiline texts starting from top-left corner.
-    public centeredText: string = ''; // centered single line of text.
+    public text: string = '';
+    public textAlignToCenter = true;  // otherwise to left
+    public textverticalAlignToCenter = true;  // otherwise to top
+    public outerWidth?: number; // with of texts; default to element width
 
     // Used to change rect and text styles.
     public customRectCssStyle: CssStyle = {};
     public customTextCssStyle: CssStyle = {};
 
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elements = [];
 
       const rect = new _Rect();
@@ -307,25 +358,62 @@ namespace svg {
         // Pass the name to the actual rect element.
         rect.name = this.name;
       }
-      elements.push(...rect.getElements(style));
+      elements.push(...rect.getElements(style, svgElement));
 
-      if (this.texts.length) {
-        const multilineTexts = new MultilineTexts(this.texts);
-        multilineTexts.copyProperties(this);
-        multilineTexts.customTextCssStyle = this.customTextCssStyle;
-        elements.push(...multilineTexts.getElements(style));
-      }
-
-      if (this.centeredText) {
-        const centeredText = new _CenteredText(this.centeredText);
-        centeredText.copyProperties(this);
-        centeredText.customTextCssStyle = this.customTextCssStyle;
-        elements.push(...centeredText.getElements(style));
+      if (this.text) {
+        const textElem = new MagicText(this.text);
+        textElem.copyProperties(this);
+        textElem.textAlignToCenter = this.textAlignToCenter;
+        textElem.outerWidth = this.outerWidth;
+        textElem.customTextCssStyle = this.customTextCssStyle;
+        elements.push(...textElem.getElements(style, svgElement));
       }
 
       return elements;
     }
   }
+
+  // /**
+  //  * A rect shape with some text support.
+  //  */
+  // export class Rect extends Shape {
+  //   // You should only use one of the following.
+  //   public texts: string[] = [];  // multiline texts starting from top-left corner.
+  //   public centeredText: string = ''; // centered single line of text.
+
+  //   // Used to change rect and text styles.
+  //   public customRectCssStyle: CssStyle = {};
+  //   public customTextCssStyle: CssStyle = {};
+
+  //   override getElements(style: Style): ZSVGElement[] {
+  //     const elements = [];
+
+  //     const rect = new _Rect();
+  //     rect.copyProperties(this);
+  //     rect.customRectCssStyle = this.customRectCssStyle;
+  //     if (this.name) {
+  //       // Pass the name to the actual rect element.
+  //       rect.name = this.name;
+  //     }
+  //     elements.push(...rect.getElements(style));
+
+  //     if (this.texts.length) {
+  //       const multilineTexts = new MultilineTexts(this.texts);
+  //       multilineTexts.copyProperties(this);
+  //       multilineTexts.customTextCssStyle = this.customTextCssStyle;
+  //       elements.push(...multilineTexts.getElements(style));
+  //     }
+
+  //     if (this.centeredText) {
+  //       const centeredText = new _CenteredText(this.centeredText);
+  //       centeredText.copyProperties(this);
+  //       centeredText.customTextCssStyle = this.customTextCssStyle;
+  //       elements.push(...centeredText.getElements(style));
+  //     }
+
+  //     return elements;
+  //   }
+  // }
 
   /**
    * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
@@ -343,7 +431,7 @@ namespace svg {
     }
 
     // @Override
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -360,7 +448,7 @@ namespace svg {
         shape.y = this.y + accumulatedShiftY;
         shape.width = shapeWidth;
         shape.height = shapeHeight;
-        elements.push(...shape.getElements(style));
+        elements.push(...shape.getElements(style, svgElement));
         accumulatedShiftX += this.shiftX;
         accumulatedShiftY += this.shiftY;
       }
@@ -386,7 +474,7 @@ namespace svg {
     }
 
     // @Override
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -403,7 +491,7 @@ namespace svg {
         shape.y = this.y + (this.gapY + shapeHeight) * rowIdx;
         shape.width = shapeWidth;
         shape.height = shapeHeight;
-        elements.push(...shape.getElements(style));
+        elements.push(...shape.getElements(style, svgElement));
       }
 
       return elements;
@@ -425,7 +513,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.childShape) {
         return [];
       }
@@ -434,17 +522,18 @@ namespace svg {
 
       const rect = new Rect();
       rect.copyProperties(this);
-      rect.texts = [this.title];
+      rect.text = this.title;
+      rect.textverticalAlignToCenter = false;
       if (this.name) {
         rect.name = this.name;
       }
-      elements.push(...rect.getElements(style));
+      elements.push(...rect.getElements(style, svgElement));
 
       this.childShape.x = this.x + this.childGapX;
       this.childShape.y = this.y + this.childGapY + this.childShiftY;
       this.childShape.width = this.width - this.childGapX * 2;
       this.childShape.height = this.height - this.childGapY * 2 - this.childShiftY;
-      elements.push(...this.childShape.getElements(style));
+      elements.push(...this.childShape.getElements(style, svgElement));
 
       return elements;
     }
@@ -460,7 +549,7 @@ namespace svg {
     abstract getPoints(): string;
 
     // @Implement
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('polygon');
       setAttr(elem, 'points', this.getPoints());
 
@@ -488,7 +577,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style): ZSVGElement[] {
+    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.getShape) {
         throw new Error('you need to set getShape function first');
       }
@@ -500,12 +589,12 @@ namespace svg {
         // Pass the name to the actual rect element.
         shape.name = this.name;
       }
-      elements.push(...shape.getElements(style));
+      elements.push(...shape.getElements(style, svgElement));
 
       if (this.text) {
         const centeredText = new _CenteredText(this.text);
         centeredText.copyProperties(this);
-        elements.push(...centeredText.getElements(style));
+        elements.push(...centeredText.getElements(style, svgElement));
       }
 
       return elements;
