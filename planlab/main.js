@@ -319,6 +319,8 @@ var svg;
         copyProperties(other) {
             this.x = other.x;
             this.y = other.y;
+            this.width = other.width;
+            this.height = other.height;
             this.bgColor = other.bgColor;
             this.zValue = other.zValue;
         }
