@@ -10,6 +10,8 @@ class LangParser {
   GLOBAL_CONFIG_KEYWORD = 'global';
   STYLE_KEYWORD = 'styles';
 
+  GROUP_INVISIBLE_IF_CONTAINS = 'HIDE';
+
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
 
@@ -160,6 +162,9 @@ class LangParser {
       }
       group.name = name;
       group.depth = currentDepth;
+      if (name.indexOf(this.GROUP_INVISIBLE_IF_CONTAINS) >= 0) {
+        group.hide = true;
+      }
       groups.set(name, group);
       groupNames.push(name);
     }

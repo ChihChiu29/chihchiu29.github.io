@@ -5,7 +5,9 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
+# Do not use comma in group names.
 groups:
+  - Quarters (HIDE)
   - Exp:
     - Online:
       - RD
@@ -13,8 +15,14 @@ groups:
     - Offline
   - ML Infra Tooling
 
-# Define items belonging to a group by starting with the group name.
-# Note that only "leaf" group can have items.
+# Define items belonging to a group by starting with the group name used in the "groups" definition.
+# Note that only "leaf" group can have items, and watchout of trailing spaces.
+Quarters (HIDE):
+  - Q1: 1-1
+  - Q2: 2-2
+  - Q3: 3-3
+  - Q4: 4-4
+
 RD:
   # Syntax: column span (1-2), capacity (100), description (TL)
   - B: 1-2, 100, TL

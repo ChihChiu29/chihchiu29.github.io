@@ -4,7 +4,9 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
+# Do not use comma in group names.
 groups:
+  - Quarters (HIDE)
   - Exp:
     - Online:
       - RD
@@ -12,8 +14,14 @@ groups:
     - Offline
   - ML Infra Tooling
 
-# Define items belonging to a group by starting with the group name.
-# Note that only "leaf" group can have items.
+# Define items belonging to a group by starting with the group name used in the "groups" definition.
+# Note that only "leaf" group can have items, and watchout of trailing spaces.
+Quarters (HIDE):
+  - Q1: 1-1
+  - Q2: 2-2
+  - Q3: 3-3
+  - Q4: 4-4
+
 RD:
   # Syntax: column span (1-2), capacity (100), description (TL)
   - B: 1-2, 100, TL
@@ -732,6 +740,7 @@ function createGroup() {
         items: [],
         rowIndex: -1,
         rowSpan: -1,
+        hide: false,
         customBgColor: '',
     };
 }
@@ -739,6 +748,7 @@ class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
     GLOBAL_CONFIG_KEYWORD = 'global';
     STYLE_KEYWORD = 'styles';
+    GROUP_INVISIBLE_IF_CONTAINS = 'HIDE';
     // A map from a string to either a string
     groups = new Map();
     rendererStyleConfig = new RendererStyleConfig();
@@ -877,6 +887,9 @@ class LangParser {
             }
             group.name = name;
             group.depth = currentDepth;
+            if (name.indexOf(this.GROUP_INVISIBLE_IF_CONTAINS) >= 0) {
+                group.hide = true;
+            }
             groups.set(name, group);
             groupNames.push(name);
         }
@@ -1136,6 +1149,9 @@ class Renderer {
         this.itemBaseLeftValue = nextLeftValue;
     }
     drawGroup(group, renderer) {
+        if (group.hide) {
+            return;
+        }
         const rect = new svg.Rect();
         rect.text = group.name;
         rect.x = this.groupLeftValues[group.depth];
@@ -1153,7 +1169,7 @@ class Renderer {
     }
     drawItem(item, ownerGroup, renderer) {
         let content = item.name;
-        if (this.style.reportCapacity) {
+        if (this.style.reportCapacity && item.capacityPercentage) {
             content += ` (${item.capacityPercentage}%)`;
         }
         if (item.description) {

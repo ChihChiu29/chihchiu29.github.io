@@ -47,6 +47,7 @@ interface Group {
   rowSpan: number;  // how many rows to span.
 
   // Style.
+  hide: boolean,
   // If set, overrides default color option.
   customBgColor: string,
 }
@@ -60,6 +61,7 @@ function createGroup(): Group {
     items: [],
     rowIndex: -1,
     rowSpan: -1,
+    hide: false,
     customBgColor: '',
   };
 }

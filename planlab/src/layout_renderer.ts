@@ -131,6 +131,10 @@ class Renderer {
   }
 
   private drawGroup(group: Group, renderer: svg.SVGRenderer): void {
+    if (group.hide) {
+      return;
+    }
+
     const rect = new svg.Rect();
     rect.text = group.name;
     rect.x = this.groupLeftValues[group.depth];
@@ -150,7 +154,7 @@ class Renderer {
 
   private drawItem(item: Item, ownerGroup: Group, renderer: svg.SVGRenderer): void {
     let content: string = item.name;
-    if (this.style.reportCapacity) {
+    if (this.style.reportCapacity && item.capacityPercentage) {
       content += ` (${item.capacityPercentage}%)`;
     }
     if (item.description) {
