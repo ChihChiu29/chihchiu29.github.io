@@ -186,9 +186,8 @@ class LangParser {
     const spanSegments = configSegments[0].split('-');
     item.spanFromCol = Number(spanSegments[0]) - 1;
     item.spanToCol = Number(spanSegments[1]) - 1;
-    item.capacityPercentage = Number(configSegments[1]);
-    if (configSegments.length > 2) {
-      item.description = configSegments[2];
+    if (configSegments.length > 1) {
+      item.description = configSegments.slice(1).join(', ');
     }
     return item;
   }

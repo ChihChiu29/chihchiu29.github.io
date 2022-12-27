@@ -6,8 +6,6 @@ interface Item {
   // Spanning which columns (inclusive).
   spanFromCol: number;
   spanToCol: number;
-  // Capacity of the item.
-  capacityPercentage: number;
   // Only for display
   description: string;
 
@@ -26,7 +24,6 @@ function createItem(): Item {
     name: '',
     spanFromCol: -1,
     spanToCol: -1,
-    capacityPercentage: -1,
     description: '',
     rowIndex: -1,
     customBgColor: '',

@@ -23,17 +23,17 @@ Quarters (HIDE):
   - Q4: 4-4
 
 RD:
-  # Syntax: column span (from-to, 1-based), capacity (<0 hides it), description
-  - B: 1-2, 100, TL
-  - X: 1-4, 80, Main IC
-  - B: 3-4, 100, TL
+  # Syntax: column span (from-to, 1-based), description
+  - B: 1-2, (100%, TL)
+  - X: 1-4, (80%, Main IC)
+  - B: 3-4, (100%, TL)
 
 RR:
-  - B: 1-1, 100
-  - X: 2-4, 80
+  - B: 1-1, (100%)
+  - X: 2-4, (80%)
 
 ML Infra Tooling:
-  - Y: 1-4, 100, TL & Main IC
+  - Y: 1-4, (100%, TL & Main IC)
 
 # Optional -- tweak layout and styling using the "global" keyword.
 # The keys are those defined in RendererStyleConfig, see:
@@ -742,7 +742,6 @@ function createItem() {
         name: '',
         spanFromCol: -1,
         spanToCol: -1,
-        capacityPercentage: -1,
         description: '',
         rowIndex: -1,
         customBgColor: '',
@@ -927,9 +926,8 @@ class LangParser {
         const spanSegments = configSegments[0].split('-');
         item.spanFromCol = Number(spanSegments[0]) - 1;
         item.spanToCol = Number(spanSegments[1]) - 1;
-        item.capacityPercentage = Number(configSegments[1]);
-        if (configSegments.length > 2) {
-            item.description = configSegments[2];
+        if (configSegments.length > 1) {
+            item.description = configSegments.slice(1).join(', ');
         }
         return item;
     }
@@ -1193,9 +1191,6 @@ class Renderer {
     }
     drawItem(item, ownerGroup, renderer) {
         let content = item.name;
-        if (this.style.reportCapacity && item.capacityPercentage && item.capacityPercentage > 0) {
-            content += ` (${item.capacityPercentage}%)`;
-        }
         if (item.description) {
             content += ` ${item.description}`;
         }

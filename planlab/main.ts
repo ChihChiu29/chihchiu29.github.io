@@ -24,17 +24,17 @@ Quarters (HIDE):
   - Q4: 4-4
 
 RD:
-  # Syntax: column span (from-to, 1-based), capacity (<0 hides it), description
-  - B: 1-2, 100, TL
-  - X: 1-4, 80, Main IC
-  - B: 3-4, 100, TL
+  # Syntax: column span (from-to, 1-based), description
+  - B: 1-2, (100%, TL)
+  - X: 1-4, (80%, Main IC)
+  - B: 3-4, (100%, TL)
 
 RR:
-  - B: 1-1, 100
-  - X: 2-4, 80
+  - B: 1-1, (100%)
+  - X: 2-4, (80%)
 
 ML Infra Tooling:
-  - Y: 1-4, 100, TL & Main IC
+  - Y: 1-4, (100%, TL & Main IC)
 
 # Optional -- tweak layout and styling using the "global" keyword.
 # The keys are those defined in RendererStyleConfig, see:
