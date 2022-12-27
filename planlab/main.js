@@ -1,39 +1,18 @@
 "use strict";
 const PAGE_PATH = '/planlab/';
 const GRAPH_URL_PARAM = 'g';
-const DEFAULT_GRAPH = `# Have fun!
+const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
-# Global config for layout and style.
-# For a complete list see RendererStyleConfig from
-# https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/planlab/src/layout_renderer.ts
-global:
-  - rowHeight: 25
-  - groupColGap: 5
-  - rowGap: 5
-  - itemColWidth: 100
-  - customGroupWidths: [40, 60, 60]
-  - defaultGroupBgColor: "#f7d577"
-
-# Defines styles for individual groups and items.
-# Any css property can be used.
-styles:
-  - Exp:
-    - rect: { fill: grey }
-  - B:
-    - rect: { fill: darkblue }
-  - Y:
-    - rect: { fill: darkgreen }
-
-# Define groups.
+# Define groups using the "groups" keyword.
 groups:
   - Exp:
     - Online:
       - RD
       - RR
     - Offline
-  - ML
+  - ML Infra Tooling
 
-# Define items belong to the "RD" group.
+# Define items belonging to a group by starting with the group name.
 # Note that only "leaf" group can have items.
 RD:
   # Syntax: column span (1-2), capacity (100), description (TL)
@@ -45,8 +24,38 @@ RR:
   - B: 1-1, 100
   - X: 2-4, 80
 
-ML:
+ML Infra Tooling:
   - Y: 1-4, 100, TL & Main IC
+
+# Optional -- tweak layout and styling using the "global" keyword.
+# The keys are those defined in RendererStyleConfig, see:
+# https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/planlab/src/layout_renderer.ts
+global:
+  - rowHeight: 25
+  - groupColGap: 5
+  - rowGap: 5
+  - itemColWidth: 100
+  - customGroupWidths: [40, 60, 60]
+  - defaultGroupBgColor: "#f7d577"
+  - defaultItemBgColor: "#3396ff"
+  - defaultGroupStyles: {
+    rectStyle: {},
+    textStyle: {},
+  }
+  - defaultItemStyles: {
+    rectStyle: {},
+    textStyle: { fill: 'white', },
+  }
+
+# Optional -- override styling for groups/items using "styles" keyword.
+# Each entity has "rect" and "text" subgroups, inside which any css property can be used.
+styles:
+  - Exp:
+    - rect: { fill: grey }
+  - B:
+    - rect: { fill: darkblue }
+  - Y:
+    - rect: { fill: darkgreen }
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
