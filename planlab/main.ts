@@ -2,9 +2,12 @@ const PAGE_PATH = '/planlab/';
 
 const GRAPH_URL_PARAM = 'g';
 
-const DEFAULT_GRAPH = `# style setting
-# simple examples
-global:  # global config for layout and style
+const DEFAULT_GRAPH = `# Have fun!
+
+# Global config for layout and style.
+# For a complete list see RendererStyleConfig from
+# https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/planlab/src/layout_renderer.ts
+global:
   - rowHeight: 25
   - groupColGap: 5
   - rowGap: 5
@@ -12,7 +15,9 @@ global:  # global config for layout and style
   - customGroupWidths: [40, 60, 60]
   - defaultGroupBgColor: "#f7d577"
 
-styles:  # define styles for groups and items
+# Defines styles for individual groups and items.
+# Any css property can be used.
+styles:
   - Exp:
     - rect: { fill: grey }
   - B:
@@ -20,6 +25,7 @@ styles:  # define styles for groups and items
   - Y:
     - rect: { fill: darkgreen }
 
+# Define groups.
 groups:
   - Exp:
     - Online:
@@ -28,7 +34,10 @@ groups:
     - Offline
   - ML
 
+# Define items belong to the "RD" group.
+# Note that only "leaf" group can have items.
 RD:
+  # Syntax: column span (1-2), capacity (100), description (TL)
   - B: 1-2, 100, TL
   - X: 1-4, 80, Main IC
   - B: 3-4, 100, TL

@@ -33,6 +33,7 @@ class RendererStyleConfig {
 
 interface RenderReport {
   dimension: geometry.BoundingRect;
+  message: string;
 }
 
 class Renderer {
@@ -106,7 +107,8 @@ class Renderer {
         y: svgRenderer.top,
         width: svgRenderer.width,
         height: svgRenderer.height,
-      }
+      },
+      message: '',
     }
   }
 

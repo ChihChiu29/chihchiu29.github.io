@@ -20,6 +20,19 @@
       width: 100%;
     }
 
+    #info-area-wrapper {
+      height: 30px;
+    }
+
+    #info-area {
+      height: 100%;
+      width: 100%;
+    }
+
+    #buttons {
+      margin-top: 5px;
+    }
+
     #drawarea {
       height: 100%;
       width: 100%;
@@ -35,7 +48,7 @@
     }
 
     .row {
-      margin-top: 5px;
+      margin-top: 2px;
     }
 
     body {
@@ -56,14 +69,18 @@
     </div>
   </div>
   <div class="container">
-    <div>
+    <div class="row">
+      <div id="drawarea" style="border: solid"></div>
+    </div>
+    <div class="row" id="info-area-wrapper">
+      <div id="info-area">Rendering successful.</div>
+    </div>
+    <div id="buttons">
       <button class="btn btn-primary" onclick="draw()">DRAW</button>
       <a class="btn btn-secondary" href="/planlab">DEFAULT</a>
       <button class="btn btn-secondary" onclick="save()">SAVE AS PNG</button>
     </div>
-    <div class="row">
-      <div id="drawarea" style="border: solid"></div>
-    </div>
+
     <div class="row" id="input-wrapper">
       <textarea id="input" spellcheck="false"></textarea>
     </div>
