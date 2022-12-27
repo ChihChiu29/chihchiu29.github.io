@@ -338,6 +338,7 @@ var svg;
                 outerHeight: this.height,
                 align: this.textAlignToCenter ? 'center' : 'left',
                 verticalAlign: this.textverticalAlignToCenter ? 'middle' : 'top',
+                padding: this.textAlignToCenter ? 0 : '0 0 0 5',
                 textOverflow: 'ellipsis',
             };
             const svgText = new SvgText(svgTextOption);
