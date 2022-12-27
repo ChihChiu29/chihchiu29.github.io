@@ -6,7 +6,7 @@ const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 # Define groups using the "groups" keyword.
 # Do not use comma in group names.
 groups:
-  - Quarters (HIDE)
+  - Quarters (HIDE)  # any group has "HIDE" in name is hidden.
   - Exp:
     - Online:
       - RD
@@ -57,7 +57,11 @@ global:
 
 # Optional -- override styling for groups/items using "styles" keyword.
 # Each entity has "rect" and "text" subgroups, inside which any css property can be used.
+# Multiple groups can be used together as a comma separated string.
 styles:
+  - Q1, Q2, Q3, Q4:
+    - rect: { fill: pink }
+    - text: { font-weight: bold, fill: red }
   - Exp:
     - rect: { fill: grey }
   - B:
@@ -159,6 +163,19 @@ window.addEventListener('DOMContentLoaded', function () {
     // runTests();
     main();
 });
+var Strings;
+(function (Strings) {
+    // Returns if str contains subStr.
+    function contains(str, subStr) {
+        return str.indexOf(subStr) >= 0;
+    }
+    Strings.contains = contains;
+    // Split a string using separator, trim the resulted segments.
+    function splitAndTrim(str, separator) {
+        return str.split(separator).map(s => s.trim());
+    }
+    Strings.splitAndTrim = splitAndTrim;
+})(Strings || (Strings = {}));
 var svg;
 (function (svg) {
     class ZSVGElement extends SVGElement {
@@ -851,22 +868,24 @@ class LangParser {
      */
     parseStyles(entities) {
         for (const entity of entities) {
-            const name = this.getSingleKey(entity);
-            const customStyles = {
-                rectStyle: {},
-                textStyle: {},
-            };
-            for (const styleGroup of entity[name]) {
-                const styleFor = this.getSingleKey(styleGroup);
-                const styles = styleGroup[styleFor];
-                if (styleFor === 'rect') {
-                    customStyles.rectStyle = styles;
+            const nameOrNames = this.getSingleKey(entity);
+            for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
+                const customStyles = {
+                    rectStyle: {},
+                    textStyle: {},
+                };
+                for (const styleGroup of entity[nameOrNames]) {
+                    const styleFor = this.getSingleKey(styleGroup);
+                    const styles = styleGroup[styleFor];
+                    if (styleFor === 'rect') {
+                        customStyles.rectStyle = styles;
+                    }
+                    else if (styleFor === 'text') {
+                        customStyles.textStyle = styles;
+                    }
                 }
-                else if (styleFor === 'text') {
-                    customStyles.textStyle = styles;
-                }
+                this.customStyles.set(name, customStyles);
             }
-            this.customStyles.set(name, customStyles);
         }
     }
     // Recursive parse groups, returns the names of the top level groups.
@@ -887,7 +906,7 @@ class LangParser {
             }
             group.name = name;
             group.depth = currentDepth;
-            if (name.indexOf(this.GROUP_INVISIBLE_IF_CONTAINS) >= 0) {
+            if (Strings.contains(name, this.GROUP_INVISIBLE_IF_CONTAINS)) {
                 group.hide = true;
             }
             groups.set(name, group);

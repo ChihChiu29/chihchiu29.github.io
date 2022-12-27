@@ -127,21 +127,23 @@ class LangParser {
    */
   public parseStyles(entities: any[]) {
     for (const entity of entities) {
-      const name = this.getSingleKey(entity);
-      const customStyles = {
-        rectStyle: {},
-        textStyle: {},
-      };
-      for (const styleGroup of entity[name]) {
-        const styleFor = this.getSingleKey(styleGroup);
-        const styles = styleGroup[styleFor];
-        if (styleFor === 'rect') {
-          customStyles.rectStyle = styles;
-        } else if (styleFor === 'text') {
-          customStyles.textStyle = styles;
+      const nameOrNames = this.getSingleKey(entity);
+      for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
+        const customStyles = {
+          rectStyle: {},
+          textStyle: {},
+        };
+        for (const styleGroup of entity[nameOrNames]) {
+          const styleFor = this.getSingleKey(styleGroup);
+          const styles = styleGroup[styleFor];
+          if (styleFor === 'rect') {
+            customStyles.rectStyle = styles;
+          } else if (styleFor === 'text') {
+            customStyles.textStyle = styles;
+          }
         }
+        this.customStyles.set(name, customStyles);
       }
-      this.customStyles.set(name, customStyles);
     }
   }
 
@@ -162,7 +164,7 @@ class LangParser {
       }
       group.name = name;
       group.depth = currentDepth;
-      if (name.indexOf(this.GROUP_INVISIBLE_IF_CONTAINS) >= 0) {
+      if (Strings.contains(name, this.GROUP_INVISIBLE_IF_CONTAINS)) {
         group.hide = true;
       }
       groups.set(name, group);

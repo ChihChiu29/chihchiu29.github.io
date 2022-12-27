@@ -7,7 +7,7 @@ const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 # Define groups using the "groups" keyword.
 # Do not use comma in group names.
 groups:
-  - Quarters (HIDE)
+  - Quarters (HIDE)  # any group has "HIDE" in name is hidden.
   - Exp:
     - Online:
       - RD
@@ -58,7 +58,11 @@ global:
 
 # Optional -- override styling for groups/items using "styles" keyword.
 # Each entity has "rect" and "text" subgroups, inside which any css property can be used.
+# Multiple groups can be used together as a comma separated string.
 styles:
+  - Q1, Q2, Q3, Q4:
+    - rect: { fill: pink }
+    - text: { font-weight: bold, fill: red }
   - Exp:
     - rect: { fill: grey }
   - B:
