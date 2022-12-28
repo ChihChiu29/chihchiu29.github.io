@@ -79,6 +79,8 @@ styles:
     - text: { font-weight: bold, fill: red }
   - Exp:
     - rect: { fill: grey }
+  - Online:
+    - text: { writing-mode: tb }
   - B:
     - rect: { fill: darkblue }
   - Y:
