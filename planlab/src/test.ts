@@ -21,8 +21,8 @@ function testParsingGroupStructure(parser: LangParser) {
 function testParsingGroupItems(parser: LangParser) {
   const testData = jsyaml.load(`
     RD:
-      - B: 1-4, 100, (TL)
-      - X: 1-4, 80, (Main IC)
+      - B: 1-4, (TL)
+      - X: 1-4, (Main IC)
     `) as { RD: ItemYaml[] };
   console.log(parser.parseGroupItems('RD', testData['RD']));
 
@@ -35,6 +35,42 @@ function testParsingGroupItems(parser: LangParser) {
   assert(rd.items[1]!.spanFromCol, 0);
   assert(rd.items[1]!.spanToCol, 3);
   assert(rd.items[1]!.description, '(Main IC)');
+}
+
+function testParsingGroupItemsSpecialRulesOnNames() {
+  const groupData = jsyaml.load(`
+    groups:
+      - RD
+    `) as { groups: any[] };
+  const itemData = jsyaml.load(`
+    RD:
+      - B0: 1-1
+      - ^B1: 1-1
+      - ;B2: 1-1
+      - ^;B3: 1-1
+    `) as { RD: ItemYaml[] };
+
+  const parser = new LangParser();
+  parser.parseGroupStructure(groupData.groups);
+  parser.parseGroupItems('RD', itemData.RD);
+  console.log(parser.groups)
+
+  const rd = parser.groups.get('RD')!;
+  let item;
+  item = rd.items[0];
+  assert(item.name, 'B0');
+  assert(item.hideName, false);
+  assert(item.textCentered, false);
+  item = rd.items[1];
+  assert(item.name, 'B1');
+  assert(item.hideName, true);
+  item = rd.items[2];
+  assert(item.name, 'B2');
+  assert(item.textCentered, true);
+  item = rd.items[3];
+  assert(item.name, 'B3');
+  assert(item.hideName, true);
+  assert(item.textCentered, true);
 }
 
 function testParseLayoutConfig() {
@@ -148,6 +184,7 @@ function runTests() {
   const parser = new LangParser();
   testParsingGroupStructure(parser);
   testParsingGroupItems(parser);
+  testParsingGroupItemsSpecialRulesOnNames();
   testParseLayoutConfig();
   testParseStyles();
   testComputeItemRowIndices();

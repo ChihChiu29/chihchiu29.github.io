@@ -191,13 +191,13 @@ class LangParser {
     const item = createItem();
     // Special treatment of the name part.
     let name = nameWithConfig;
-    if (Strings.contains(name, '^')) {
-      item.textCentered = true;
-      name = name.replaceAll('^', '');
-    }
-    if (name[0] === '[' && name[name.length - 1] === ']') {
+    if (name[0] === '^') {
       item.hideName = true;
-      name = name.slice(1, -1);
+      name = name.slice(1);
+    }
+    if (name[0] === ';') {
+      item.textCentered = true;
+      name = name.slice(1);
     }
     item.name = name;
     // The rest of the config.

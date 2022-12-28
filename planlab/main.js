@@ -20,20 +20,21 @@ groups:
 #   - Item name does not need to be unique, and it is used for styling, see
 #     the "styles" section below.
 #   - The "name" part can:
-#       - Have a "^" character to make the text centered for this item.
-#       - Be wrapped in "[]" to indicate that the name should be hidden. There
+#       - Start with a "^" character to make the name hidden. There
 #         is a config to hide names from all items, see "global" section below.
+#       - Start with a ";" character to make text centered. When using with "^",
+#         "^" needs to start first.
 #       - When using special characters, the actual "name" does not include
-#         the special characters. For example for "^[Foo]", the actual name is
+#         the special characters. For example for "^;Foo", the actual name is
 #         "Foo".
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
 Quarters (HIDE):
-  - [Q1]: 1-1, name is hidden
+  - ^Q1: 1-1, name is hidden
   - Q2: 2-2, normal style
-  - ^Q3: 3-3, text centered
-  - ^[Q4]: 4-4, name hidden, content centered
+  - ;Q3: 3-3, text centered
+  - ^;Q4: 4-4, name hidden, content centered
 
 RD:
   # Syntax: column span (from-to, 1-based), description
@@ -91,6 +92,7 @@ function draw(useGrid = true) {
     const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
     const parser = new LangParser();
     parser.parse(graphData);
+    console.log(parser.groups);
     const renderer = new Renderer(document.querySelector(DRAW_AREA_SELECTOR), parser);
     const report = renderer.render(useGrid);
     // Since drawing has no error, safe to update URL.
@@ -945,13 +947,13 @@ class LangParser {
         const item = createItem();
         // Special treatment of the name part.
         let name = nameWithConfig;
-        if (Strings.contains(name, '^')) {
-            item.textCentered = true;
-            name = name.replaceAll('^', '');
-        }
-        if (name[0] === '[' && name[name.length - 1] === ']') {
+        if (name[0] === '^') {
             item.hideName = true;
-            name = name.slice(1, -1);
+            name = name.slice(1);
+        }
+        if (name[0] === ';') {
+            item.textCentered = true;
+            name = name.slice(1);
         }
         item.name = name;
         // The rest of the config.
@@ -1302,8 +1304,8 @@ function testParsingGroupStructure(parser) {
 function testParsingGroupItems(parser) {
     const testData = jsyaml.load(`
     RD:
-      - B: 1-4, 100, (TL)
-      - X: 1-4, 80, (Main IC)
+      - B: 1-4, (TL)
+      - X: 1-4, (Main IC)
     `);
     console.log(parser.parseGroupItems('RD', testData['RD']));
     const rd = parser.groups.get('RD');
@@ -1315,6 +1317,39 @@ function testParsingGroupItems(parser) {
     assert(rd.items[1].spanFromCol, 0);
     assert(rd.items[1].spanToCol, 3);
     assert(rd.items[1].description, '(Main IC)');
+}
+function testParsingGroupItemsSpecialRulesOnNames() {
+    const groupData = jsyaml.load(`
+    groups:
+      - RD
+    `);
+    const itemData = jsyaml.load(`
+    RD:
+      - B0: 1-1
+      - ^B1: 1-1
+      - ;B2: 1-1
+      - ^;B3: 1-1
+    `);
+    const parser = new LangParser();
+    parser.parseGroupStructure(groupData.groups);
+    parser.parseGroupItems('RD', itemData.RD);
+    console.log(parser.groups);
+    const rd = parser.groups.get('RD');
+    let item;
+    item = rd.items[0];
+    assert(item.name, 'B0');
+    assert(item.hideName, false);
+    assert(item.textCentered, false);
+    item = rd.items[1];
+    assert(item.name, 'B1');
+    assert(item.hideName, true);
+    item = rd.items[2];
+    assert(item.name, 'B2');
+    assert(item.textCentered, true);
+    item = rd.items[3];
+    assert(item.name, 'B3');
+    assert(item.hideName, true);
+    assert(item.textCentered, true);
 }
 function testParseLayoutConfig() {
     const testData = jsyaml.load(`
@@ -1411,6 +1446,7 @@ function runTests() {
     const parser = new LangParser();
     testParsingGroupStructure(parser);
     testParsingGroupItems(parser);
+    testParsingGroupItemsSpecialRulesOnNames();
     testParseLayoutConfig();
     testParseStyles();
     testComputeItemRowIndices();

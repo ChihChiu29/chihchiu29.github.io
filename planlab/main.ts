@@ -21,20 +21,21 @@ groups:
 #   - Item name does not need to be unique, and it is used for styling, see
 #     the "styles" section below.
 #   - The "name" part can:
-#       - Have a "^" character to make the text centered for this item.
-#       - Be wrapped in "[]" to indicate that the name should be hidden. There
+#       - Start with a "^" character to make the name hidden. There
 #         is a config to hide names from all items, see "global" section below.
+#       - Start with a ";" character to make text centered. When using with "^",
+#         "^" needs to start first.
 #       - When using special characters, the actual "name" does not include
-#         the special characters. For example for "^[Foo]", the actual name is
+#         the special characters. For example for "^;Foo", the actual name is
 #         "Foo".
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
 Quarters (HIDE):
-  - [Q1]: 1-1, name is hidden
+  - ^Q1: 1-1, name is hidden
   - Q2: 2-2, normal style
-  - ^Q3: 3-3, text centered
-  - ^[Q4]: 4-4, name hidden, content centered
+  - ;Q3: 3-3, text centered
+  - ^;Q4: 4-4, name hidden, content centered
 
 RD:
   # Syntax: column span (from-to, 1-based), description
@@ -95,6 +96,7 @@ function draw(useGrid = true): RenderReport {
   const graphData = (document.querySelector(INPUT_ELEMENT_CSS) as HTMLInputElement)!.value;
   const parser = new LangParser();
   parser.parse(graphData);
+  console.log(parser.groups);
 
   const renderer = new Renderer(document.querySelector(DRAW_AREA_SELECTOR)!, parser);
   const report = renderer.render(useGrid);
