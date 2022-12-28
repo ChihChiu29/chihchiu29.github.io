@@ -145,7 +145,7 @@ class Renderer {
       rect.width = this.getGroupWidth(group.depth);
     }
     rect.height = this.getRowSpanHeight(group.rowSpan);
-    rect.bgColor = this.getGroupBgColor(group);
+    rect.bgColor = this.style.defaultGroupBgColor;
 
     this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
 
@@ -165,7 +165,7 @@ class Renderer {
     rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
     rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
     rect.height = this.style.rowHeight;
-    rect.bgColor = this.getItemBgColor(item);
+    rect.bgColor = this.style.defaultItemBgColor;
 
     this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
 
@@ -212,21 +212,5 @@ class Renderer {
   private getItemWidth(fromCol: number, toCol: number): number {
     const colSpan = toCol - fromCol;
     return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
-  }
-
-  private getGroupBgColor(group: Group): string {
-    if (group.customBgColor) {
-      return group.customBgColor;
-    } else {
-      return this.style.defaultGroupBgColor;
-    }
-  }
-
-  private getItemBgColor(item: Item): string {
-    if (item.customBgColor) {
-      return item.customBgColor;
-    } else {
-      return this.style.defaultItemBgColor;
-    }
   }
 }

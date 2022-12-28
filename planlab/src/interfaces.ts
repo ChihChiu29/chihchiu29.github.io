@@ -14,8 +14,6 @@ interface Item {
   rowIndex: number;
 
   // Style.
-  // It set, overrides default color option.
-  customBgColor: string;
 }
 
 // Creates a default item.
@@ -26,7 +24,6 @@ function createItem(): Item {
     spanToCol: -1,
     description: '',
     rowIndex: -1,
-    customBgColor: '',
   };
 }
 
@@ -45,8 +42,6 @@ interface Group {
 
   // Style.
   hide: boolean,
-  // If set, overrides default color option.
-  customBgColor: string,
 }
 
 // Creates a default group.
@@ -59,6 +54,5 @@ function createGroup(): Group {
     rowIndex: -1,
     rowSpan: -1,
     hide: false,
-    customBgColor: '',
   };
 }

@@ -749,7 +749,6 @@ function createItem() {
         spanToCol: -1,
         description: '',
         rowIndex: -1,
-        customBgColor: '',
     };
 }
 // Creates a default group.
@@ -762,7 +761,6 @@ function createGroup() {
         rowIndex: -1,
         rowSpan: -1,
         hide: false,
-        customBgColor: '',
     };
 }
 class LangParser {
@@ -1190,7 +1188,7 @@ class Renderer {
             rect.width = this.getGroupWidth(group.depth);
         }
         rect.height = this.getRowSpanHeight(group.rowSpan);
-        rect.bgColor = this.getGroupBgColor(group);
+        rect.bgColor = this.style.defaultGroupBgColor;
         this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
         renderer.addShape(rect);
     }
@@ -1206,7 +1204,7 @@ class Renderer {
         rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
         rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
         rect.height = this.style.rowHeight;
-        rect.bgColor = this.getItemBgColor(item);
+        rect.bgColor = this.style.defaultItemBgColor;
         this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
         renderer.addShape(rect);
     }
@@ -1246,22 +1244,6 @@ class Renderer {
     getItemWidth(fromCol, toCol) {
         const colSpan = toCol - fromCol;
         return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
-    }
-    getGroupBgColor(group) {
-        if (group.customBgColor) {
-            return group.customBgColor;
-        }
-        else {
-            return this.style.defaultGroupBgColor;
-        }
-    }
-    getItemBgColor(item) {
-        if (item.customBgColor) {
-            return item.customBgColor;
-        }
-        else {
-            return this.style.defaultItemBgColor;
-        }
     }
 }
 function testParsingGroupStructure(parser) {
