@@ -23,6 +23,9 @@ groups:
 #       - Have a "^" character to make the text centered for this item.
 #       - Be wrapped in "[]" to indicate that the name should be hidden. There
 #         is a config to hide names from all items, see "global" section below.
+#       - When using special characters, the actual "name" does not include
+#         the special characters. For example for "^[Foo]", the actual name is
+#         "Foo".
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
@@ -54,6 +57,7 @@ global:
   - rowGap: 5
   - itemColWidth: 300
   - customGroupWidths: [40, 60, 60]
+  - hideItemNames: false
   - defaultGroupBgColor: "#f7d577"
   - defaultItemBgColor: "#3396ff"
   - defaultGroupStyles: {
@@ -1099,6 +1103,8 @@ class RendererStyleConfig {
     itemColWidth = 300;
     itemColGap = 10;
     defaultItemBgColor = '#ba3262';
+    // If true, hide all item names in rendering.
+    hideItemNames = false;
     defaultItemStyles = {
         rectStyle: {},
         textStyle: {
@@ -1220,7 +1226,7 @@ class Renderer {
     }
     drawItem(item, ownerGroup, renderer) {
         let content = '';
-        if (!item.hideName) {
+        if (!(this.style.hideItemNames || item.hideName)) {
             content += item.name;
         }
         if (item.description) {

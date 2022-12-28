@@ -11,6 +11,8 @@ class RendererStyleConfig {
   public itemColWidth = 300;
   public itemColGap = 10;
   public defaultItemBgColor = '#ba3262';
+  // If true, hide all item names in rendering.
+  public hideItemNames = false;
   public defaultItemStyles: CustomStyle = {
     rectStyle: {},
     textStyle: {
@@ -154,7 +156,7 @@ class Renderer {
 
   private drawItem(item: Item, ownerGroup: Group, renderer: svg.SVGRenderer): void {
     let content: string = '';
-    if (!item.hideName) {
+    if (!(this.style.hideItemNames || item.hideName)) {
       content += item.name;
     }
     if (item.description) {
