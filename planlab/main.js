@@ -5,7 +5,8 @@ const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
 # Name for each group needs to be unique. Name can start with "^" which
-# means that the group is hidden from display.
+# means that the group is hidden from display, and the actual name of
+# the group is the substring after "^".
 # Do not forget the ending ":" when a group contains children.
 groups:
   - ^Quarters  # any group has "HIDE" in name is hidden.
