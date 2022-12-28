@@ -16,8 +16,11 @@ groups:
     - Offline
   - ML Infra Tooling
 
-# Define items belonging to a group by starting with the group name used in the "groups" definition.
+# Define items belonging to a group by starting with the group name used 
+# in the "groups" definition.
 # Item names need to be globally unique among items and groups.
+# There is no specification on how items occupy different rows -- the layout 
+# will automatically pack items into minimal number of rows.
 # Note that only "leaf" group can have items, and watchout of trailing spaces.
 Quarters (HIDE):
   - Q1: 1-1

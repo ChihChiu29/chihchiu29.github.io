@@ -1,1 +1,1 @@
-* Add capacity check, add a way to not show capacity.
+* Hide item names in display.

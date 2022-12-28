@@ -30,12 +30,10 @@ function testParsingGroupItems(parser: LangParser) {
   assert(rd.items[0]!.name, 'B');
   assert(rd.items[0]!.spanFromCol, 0);
   assert(rd.items[0]!.spanToCol, 3);
-  assert(rd.items[0]!.capacityPercentage, 100);
   assert(rd.items[0]!.description, '(TL)');
   assert(rd.items[1]!.name, 'X');
   assert(rd.items[1]!.spanFromCol, 0);
   assert(rd.items[1]!.spanToCol, 3);
-  assert(rd.items[1]!.capacityPercentage, 80);
   assert(rd.items[1]!.description, '(Main IC)');
 }
 
