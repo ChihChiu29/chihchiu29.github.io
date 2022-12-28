@@ -18,15 +18,20 @@ groups:
 
 # Define items belonging to a group by starting with the group name used 
 # in the "groups" definition.
-# Item names need to be globally unique among items and groups.
-# There is no specification on how items occupy different rows -- the layout 
-# will automatically pack items into minimal number of rows.
-# Note that only "leaf" group can have items, and watchout of trailing spaces.
+#   - Item name does not need to be unique, and it is used for styling, see
+#     the "styles" section below.
+#   - The "name" part can:
+#       - Have a "^" character to make the text centered for this item.
+#       - Be wrapped in "[]" to indicate that the name should be hidden. There
+#         is a config to hide names from all items, see "global" section below.
+#   - There is no specification on how items occupy different rows -- the layout 
+#     will automatically pack items into minimal number of rows.
+#   - Only "leaf" group can have items, and watchout of trailing spaces.
 Quarters (HIDE):
-  - Q1: 1-1
-  - Q2: 2-2
-  - Q3: 3-3
-  - Q4: 4-4
+  - [Q1]: 1-1, name is hidden
+  - Q2: 2-2, normal style
+  - ^Q3: 3-3, text centered
+  - ^[Q4]: 4-4, name hidden, content centered
 
 RD:
   # Syntax: column span (from-to, 1-based), description
@@ -48,7 +53,7 @@ global:
   - rowHeight: 25
   - groupColGap: 5
   - rowGap: 5
-  - itemColWidth: 100
+  - itemColWidth: 300
   - customGroupWidths: [40, 60, 60]
   - defaultGroupBgColor: "#f7d577"
   - defaultItemBgColor: "#3396ff"

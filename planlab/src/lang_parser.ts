@@ -178,10 +178,29 @@ class LangParser {
     return groupNames;
   }
 
-  // Parses a single item config of type '1-4, 80, (Main IC)'.
-  private parseItemConfig(name: string, config: string): Item {
+  /**
+   * Parses a single item config.
+   * @param nameWithConfig like "foo", but can use special character "^" to 
+   *   indicate that the text should be centered, and/or wrapping it into "[]"
+   *   to indicate that the name should be hidden. For example "^[foo]".
+   * @param config like "1-4, content". The part before comma is used for
+   *   column span, and the rest is the content.
+   * @returns 
+   */
+  private parseItemConfig(nameWithConfig: string, config: string): Item {
     const item = createItem();
+    // Special treatment of the name part.
+    let name = nameWithConfig;
+    if (Strings.contains(name, '^')) {
+      item.textCentered = true;
+      name = name.replaceAll('^', '');
+    }
+    if (name[0] === '[' && name[name.length - 1] === ']') {
+      item.hideName = true;
+      name = name.slice(1, -1);
+    }
     item.name = name;
+    // The rest of the config.
     const configSegments = config.split(',').map(s => s.trim());
     const spanSegments = configSegments[0].split('-');
     item.spanFromCol = Number(spanSegments[0]) - 1;

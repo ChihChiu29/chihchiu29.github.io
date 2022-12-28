@@ -153,13 +153,16 @@ class Renderer {
   }
 
   private drawItem(item: Item, ownerGroup: Group, renderer: svg.SVGRenderer): void {
-    let content: string = item.name;
+    let content: string = '';
+    if (!item.hideName) {
+      content += item.name;
+    }
     if (item.description) {
       content += ` ${item.description}`;
     }
 
     const rect = new svg.Rect();
-    rect.textAlignToCenter = false;
+    rect.textAlignToCenter = item.textCentered;
     rect.text = content;
     rect.x = this.getItemLeft(item.spanFromCol);
     rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);

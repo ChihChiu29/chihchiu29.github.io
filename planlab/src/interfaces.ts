@@ -14,6 +14,8 @@ interface Item {
   rowIndex: number;
 
   // Style.
+  hideName: boolean;  // only show description.
+  textCentered: boolean;  // otherwise text is aligned to the left.
 }
 
 // Creates a default item.
@@ -24,6 +26,8 @@ function createItem(): Item {
     spanToCol: -1,
     description: '',
     rowIndex: -1,
+    hideName: false,
+    textCentered: false,
   };
 }
 

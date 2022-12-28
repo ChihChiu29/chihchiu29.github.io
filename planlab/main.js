@@ -17,15 +17,20 @@ groups:
 
 # Define items belonging to a group by starting with the group name used 
 # in the "groups" definition.
-# Item names need to be globally unique among items and groups.
-# There is no specification on how items occupy different rows -- the layout 
-# will automatically pack items into minimal number of rows.
-# Note that only "leaf" group can have items, and watchout of trailing spaces.
+#   - Item name does not need to be unique, and it is used for styling, see
+#     the "styles" section below.
+#   - The "name" part can:
+#       - Have a "^" character to make the text centered for this item.
+#       - Be wrapped in "[]" to indicate that the name should be hidden. There
+#         is a config to hide names from all items, see "global" section below.
+#   - There is no specification on how items occupy different rows -- the layout 
+#     will automatically pack items into minimal number of rows.
+#   - Only "leaf" group can have items, and watchout of trailing spaces.
 Quarters (HIDE):
-  - Q1: 1-1
-  - Q2: 2-2
-  - Q3: 3-3
-  - Q4: 4-4
+  - [Q1]: 1-1, name is hidden
+  - Q2: 2-2, normal style
+  - ^Q3: 3-3, text centered
+  - ^[Q4]: 4-4, name hidden, content centered
 
 RD:
   # Syntax: column span (from-to, 1-based), description
@@ -47,7 +52,7 @@ global:
   - rowHeight: 25
   - groupColGap: 5
   - rowGap: 5
-  - itemColWidth: 100
+  - itemColWidth: 300
   - customGroupWidths: [40, 60, 60]
   - defaultGroupBgColor: "#f7d577"
   - defaultItemBgColor: "#3396ff"
@@ -749,6 +754,8 @@ function createItem() {
         spanToCol: -1,
         description: '',
         rowIndex: -1,
+        hideName: false,
+        textCentered: false,
     };
 }
 // Creates a default group.
@@ -921,10 +928,29 @@ class LangParser {
         }
         return groupNames;
     }
-    // Parses a single item config of type '1-4, 80, (Main IC)'.
-    parseItemConfig(name, config) {
+    /**
+     * Parses a single item config.
+     * @param nameWithConfig like "foo", but can use special character "^" to
+     *   indicate that the text should be centered, and/or wrapping it into "[]"
+     *   to indicate that the name should be hidden. For example "^[foo]".
+     * @param config like "1-4, content". The part before comma is used for
+     *   column span, and the rest is the content.
+     * @returns
+     */
+    parseItemConfig(nameWithConfig, config) {
         const item = createItem();
+        // Special treatment of the name part.
+        let name = nameWithConfig;
+        if (Strings.contains(name, '^')) {
+            item.textCentered = true;
+            name = name.replaceAll('^', '');
+        }
+        if (name[0] === '[' && name[name.length - 1] === ']') {
+            item.hideName = true;
+            name = name.slice(1, -1);
+        }
         item.name = name;
+        // The rest of the config.
         const configSegments = config.split(',').map(s => s.trim());
         const spanSegments = configSegments[0].split('-');
         item.spanFromCol = Number(spanSegments[0]) - 1;
@@ -1193,12 +1219,15 @@ class Renderer {
         renderer.addShape(rect);
     }
     drawItem(item, ownerGroup, renderer) {
-        let content = item.name;
+        let content = '';
+        if (!item.hideName) {
+            content += item.name;
+        }
         if (item.description) {
             content += ` ${item.description}`;
         }
         const rect = new svg.Rect();
-        rect.textAlignToCenter = false;
+        rect.textAlignToCenter = item.textCentered;
         rect.text = content;
         rect.x = this.getItemLeft(item.spanFromCol);
         rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
