@@ -1,8 +1,8 @@
 class RendererStyleConfig {
   // Both groups and items.
   // Height of each row.
-  public rowHeight = 100;
-  public rowGap = 10;
+  public rowHeight = 25;
+  public rowGap = 5;
   // Whether to report capacity and capacity sum.
   public reportCapacity = true;
 
@@ -10,9 +10,10 @@ class RendererStyleConfig {
   // Width of a column for items.
   public itemColWidth = 300;
   public itemColGap = 10;
-  public defaultItemBgColor = '#ba3262';
+  public defaultItemBgColor = '#6EB2FF';
   // If true, hide all item names in rendering.
   public hideItemNames = false;
+  // Can override defaultItemBgColor.
   public defaultItemStyles: CustomStyle = {
     rectStyle: {},
     textStyle: {
@@ -22,11 +23,12 @@ class RendererStyleConfig {
 
   // Groups only.
   // Default width of group when not set in custom.
-  public defaultGroupWidth = 200;
-  public groupColGap = 10;
+  public defaultGroupWidth = 60;
+  public groupColGap = 5;
   // A map from group depth to width.
   public customGroupWidths = [];
-  public defaultGroupBgColor = '#327ba8';
+  public defaultGroupBgColor = '#FCFCCC';
+  // Can override defaultGroupBgColor.
   public defaultGroupStyles: CustomStyle = {
     rectStyle: {},
     textStyle: {},

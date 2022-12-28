@@ -59,8 +59,8 @@ global:
   - itemColWidth: 300
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
-  - defaultGroupBgColor: "#f7d577"
-  - defaultItemBgColor: "#3396ff"
+  - defaultGroupBgColor: "#fcfccc"
+  - defaultItemBgColor: "#6eb2ff"
   - defaultGroupStyles: {
     rectStyle: {},
     textStyle: {},
@@ -1096,17 +1096,18 @@ var LayoutComputation;
 class RendererStyleConfig {
     // Both groups and items.
     // Height of each row.
-    rowHeight = 100;
-    rowGap = 10;
+    rowHeight = 25;
+    rowGap = 5;
     // Whether to report capacity and capacity sum.
     reportCapacity = true;
     // Items only.
     // Width of a column for items.
     itemColWidth = 300;
     itemColGap = 10;
-    defaultItemBgColor = '#ba3262';
+    defaultItemBgColor = '#6EB2FF';
     // If true, hide all item names in rendering.
     hideItemNames = false;
+    // Can override defaultItemBgColor.
     defaultItemStyles = {
         rectStyle: {},
         textStyle: {
@@ -1115,11 +1116,12 @@ class RendererStyleConfig {
     };
     // Groups only.
     // Default width of group when not set in custom.
-    defaultGroupWidth = 200;
-    groupColGap = 10;
+    defaultGroupWidth = 60;
+    groupColGap = 5;
     // A map from group depth to width.
     customGroupWidths = [];
-    defaultGroupBgColor = '#327ba8';
+    defaultGroupBgColor = '#FCFCCC';
+    // Can override defaultGroupBgColor.
     defaultGroupStyles = {
         rectStyle: {},
         textStyle: {},

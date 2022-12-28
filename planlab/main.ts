@@ -60,8 +60,8 @@ global:
   - itemColWidth: 300
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
-  - defaultGroupBgColor: "#f7d577"
-  - defaultItemBgColor: "#3396ff"
+  - defaultGroupBgColor: "#fcfccc"
+  - defaultItemBgColor: "#6eb2ff"
   - defaultGroupStyles: {
     rectStyle: {},
     textStyle: {},
