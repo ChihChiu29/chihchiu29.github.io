@@ -5,10 +5,11 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
-# Group names need to be unique.
-# Do not use comma in group names.
+# Name for each group needs to be unique. Name can start with "^" which
+# means that the group is hidden from display.
+# Do not forget the ending ":" when a group contains children.
 groups:
-  - Quarters (HIDE)  # any group has "HIDE" in name is hidden.
+  - ^Quarters  # any group has "HIDE" in name is hidden.
   - Exp:
     - Online:
       - RD
@@ -31,7 +32,7 @@ groups:
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
-Quarters (HIDE):
+Quarters:
   - ^Q1: 1-1, name is hidden
   - Q2: 2-2, normal style
   - ;Q3: 3-3, text centered

@@ -10,8 +10,6 @@ class LangParser {
   GLOBAL_CONFIG_KEYWORD = 'global';
   STYLE_KEYWORD = 'styles';
 
-  GROUP_INVISIBLE_IF_CONTAINS = 'HIDE';
-
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
 
@@ -174,11 +172,14 @@ class LangParser {
         const subgroupNames = this.parseGroupRecursive(subgroup[name], currentDepth + 1, groups);
         group.children = subgroupNames;
       }
+
+      // Special handling of "name".
+      if (name[0] === '^') {
+        group.hide = true;
+        name = name.slice(1);
+      }
       group.name = name;
       group.depth = currentDepth;
-      if (Strings.contains(name, this.GROUP_INVISIBLE_IF_CONTAINS)) {
-        group.hide = true;
-      }
       groups.set(name, group);
       groupNames.push(name);
     }

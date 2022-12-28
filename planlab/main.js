@@ -4,10 +4,11 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
-# Group names need to be unique.
-# Do not use comma in group names.
+# Name for each group needs to be unique. Name can start with "^" which
+# means that the group is hidden from display.
+# Do not forget the ending ":" when a group contains children.
 groups:
-  - Quarters (HIDE)  # any group has "HIDE" in name is hidden.
+  - ^Quarters  # any group has "HIDE" in name is hidden.
   - Exp:
     - Online:
       - RD
@@ -30,7 +31,7 @@ groups:
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
-Quarters (HIDE):
+Quarters:
   - ^Q1: 1-1, name is hidden
   - Q2: 2-2, normal style
   - ;Q3: 3-3, text centered
@@ -782,7 +783,6 @@ class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
     GLOBAL_CONFIG_KEYWORD = 'global';
     STYLE_KEYWORD = 'styles';
-    GROUP_INVISIBLE_IF_CONTAINS = 'HIDE';
     // A map from a string to either a string
     groups = new Map();
     rendererStyleConfig = new RendererStyleConfig();
@@ -934,11 +934,13 @@ class LangParser {
                 const subgroupNames = this.parseGroupRecursive(subgroup[name], currentDepth + 1, groups);
                 group.children = subgroupNames;
             }
+            // Special handling of "name".
+            if (name[0] === '^') {
+                group.hide = true;
+                name = name.slice(1);
+            }
             group.name = name;
             group.depth = currentDepth;
-            if (Strings.contains(name, this.GROUP_INVISIBLE_IF_CONTAINS)) {
-                group.hide = true;
-            }
             groups.set(name, group);
             groupNames.push(name);
         }
