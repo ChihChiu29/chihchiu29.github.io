@@ -35,7 +35,7 @@ Quarters (HIDE):
   - ^Q1: 1-1, name is hidden
   - Q2: 2-2, normal style
   - ;Q3: 3-3, text centered
-  - ^;Q4: 4-4, name hidden, content centered
+  - ^;Q4: 4-4, hidden & centered
 
 RD:
   # Syntax: column span (from-to, 1-based), description
@@ -57,7 +57,7 @@ global:
   - rowHeight: 25
   - groupColGap: 5
   - rowGap: 5
-  - itemColWidth: 300
+  - itemColWidth: 200
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
   - defaultGroupBgColor: "#fcfccc"

@@ -15,7 +15,9 @@ class RendererStyleConfig {
   public hideItemNames = false;
   // Can override defaultItemBgColor.
   public defaultItemStyles: CustomStyle = {
-    rectStyle: {},
+    rectStyle: {
+      stroke: 'none',
+    },
     textStyle: {
       fill: 'white',
     },
@@ -30,7 +32,9 @@ class RendererStyleConfig {
   public defaultGroupBgColor = '#FCFCCC';
   // Can override defaultGroupBgColor.
   public defaultGroupStyles: CustomStyle = {
-    rectStyle: {},
+    rectStyle: {
+      stroke: 'none',
+    },
     textStyle: {},
   };
 }

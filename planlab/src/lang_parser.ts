@@ -114,8 +114,15 @@ class LangParser {
   public parseGlobalStyleConfig(styles: any[]) {
     for (const style of styles) {
       const styleName = this.getSingleKey(style);
-      // @ts-ignore
-      this.rendererStyleConfig[styleName] = style[styleName];
+      if (styleName === 'defaultItemStyles' || styleName === 'defaultGroupStyles') {
+        this.rendererStyleConfig[styleName] = {
+          rectStyle: { ...style[styleName].rectStyle, ...this.rendererStyleConfig[styleName].rectStyle },
+          textStyle: { ...style[styleName].textStyle, ...this.rendererStyleConfig[styleName].textStyle },
+        }
+      } else {
+        // @ts-ignore
+        this.rendererStyleConfig[styleName] = style[styleName];
+      }
     }
   }
 
