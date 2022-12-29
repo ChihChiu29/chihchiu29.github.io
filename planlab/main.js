@@ -4,14 +4,18 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
-# Name for each group needs to be unique. Name can start with "^" which
-# means that the group is hidden from display, and the actual name of
-# the group is the substring after "^".
+# Name for each group needs to be unique and distinct from item names. Also:
+#   - Name can start with "^" which means that the group is hidden from
+#     display, and the actual name of the group is the substring after "^".
+#   - Name can also start with content wrapped in "()", in which case the
+#     wrapped content becomes the group name. The content outside of "()"
+#     will be displayed, but the "name" is used when defining items and styles.
+#   - If used together, "^" needs to proceed "()".
 # Do not forget the ending ":" when a group contains children.
 groups:
-  - ^Quarters  # any group has "HIDE" in name is hidden.
+  - ^Quarters  # any group starting with "^"  "HIDE" in name is hidden.
   - Exp:
-    - Online:
+    - (Online)Online Understanding:
       - RD
       - RR
     - Offline
@@ -22,13 +26,13 @@ groups:
 #   - Item name does not need to be unique, and it is used for styling, see
 #     the "styles" section below.
 #   - The "name" part can:
-#       - Start with a "^" character to make the name hidden. There
-#         is a config to hide names from all items, see "global" section below.
-#       - Start with a ";" character to make text centered. When using with "^",
-#         "^" needs to start first.
-#       - When using special characters, the actual "name" does not include
-#         the special characters. For example for "^;Foo", the actual name is
-#         "Foo".
+#     - Start with a "^" character to make the name hidden. There
+#       is a config to hide names from all items, see "global" section below.
+#     - Start with a ";" character to make text centered. When using with "^",
+#       "^" needs to start first.
+#     - When using special characters, the actual "name" does not include
+#       the special characters. For example for "^;Foo", the actual name is
+#       "Foo".
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
@@ -81,7 +85,7 @@ styles:
     - text: { font-weight: bold, fill: red }
   - Exp:
     - rect: { fill: grey }
-  - Online:
+  - Exp:
     - text: { writing-mode: tb }
   - B:
     - rect: { fill: darkblue }
@@ -180,8 +184,8 @@ function main() {
     draw();
 }
 window.addEventListener('DOMContentLoaded', function () {
-    // runTests();
     main();
+    // runTests();
 });
 var Strings;
 (function (Strings) {
@@ -772,6 +776,7 @@ function createItem() {
 function createGroup() {
     return {
         name: '',
+        displayName: '',
         depth: -1,
         children: [],
         items: [],
@@ -939,6 +944,12 @@ class LangParser {
             if (name[0] === '^') {
                 group.hide = true;
                 name = name.slice(1);
+            }
+            if (name[0] === '(') {
+                const fullName = name;
+                const rightBracket = fullName.indexOf(')');
+                name = fullName.slice(1, rightBracket);
+                group.displayName = fullName.slice(rightBracket + 1);
             }
             group.name = name;
             group.depth = currentDepth;
@@ -1231,7 +1242,7 @@ class Renderer {
             return;
         }
         const rect = new svg.Rect();
-        rect.text = group.name;
+        rect.text = group.displayName ? group.displayName : group.name;
         rect.x = this.groupLeftValues[group.depth];
         rect.y = this.getRowTop(group.rowIndex);
         if (LayoutComputation.hasChildren(group)) {
@@ -1302,7 +1313,7 @@ class Renderer {
         return (colSpan + 1) * this.style.itemColWidth + colSpan * this.style.itemColGap;
     }
 }
-function testParsingGroupStructure(parser) {
+function testParsingGroupStructure() {
     const testData = jsyaml.load(`
     groups:
       - Exp:
@@ -1312,7 +1323,9 @@ function testParsingGroupStructure(parser) {
         - Offline
       - ML
     `);
-    console.log(parser.parseGroupStructure(testData['groups']));
+    const parser = new LangParser();
+    parser.parseGroupStructure(testData.groups);
+    console.log(parser.groups);
     assert(parser.groups.get('Exp')?.depth, 0);
     assert(parser.groups.get('ML')?.depth, 0);
     assert(parser.groups.get('Online')?.depth, 1);
@@ -1320,13 +1333,35 @@ function testParsingGroupStructure(parser) {
     assert(parser.groups.get('RD')?.depth, 2);
     assert(parser.groups.get('RR')?.depth, 2);
 }
-function testParsingGroupItems(parser) {
+function testParsingSpeicalGroupNames() {
     const testData = jsyaml.load(`
+    groups:
+      - ^hidden
+      - (key)Using Key
+      - ^(hidden_with_key)hidden and with key
+    `);
+    const parser = new LangParser();
+    parser.parseGroupStructure(testData.groups);
+    console.log(parser.groups);
+    assert(parser.groups.get('hidden')?.hide, true);
+    assert(parser.groups.get('key')?.displayName, 'Using Key');
+    assert(parser.groups.get('hidden_with_key')?.hide, true);
+    assert(parser.groups.get('hidden_with_key')?.displayName, 'hidden and with key');
+}
+function testParsingGroupItems() {
+    const groupData = jsyaml.load(`
+    groups:
+      - RD
+    `);
+    const itemData = jsyaml.load(`
     RD:
       - B: 1-4, (TL)
       - X: 1-4, (Main IC)
     `);
-    console.log(parser.parseGroupItems('RD', testData['RD']));
+    const parser = new LangParser();
+    parser.parseGroupStructure(groupData.groups);
+    parser.parseGroupItems('RD', itemData.RD);
+    console.log(parser.groups);
     const rd = parser.groups.get('RD');
     assert(rd.items[0].name, 'B');
     assert(rd.items[0].spanFromCol, 0);
@@ -1462,9 +1497,9 @@ function testParse() {
     console.log(parser.groups);
 }
 function runTests() {
-    const parser = new LangParser();
-    testParsingGroupStructure(parser);
-    testParsingGroupItems(parser);
+    testParsingGroupStructure();
+    testParsingSpeicalGroupNames();
+    testParsingGroupItems();
     testParsingGroupItemsSpecialRulesOnNames();
     testParseLayoutConfig();
     testParseStyles();

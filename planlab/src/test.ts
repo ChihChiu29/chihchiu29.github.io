@@ -1,4 +1,4 @@
-function testParsingGroupStructure(parser: LangParser) {
+function testParsingGroupStructure() {
   const testData = jsyaml.load(`
     groups:
       - Exp:
@@ -8,7 +8,10 @@ function testParsingGroupStructure(parser: LangParser) {
         - Offline
       - ML
     `) as { groups: any[] };
-  console.log(parser.parseGroupStructure(testData['groups']));
+  const parser = new LangParser();
+  parser.parseGroupStructure(testData.groups);
+
+  console.log(parser.groups);
 
   assert(parser.groups.get('Exp')?.depth, 0);
   assert(parser.groups.get('ML')?.depth, 0);
@@ -18,13 +21,38 @@ function testParsingGroupStructure(parser: LangParser) {
   assert(parser.groups.get('RR')?.depth, 2);
 }
 
-function testParsingGroupItems(parser: LangParser) {
+function testParsingSpeicalGroupNames() {
   const testData = jsyaml.load(`
+    groups:
+      - ^hidden
+      - (key)Using Key
+      - ^(hidden_with_key)hidden and with key
+    `) as { groups: any[] };
+  const parser = new LangParser();
+  parser.parseGroupStructure(testData.groups);
+
+  console.log(parser.groups);
+
+  assert(parser.groups.get('hidden')?.hide, true);
+  assert(parser.groups.get('key')?.displayName, 'Using Key');
+  assert(parser.groups.get('hidden_with_key')?.hide, true);
+  assert(parser.groups.get('hidden_with_key')?.displayName, 'hidden and with key');
+}
+
+function testParsingGroupItems() {
+  const groupData = jsyaml.load(`
+    groups:
+      - RD
+    `) as { groups: any[] };
+  const itemData = jsyaml.load(`
     RD:
       - B: 1-4, (TL)
       - X: 1-4, (Main IC)
     `) as { RD: ItemYaml[] };
-  console.log(parser.parseGroupItems('RD', testData['RD']));
+  const parser = new LangParser();
+  parser.parseGroupStructure(groupData.groups);
+  parser.parseGroupItems('RD', itemData.RD);
+  console.log(parser.groups);
 
   const rd = parser.groups.get('RD')!;
   assert(rd.items[0]!.name, 'B');
@@ -53,7 +81,7 @@ function testParsingGroupItemsSpecialRulesOnNames() {
   const parser = new LangParser();
   parser.parseGroupStructure(groupData.groups);
   parser.parseGroupItems('RD', itemData.RD);
-  console.log(parser.groups)
+  console.log(parser.groups);
 
   const rd = parser.groups.get('RD')!;
   let item;
@@ -181,9 +209,9 @@ function testParse() {
 }
 
 function runTests() {
-  const parser = new LangParser();
-  testParsingGroupStructure(parser);
-  testParsingGroupItems(parser);
+  testParsingGroupStructure();
+  testParsingSpeicalGroupNames();
+  testParsingGroupItems();
   testParsingGroupItemsSpecialRulesOnNames();
   testParseLayoutConfig();
   testParseStyles();

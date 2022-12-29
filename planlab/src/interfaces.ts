@@ -33,7 +33,8 @@ function createItem(): Item {
 
 // A group can contain subgroups or items, and usually span multiple rows.
 interface Group {
-  name: string;  // globally unique
+  name: string;  // unique among groups and distinct from item names
+  displayName: string;  // if set, this is displayed instead of "name"
   depth: number;  // 0 means root
   // Child groups; empty means it's a leaf.
   children: string[];
@@ -52,6 +53,7 @@ interface Group {
 function createGroup(): Group {
   return {
     name: '',
+    displayName: '',
     depth: -1,
     children: [],
     items: [],

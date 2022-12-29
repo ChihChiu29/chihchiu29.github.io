@@ -144,7 +144,7 @@ class Renderer {
     }
 
     const rect = new svg.Rect();
-    rect.text = group.name;
+    rect.text = group.displayName ? group.displayName : group.name;
     rect.x = this.groupLeftValues[group.depth];
     rect.y = this.getRowTop(group.rowIndex);
     if (LayoutComputation.hasChildren(group)) {

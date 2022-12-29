@@ -178,6 +178,12 @@ class LangParser {
         group.hide = true;
         name = name.slice(1);
       }
+      if (name[0] === '(') {
+        const fullName = name;
+        const rightBracket = fullName.indexOf(')');
+        name = fullName.slice(1, rightBracket);
+        group.displayName = fullName.slice(rightBracket + 1);
+      }
       group.name = name;
       group.depth = currentDepth;
       groups.set(name, group);

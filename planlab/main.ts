@@ -5,14 +5,18 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `# See usage from the following example, have fun!
 
 # Define groups using the "groups" keyword.
-# Name for each group needs to be unique. Name can start with "^" which
-# means that the group is hidden from display, and the actual name of
-# the group is the substring after "^".
+# Name for each group needs to be unique and distinct from item names. Also:
+#   - Name can start with "^" which means that the group is hidden from
+#     display, and the actual name of the group is the substring after "^".
+#   - Name can also start with content wrapped in "()", in which case the
+#     wrapped content becomes the group name. The content outside of "()"
+#     will be displayed, but the "name" is used when defining items and styles.
+#   - If used together, "^" needs to proceed "()".
 # Do not forget the ending ":" when a group contains children.
 groups:
-  - ^Quarters  # any group has "HIDE" in name is hidden.
+  - ^Quarters  # any group starting with "^"  "HIDE" in name is hidden.
   - Exp:
-    - Online:
+    - (Online)Online Understanding:
       - RD
       - RR
     - Offline
@@ -23,13 +27,13 @@ groups:
 #   - Item name does not need to be unique, and it is used for styling, see
 #     the "styles" section below.
 #   - The "name" part can:
-#       - Start with a "^" character to make the name hidden. There
-#         is a config to hide names from all items, see "global" section below.
-#       - Start with a ";" character to make text centered. When using with "^",
-#         "^" needs to start first.
-#       - When using special characters, the actual "name" does not include
-#         the special characters. For example for "^;Foo", the actual name is
-#         "Foo".
+#     - Start with a "^" character to make the name hidden. There
+#       is a config to hide names from all items, see "global" section below.
+#     - Start with a ";" character to make text centered. When using with "^",
+#       "^" needs to start first.
+#     - When using special characters, the actual "name" does not include
+#       the special characters. For example for "^;Foo", the actual name is
+#       "Foo".
 #   - There is no specification on how items occupy different rows -- the layout 
 #     will automatically pack items into minimal number of rows.
 #   - Only "leaf" group can have items, and watchout of trailing spaces.
@@ -82,7 +86,7 @@ styles:
     - text: { font-weight: bold, fill: red }
   - Exp:
     - rect: { fill: grey }
-  - Online:
+  - Exp:
     - text: { writing-mode: tb }
   - B:
     - rect: { fill: darkblue }
@@ -198,6 +202,6 @@ function main() {
 }
 
 window.addEventListener('DOMContentLoaded', function () {
-  // runTests();
   main();
+  // runTests();
 });
