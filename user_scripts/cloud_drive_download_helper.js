@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.25
+// @version      1.26
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -48,11 +48,30 @@
         }
     }
 
-    function removeAllListeners() {
+    function removeBodyListeners() {
         // Remove all event listeners on the page.
         const newBody = document.body.cloneNode(true);
         document.body.parentNode.replaceChild(newBody, document.body);
         GM_log('removed all listeners');
+    }
+
+    function sanitize() {
+      const bodyHtml = document.body.innerHTML;
+      const styleElements = [];
+      for (const nn of document.head.childNodes) {
+        if (nn.type === 'text/css') {
+          styleElements.push(nn);
+        }
+      }
+      document.open();
+      document.write('<head></head>');
+      document.write('<body></body>');
+      document.close();
+
+      for (const styleElem of styleElements) {
+        document.head.appendChild(styleElem);
+      }
+      document.body.innerHTML = bodyHtml;
     }
 
     const hostname = window.location.hostname;
@@ -99,8 +118,8 @@
                 elem.remove();
             }
             removeIframes();
+            sanitize();
         }, 5, 30);
-        removeAllListeners();
 
         // For downloading.
         if (isRoot() || contains(pathname, 'page')) {
@@ -121,6 +140,5 @@
         runUntil(function() {
             removeIframes();
         }, 5, 30);
-        // setTimeout(removeAllListeners, 5 * 1000);
     }
 })();
