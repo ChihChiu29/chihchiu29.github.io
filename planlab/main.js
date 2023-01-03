@@ -65,15 +65,13 @@ global:
   - itemColWidth: 200
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
-  - defaultGroupBgColor: "#fcfccc"
-  - defaultItemBgColor: "#6eb2ff"
   - defaultGroupStyles: {
-    rectStyle: {},
-    textStyle: {},
+    rect: {},
+    text: {},
   }
   - defaultItemStyles: {
-    rectStyle: {},
-    textStyle: { fill: 'white', },
+    rect: {},
+    text: {},
   }
 
 # Optional -- override styling for groups/items using "styles" keyword.
@@ -204,6 +202,7 @@ var svg;
 (function (svg) {
     class ZSVGElement extends SVGElement {
         zValue = 1;
+        zsvgCustomStyle;
     }
     svg.ZSVGElement = ZSVGElement;
     function createSvgSvgElement() {
@@ -401,6 +400,7 @@ var svg;
             };
             const svgText = new SvgText(svgTextOption);
             const elem = svgText.text;
+            elem.zsvgCustomStyle = this.customTextCssStyle;
             if (this.name) {
                 setAttr(elem, 'name', this.name);
             }
@@ -480,6 +480,7 @@ var svg;
         // @Implement
         getElements(style, svgElement) {
             const elem = createSvgElement('rect');
+            elem.zsvgCustomStyle = this.customRectCssStyle;
             setAttr(elem, 'x', this.x);
             setAttr(elem, 'y', this.y);
             setAttr(elem, 'width', this.width);
@@ -785,13 +786,84 @@ function createGroup() {
         hide: false,
     };
 }
+/**
+ * Resolves a CustomStyleWithShortcuts to a new CustomStyle object.
+ * If style if not defined, create an empty CustomStyle object.
+ */
+function resolveCustomStyle(style) {
+    if (style) {
+        const resolvedStyle = { rect: { ...style.rect }, text: { ...style.text } };
+        // Next resolve custom color settings.
+        if (style.bgcolor) {
+            resolvedStyle.rect['fill'] = style.bgcolor;
+        }
+        if (style.textcolor) {
+            resolvedStyle.text['fill'] = style.textcolor;
+        }
+        return resolvedStyle;
+    }
+    else {
+        return { rect: {}, text: {} };
+    }
+}
+/**
+ * Creates a new CustomStyle from merging two CustomStyleWithShortcuts objects.
+ * The two CustomStyleWithShortcuts objects are resolved individually first.
+ */
+function resolveAndMergeCustomStyles(source, target) {
+    const resolvedSource = resolveCustomStyle(source);
+    const resolvedTarget = resolveCustomStyle(target);
+    return {
+        ...resolvedSource, ...resolvedTarget,
+        rect: { ...resolvedSource.rect, ...resolvedTarget.rect },
+        text: { ...resolvedSource.text, ...resolvedTarget.text },
+    };
+}
+class RenderStyleConfig {
+    // Both groups and items.
+    // Height of each row.
+    rowHeight = 25;
+    rowGap = 5;
+    // Whether to report capacity and capacity sum.
+    reportCapacity = true;
+    // Items only.
+    // Width of a column for items.
+    itemColWidth = 300;
+    itemColGap = 10;
+    // If true, hide all item names in rendering.
+    hideItemNames = false;
+    // Can override defaultItemBgColor.
+    defaultItemStyles = {
+        rect: {
+            stroke: 'none',
+        },
+        bgcolor: '#6EB2FF',
+        text: {},
+        textcolor: 'white',
+    };
+    // Groups only.
+    // Default width of group when not set in custom.
+    defaultGroupWidth = 60;
+    groupColGap = 5;
+    // A map from group depth to width.
+    customGroupWidths = [];
+    // Can override defaultGroupBgColor.
+    defaultGroupStyles = {
+        rect: {
+            stroke: 'none',
+        },
+        bgcolor: '#FCFCCC',
+        text: {},
+        textcolor: undefined,
+    };
+}
 class LangParser {
     GROUP_STRUCT_KEYWORD = 'groups';
     GLOBAL_CONFIG_KEYWORD = 'global';
     STYLE_KEYWORD = 'styles';
     // A map from a string to either a string
     groups = new Map();
-    rendererStyleConfig = new RendererStyleConfig();
+    defaultRenderStyleConfig = new RenderStyleConfig();
     // Stores all custom styles for groups and items.
     customStyles = new Map();
     constructor() { }
@@ -880,14 +952,11 @@ class LangParser {
         for (const style of styles) {
             const styleName = this.getSingleKey(style);
             if (styleName === 'defaultItemStyles' || styleName === 'defaultGroupStyles') {
-                this.rendererStyleConfig[styleName] = {
-                    rectStyle: { ...style[styleName].rectStyle, ...this.rendererStyleConfig[styleName].rectStyle },
-                    textStyle: { ...style[styleName].textStyle, ...this.rendererStyleConfig[styleName].textStyle },
-                };
+                this.defaultRenderStyleConfig[styleName] = resolveAndMergeCustomStyles(this.defaultRenderStyleConfig[styleName], style[styleName]);
             }
             else {
                 // @ts-ignore
-                this.rendererStyleConfig[styleName] = style[styleName];
+                this.defaultRenderStyleConfig[styleName] = style[styleName];
             }
         }
     }
@@ -907,17 +976,17 @@ class LangParser {
             const nameOrNames = this.getSingleKey(entity);
             for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
                 const customStyles = {
-                    rectStyle: {},
-                    textStyle: {},
+                    rect: {},
+                    text: {},
                 };
                 for (const styleGroup of entity[nameOrNames]) {
                     const styleFor = this.getSingleKey(styleGroup);
                     const styles = styleGroup[styleFor];
                     if (styleFor === 'rect') {
-                        customStyles.rectStyle = styles;
+                        customStyles.rect = styles;
                     }
                     else if (styleFor === 'text') {
-                        customStyles.textStyle = styles;
+                        customStyles.text = styles;
                     }
                 }
                 this.customStyles.set(name, customStyles);
@@ -1117,44 +1186,6 @@ var LayoutComputation;
         return `${row},${col}`;
     }
 })(LayoutComputation || (LayoutComputation = {}));
-class RendererStyleConfig {
-    // Both groups and items.
-    // Height of each row.
-    rowHeight = 25;
-    rowGap = 5;
-    // Whether to report capacity and capacity sum.
-    reportCapacity = true;
-    // Items only.
-    // Width of a column for items.
-    itemColWidth = 300;
-    itemColGap = 10;
-    defaultItemBgColor = '#6EB2FF';
-    // If true, hide all item names in rendering.
-    hideItemNames = false;
-    // Can override defaultItemBgColor.
-    defaultItemStyles = {
-        rectStyle: {
-            stroke: 'none',
-        },
-        textStyle: {
-            fill: 'white',
-        },
-    };
-    // Groups only.
-    // Default width of group when not set in custom.
-    defaultGroupWidth = 60;
-    groupColGap = 5;
-    // A map from group depth to width.
-    customGroupWidths = [];
-    defaultGroupBgColor = '#FCFCCC';
-    // Can override defaultGroupBgColor.
-    defaultGroupStyles = {
-        rectStyle: {
-            stroke: 'none',
-        },
-        textStyle: {},
-    };
-}
 class Renderer {
     // Extra space around the whole group (to show border etc.).
     EXTRA_MARGIN = 5;
@@ -1164,7 +1195,7 @@ class Renderer {
     drawArea;
     groups;
     maxGroupDepth = -1;
-    style;
+    style; // Will be set by LangParser.
     customStyles;
     // Postions.
     // "left" values for groups of each depth.
@@ -1176,7 +1207,7 @@ class Renderer {
     constructor(svgElement, parser) {
         this.groups = parser.groups;
         this.drawArea = svgElement;
-        this.style = parser.rendererStyleConfig;
+        this.style = parser.defaultRenderStyleConfig;
         this.customStyles = parser.customStyles;
     }
     // Renders groups.
@@ -1252,7 +1283,6 @@ class Renderer {
             rect.width = this.getGroupWidth(group.depth);
         }
         rect.height = this.getRowSpanHeight(group.rowSpan);
-        rect.bgColor = this.style.defaultGroupBgColor;
         this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
         renderer.addShape(rect);
     }
@@ -1271,24 +1301,16 @@ class Renderer {
         rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
         rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
         rect.height = this.style.rowHeight;
-        rect.bgColor = this.style.defaultItemBgColor;
+        // rect.bgColor = this.style.defaultItemBgColor;
         this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
         renderer.addShape(rect);
     }
-    applyCustomStyles(rect, entityName, defaultCustomStyle) {
-        let finalCustomStyles;
-        const customStyles = this.customStyles.get(entityName);
-        if (customStyles) {
-            finalCustomStyles = {
-                rectStyle: { ...defaultCustomStyle.rectStyle, ...customStyles.rectStyle },
-                textStyle: { ...defaultCustomStyle.textStyle, ...customStyles.textStyle },
-            };
-        }
-        else {
-            finalCustomStyles = defaultCustomStyle;
-        }
-        rect.customRectCssStyle = finalCustomStyles.rectStyle;
-        rect.customTextCssStyle = finalCustomStyles.textStyle;
+    applyCustomStyles(rect, entityName, defaultStyle) {
+        // First default and custom styles.
+        let finalCustomStyles = resolveAndMergeCustomStyles(defaultStyle, this.customStyles.get(entityName));
+        // Finally, set on the UI elements.
+        rect.customRectCssStyle = finalCustomStyles.rect;
+        rect.customTextCssStyle = finalCustomStyles.text;
     }
     // The the "top" value for an item with the given row index.
     getRowTop(rowIndex) {
@@ -1413,9 +1435,9 @@ function testParseLayoutConfig() {
     `);
     const parser = new LangParser();
     parser.parseGlobalStyleConfig(testData.global);
-    console.log(parser.rendererStyleConfig);
-    assert(parser.rendererStyleConfig.rowHeight, 50);
-    assert(parser.rendererStyleConfig.customGroupWidths[2], 40);
+    console.log(parser.defaultRenderStyleConfig);
+    assert(parser.defaultRenderStyleConfig.rowHeight, 50);
+    assert(parser.defaultRenderStyleConfig.customGroupWidths[2], 40);
 }
 function testParseStyles() {
     const testData = jsyaml.load(`
@@ -1428,8 +1450,8 @@ function testParseStyles() {
     const parser = new LangParser();
     parser.parseStyles(testData['styles']);
     console.log(parser.customStyles);
-    assert(parser.customStyles.get('B')?.textStyle['font-weight'], 'bold');
-    assert(parser.customStyles.get('BD')?.rectStyle['fill'], 'red');
+    assert(parser.customStyles.get('B')?.text['font-weight'], 'bold');
+    assert(parser.customStyles.get('BD')?.rect['fill'], 'red');
 }
 function testComputeItemRowIndices() {
     const testData = jsyaml.load(`

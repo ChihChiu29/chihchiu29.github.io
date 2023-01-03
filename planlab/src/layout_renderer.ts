@@ -1,44 +1,3 @@
-class RendererStyleConfig {
-  // Both groups and items.
-  // Height of each row.
-  public rowHeight = 25;
-  public rowGap = 5;
-  // Whether to report capacity and capacity sum.
-  public reportCapacity = true;
-
-  // Items only.
-  // Width of a column for items.
-  public itemColWidth = 300;
-  public itemColGap = 10;
-  public defaultItemBgColor = '#6EB2FF';
-  // If true, hide all item names in rendering.
-  public hideItemNames = false;
-  // Can override defaultItemBgColor.
-  public defaultItemStyles: CustomStyle = {
-    rectStyle: {
-      stroke: 'none',
-    },
-    textStyle: {
-      fill: 'white',
-    },
-  };
-
-  // Groups only.
-  // Default width of group when not set in custom.
-  public defaultGroupWidth = 60;
-  public groupColGap = 5;
-  // A map from group depth to width.
-  public customGroupWidths = [];
-  public defaultGroupBgColor = '#FCFCCC';
-  // Can override defaultGroupBgColor.
-  public defaultGroupStyles: CustomStyle = {
-    rectStyle: {
-      stroke: 'none',
-    },
-    textStyle: {},
-  };
-}
-
 interface RenderReport {
   dimension: geometry.BoundingRect;
   message: string;
@@ -55,7 +14,7 @@ class Renderer {
   private drawArea: HTMLElement;
   private groups: Map<string, Group>;
   private maxGroupDepth: number = -1;
-  private style: RendererStyleConfig;
+  private style: RenderStyleConfig;  // Will be set by LangParser.
   private customStyles: Map<string, CustomStyle>;
 
   // Postions.
@@ -69,7 +28,7 @@ class Renderer {
   constructor(svgElement: HTMLElement, parser: LangParser) {
     this.groups = parser.groups;
     this.drawArea = svgElement;
-    this.style = parser.rendererStyleConfig;
+    this.style = parser.defaultRenderStyleConfig;
     this.customStyles = parser.customStyles;
   }
 
@@ -153,7 +112,6 @@ class Renderer {
       rect.width = this.getGroupWidth(group.depth);
     }
     rect.height = this.getRowSpanHeight(group.rowSpan);
-    rect.bgColor = this.style.defaultGroupBgColor;
 
     this.applyCustomStyles(rect, group.name, this.style.defaultGroupStyles);
 
@@ -176,26 +134,21 @@ class Renderer {
     rect.y = this.getRowTop(ownerGroup.rowIndex + item.rowIndex);
     rect.width = this.getItemWidth(item.spanFromCol, item.spanToCol);
     rect.height = this.style.rowHeight;
-    rect.bgColor = this.style.defaultItemBgColor;
+    // rect.bgColor = this.style.defaultItemBgColor;
 
     this.applyCustomStyles(rect, item.name, this.style.defaultItemStyles);
 
     renderer.addShape(rect);
   }
 
-  private applyCustomStyles(rect: svg.Rect, entityName: string, defaultCustomStyle: CustomStyle) {
-    let finalCustomStyles: CustomStyle;
-    const customStyles = this.customStyles.get(entityName);
-    if (customStyles) {
-      finalCustomStyles = {
-        rectStyle: { ...defaultCustomStyle.rectStyle, ...customStyles.rectStyle },
-        textStyle: { ...defaultCustomStyle.textStyle, ...customStyles.textStyle },
-      }
-    } else {
-      finalCustomStyles = defaultCustomStyle;
-    }
-    rect.customRectCssStyle = finalCustomStyles.rectStyle;
-    rect.customTextCssStyle = finalCustomStyles.textStyle;
+  private applyCustomStyles(rect: svg.Rect, entityName: string, defaultStyle: CustomStyle) {
+    // First default and custom styles.
+    let finalCustomStyles: CustomStyle = resolveAndMergeCustomStyles(
+      defaultStyle, this.customStyles.get(entityName));
+
+    // Finally, set on the UI elements.
+    rect.customRectCssStyle = finalCustomStyles.rect;
+    rect.customTextCssStyle = finalCustomStyles.text;
   }
 
   // The the "top" value for an item with the given row index.
@@ -211,7 +164,8 @@ class Renderer {
   // Compute the width of a group for the given depth.
   private getGroupWidth(depth: number) {
     const remainingDepths = this.groupWidths.slice(depth, this.maxGroupDepth + 1);
-    return remainingDepths.reduce((sum, next) => sum + next, 0) + (remainingDepths.length - 1) * this.style.groupColGap;
+    return remainingDepths.reduce(
+      (sum, next) => sum + next, 0) + (remainingDepths.length - 1) * this.style.groupColGap;
   }
 
   // The "left" value for an item.

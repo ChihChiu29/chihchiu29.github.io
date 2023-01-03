@@ -110,10 +110,10 @@ function testParseLayoutConfig() {
   const parser = new LangParser();
   parser.parseGlobalStyleConfig(testData.global);
 
-  console.log(parser.rendererStyleConfig);
+  console.log(parser.defaultRenderStyleConfig);
 
-  assert(parser.rendererStyleConfig.rowHeight, 50);
-  assert(parser.rendererStyleConfig.customGroupWidths[2], 40);
+  assert(parser.defaultRenderStyleConfig.rowHeight, 50);
+  assert(parser.defaultRenderStyleConfig.customGroupWidths[2], 40);
 }
 
 function testParseStyles() {
@@ -129,8 +129,8 @@ function testParseStyles() {
 
   console.log(parser.customStyles);
 
-  assert(parser.customStyles.get('B')?.textStyle['font-weight'], 'bold');
-  assert(parser.customStyles.get('BD')?.rectStyle['fill'], 'red');
+  assert(parser.customStyles.get('B')?.text['font-weight'], 'bold');
+  assert(parser.customStyles.get('BD')?.rect['fill'], 'red');
 }
 
 function testComputeItemRowIndices() {

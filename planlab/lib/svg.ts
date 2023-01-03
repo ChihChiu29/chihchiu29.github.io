@@ -1,6 +1,7 @@
 namespace svg {
   export class ZSVGElement extends SVGElement {
     public zValue: number = 1;
+    public zsvgCustomStyle?: CssStyle;
   }
 
   function createSvgSvgElement(): SVGSVGElement {
@@ -225,6 +226,7 @@ namespace svg {
       };
       const svgText = new SvgText(svgTextOption);
       const elem = svgText.text;
+      elem.zsvgCustomStyle = this.customTextCssStyle;
 
       if (this.name) {
         setAttr(elem, 'name', this.name);
@@ -318,6 +320,7 @@ namespace svg {
     // @Implement
     override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('rect');
+      elem.zsvgCustomStyle = this.customRectCssStyle;
       setAttr(elem, 'x', this.x);
       setAttr(elem, 'y', this.y);
       setAttr(elem, 'width', this.width);

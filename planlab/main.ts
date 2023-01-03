@@ -66,15 +66,13 @@ global:
   - itemColWidth: 200
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
-  - defaultGroupBgColor: "#fcfccc"
-  - defaultItemBgColor: "#6eb2ff"
   - defaultGroupStyles: {
-    rectStyle: {},
-    textStyle: {},
+    rect: {},
+    text: {},
   }
   - defaultItemStyles: {
-    rectStyle: {},
-    textStyle: { fill: 'white', },
+    rect: {},
+    text: {},
   }
 
 # Optional -- override styling for groups/items using "styles" keyword.

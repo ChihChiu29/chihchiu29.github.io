@@ -1,10 +1,5 @@
 type ItemYaml = { [key: string]: string };
 
-interface CustomStyle {
-  rectStyle: svg.CssStyle;
-  textStyle: svg.CssStyle;
-}
-
 class LangParser {
   GROUP_STRUCT_KEYWORD = 'groups';
   GLOBAL_CONFIG_KEYWORD = 'global';
@@ -13,7 +8,7 @@ class LangParser {
   // A map from a string to either a string
   public groups: Map<string, Group> = new Map();
 
-  public rendererStyleConfig = new RendererStyleConfig();
+  public defaultRenderStyleConfig = new RenderStyleConfig();
   // Stores all custom styles for groups and items.
   public customStyles: Map<string, CustomStyle> = new Map();
 
@@ -113,13 +108,11 @@ class LangParser {
     for (const style of styles) {
       const styleName = this.getSingleKey(style);
       if (styleName === 'defaultItemStyles' || styleName === 'defaultGroupStyles') {
-        this.rendererStyleConfig[styleName] = {
-          rectStyle: { ...style[styleName].rectStyle, ...this.rendererStyleConfig[styleName].rectStyle },
-          textStyle: { ...style[styleName].textStyle, ...this.rendererStyleConfig[styleName].textStyle },
-        }
+        this.defaultRenderStyleConfig[styleName] = resolveAndMergeCustomStyles(
+          this.defaultRenderStyleConfig[styleName], style[styleName]);
       } else {
         // @ts-ignore
-        this.rendererStyleConfig[styleName] = style[styleName];
+        this.defaultRenderStyleConfig[styleName] = style[styleName];
       }
     }
   }
@@ -140,16 +133,16 @@ class LangParser {
       const nameOrNames = this.getSingleKey(entity);
       for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
         const customStyles = {
-          rectStyle: {},
-          textStyle: {},
+          rect: {},
+          text: {},
         };
         for (const styleGroup of entity[nameOrNames]) {
           const styleFor = this.getSingleKey(styleGroup);
           const styles = styleGroup[styleFor];
           if (styleFor === 'rect') {
-            customStyles.rectStyle = styles;
+            customStyles.rect = styles;
           } else if (styleFor === 'text') {
-            customStyles.textStyle = styles;
+            customStyles.text = styles;
           }
         }
         this.customStyles.set(name, customStyles);
