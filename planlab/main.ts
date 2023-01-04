@@ -67,7 +67,7 @@ global:
   - customGroupWidths: [40, 60, 60]
   - hideItemNames: false
   - defaultGroupStyles: {
-    rect: {},
+    rect: {},  # can use any CSS key: value
     text: {},
   }
   - defaultItemStyles: {
