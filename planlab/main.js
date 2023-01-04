@@ -738,12 +738,15 @@ var color;
 (function (color) {
     /**
      * Gets the CSS color string from the given description.
-    */
-    function getColor(description, palette) {
-        return palette.get(description) || WHITE;
+     * If the description is not among the keys, it's assumed to be a color string
+     * and it's returned.
+     */
+    function getColor(descriptionOrColor, palette) {
+        return palette.get(descriptionOrColor) || descriptionOrColor;
     }
     color.getColor = getColor;
-    const WHITE = '#FFFFFF';
+    color.WHITE = '#FFFFFF';
+    color.BLACK = '#000000';
     // 9 colors with 4 scales each, and 8 grey scales.
     color.PALETTE_LUCID = new Map(Object.entries({
         'grey1': '#FFFFFF',
@@ -844,6 +847,7 @@ function createGroup() {
         hide: false,
     };
 }
+const USE_PALETTE = color.PALETTE_LUCID;
 /**
  * Resolves a CustomStyleWithShortcuts to a new CustomStyle object.
  * If style if not defined, create an empty CustomStyle object.
@@ -853,10 +857,10 @@ function resolveCustomStyle(style) {
         const resolvedStyle = { rect: { ...style.rect }, text: { ...style.text } };
         // Next resolve custom color settings.
         if (style.bgcolor) {
-            resolvedStyle.rect['fill'] = style.bgcolor;
+            resolvedStyle.rect['fill'] = color.getColor(style.bgcolor, USE_PALETTE);
         }
         if (style.textcolor) {
-            resolvedStyle.text['fill'] = style.textcolor;
+            resolvedStyle.text['fill'] = color.getColor(style.textcolor, USE_PALETTE);
         }
         return resolvedStyle;
     }

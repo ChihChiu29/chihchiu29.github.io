@@ -5,12 +5,15 @@ namespace color {
 
   /**
    * Gets the CSS color string from the given description.
-  */
-  export function getColor(description: string, palette: PALETTE): string {
-    return palette.get(description) || WHITE;
+   * If the description is not among the keys, it's assumed to be a color string
+   * and it's returned.
+   */
+  export function getColor(descriptionOrColor: string, palette: PALETTE): string {
+    return palette.get(descriptionOrColor) || descriptionOrColor;
   }
 
-  const WHITE = '#FFFFFF';
+  export const WHITE = '#FFFFFF';
+  export const BLACK = '#000000';
 
   // 9 colors with 4 scales each, and 8 grey scales.
   export const PALETTE_LUCID: PALETTE = new Map(Object.entries({
@@ -21,7 +24,7 @@ namespace color {
     'grey5': '#979EA9',
     'grey6': '#6F7681',
     'grey7': '#4C535D',
-    'grey8': '#000000',
+    'grey8': '#000000',  // black
     'slateblue1': '#F2F2FF',
     'slateblue2': '#DEDEFF',
     'slateblue3': '#9391FF',

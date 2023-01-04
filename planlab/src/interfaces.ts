@@ -1,5 +1,3 @@
-
-
 // An item occupies a single row and can span multiple columns.
 interface Item {
   name: string;  // key
@@ -79,6 +77,8 @@ interface CustomStyleWithShortcuts extends CustomStyle {
   textcolor?: string;
 }
 
+const USE_PALETTE = color.PALETTE_LUCID;
+
 /**
  * Resolves a CustomStyleWithShortcuts to a new CustomStyle object.
  * If style if not defined, create an empty CustomStyle object.
@@ -88,10 +88,10 @@ function resolveCustomStyle(style: CustomStyleWithShortcuts | undefined): Custom
     const resolvedStyle = { rect: { ...style.rect }, text: { ...style.text } };
     // Next resolve custom color settings.
     if (style.bgcolor) {
-      resolvedStyle.rect['fill'] = style.bgcolor;
+      resolvedStyle.rect['fill'] = color.getColor(style.bgcolor, USE_PALETTE);
     }
     if (style.textcolor) {
-      resolvedStyle.text['fill'] = style.textcolor;
+      resolvedStyle.text['fill'] = color.getColor(style.textcolor, USE_PALETTE);
     }
     return resolvedStyle;
   } else {
