@@ -10,7 +10,7 @@ class LangParser {
 
   public defaultRenderStyleConfig = new RenderStyleConfig();
   // Stores all custom styles for groups and items.
-  public customStyles: Map<string, CustomStyle> = new Map();
+  public customStyles: Map<string, CustomStyleWithShortcuts> = new Map();
 
   constructor() { }
 
@@ -102,14 +102,14 @@ class LangParser {
   }
 
   /**
-     * Parses global style config.
-     * 
-     * See `customGroupWidths` for what properties can be used.
-     * 
-     * Example input: parsed YAML object of:
-     * - rowHeight: 50
-     * - customGroupWidths: [20, 30, 30]
-     */
+   * Parses global style config.
+   * 
+   * See `customGroupWidths` for what properties can be used.
+   * 
+   * Example input: parsed YAML object of:
+   * - rowHeight: 50
+   * - customGroupWidths: [20, 30, 30]
+   */
   public parseGlobalStyleConfig(styles: any[]) {
     for (const style of styles) {
       const styleName = this.getSingleKey(style);
@@ -138,18 +138,11 @@ class LangParser {
     for (const entity of entities) {
       const nameOrNames = this.getSingleKey(entity);
       for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
-        const customStyles = {
-          rect: {},
-          text: {},
-        };
+        const customStyles: CustomStyleWithShortcuts = { rect: {}, text: {} };
         for (const styleGroup of entity[nameOrNames]) {
-          const styleFor = this.getSingleKey(styleGroup);
-          const styles = styleGroup[styleFor];
-          if (styleFor === 'rect') {
-            customStyles.rect = styles;
-          } else if (styleFor === 'text') {
-            customStyles.text = styles;
-          }
+          const key = this.getSingleKey(styleGroup);
+          // @ts-ignore
+          customStyles[key] = styleGroup[key];
         }
         this.customStyles.set(name, customStyles);
       }
