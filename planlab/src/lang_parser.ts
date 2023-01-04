@@ -87,8 +87,14 @@ class LangParser {
     const group = this.groups.get(groupName)!;
 
     for (const itemConfig of items) {
-      const itemName = this.getSingleKey(itemConfig);
-      group.items!.push(this.parseItemConfig(itemName, itemConfig[itemName]));
+      try {
+        const itemName = this.getSingleKey(itemConfig);
+        group.items!.push(this.parseItemConfig(itemName, itemConfig[itemName]));
+      } catch {
+        throw `Error encountered when parsing items! Did you:
+        - Forget to specify item column span, like "Foo: 1-1, some description"?
+        `;
+      }
     }
 
     // Return only for testing.
@@ -212,12 +218,16 @@ class LangParser {
     const spanSegments = configSegments[0].split('-');
     item.spanFromCol = Number(spanSegments[0]) - 1;
     item.spanToCol = Number(spanSegments[1]) - 1;
+    if (isNaN(item.spanFromCol) || isNaN(item.spanToCol)) {
+      throw 'Cannot parse column info';
+    }
     if (configSegments.length > 1) {
       item.description = configSegments.slice(1).join(', ');
     }
     return item;
   }
 
+  // When an obj has only one key, gets that key.
   private getSingleKey(obj: object) {
     const keys = Object.keys(obj);
     if (keys.length !== 1) {
