@@ -1044,7 +1044,11 @@ class LangParser {
         for (const entity of entities) {
             const nameOrNames = this.getSingleKey(entity);
             for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
-                const customStyles = { rect: {}, text: {} };
+                let customStyles = this.customStyles.get(name);
+                if (!customStyles) {
+                    customStyles = { rect: {}, text: {} };
+                }
+                ;
                 for (const styleGroup of entity[nameOrNames]) {
                     const key = this.getSingleKey(styleGroup);
                     // @ts-ignore
@@ -1320,7 +1324,7 @@ class Renderer {
     precomputePositions() {
         // Compute group widths.
         this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
-        this.groupWidths = this.style.customGroupWidths.slice(0, this.maxGroupDepth);
+        this.groupWidths = this.style.customGroupWidths.slice(0, this.maxGroupDepth + 1);
         for (let i = 0; i <= this.maxGroupDepth; i++) {
             if (!this.groupWidths[i]) {
                 this.groupWidths[i] = this.style.defaultGroupWidth;

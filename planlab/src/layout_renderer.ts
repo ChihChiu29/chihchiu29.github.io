@@ -83,7 +83,7 @@ class Renderer {
   private precomputePositions(): void {
     // Compute group widths.
     this.maxGroupDepth = Math.max(...[...this.groups.values()].map(g => g.depth));
-    this.groupWidths = this.style.customGroupWidths.slice(0, this.maxGroupDepth);
+    this.groupWidths = this.style.customGroupWidths.slice(0, this.maxGroupDepth + 1);
     for (let i = 0; i <= this.maxGroupDepth; i++) {
       if (!this.groupWidths[i]) {
         this.groupWidths[i] = this.style.defaultGroupWidth;

@@ -138,7 +138,8 @@ class LangParser {
     for (const entity of entities) {
       const nameOrNames = this.getSingleKey(entity);
       for (const name of Strings.splitAndTrim(nameOrNames, ',')) {
-        const customStyles: CustomStyleWithShortcuts = { rect: {}, text: {} };
+        let customStyles: CustomStyleWithShortcuts | undefined = this.customStyles.get(name);
+        if (!customStyles) { customStyles = { rect: {}, text: {} } };
         for (const styleGroup of entity[nameOrNames]) {
           const key = this.getSingleKey(styleGroup);
           // @ts-ignore
