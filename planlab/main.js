@@ -1000,7 +1000,7 @@ class LangParser {
                 group.items.push(this.parseItemConfig(itemName, itemConfig[itemName]));
             }
             catch {
-                throw `Error encountered when parsing items! Did you:
+                throw `Error encountered when parsing item ${JSON.stringify(itemConfig)}! Did you:
         - Forget to specify item column span, like "Foo: 1-1, some description"?
         `;
             }
