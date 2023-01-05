@@ -102,14 +102,10 @@ function draw(useGrid = true) {
     const renderer = new Renderer(document.querySelector(DRAW_AREA_SELECTOR), parser);
     const report = renderer.render(useGrid);
     // Since drawing has no error, safe to update URL.
-    // The old way use URI encode, which cannot hanle "%" correctly -- keep it for a bit longer then delete (when base64 encoding proven to work).
-    // if (graphData !== DEFAULT_GRAPH) {
-    //   window.history.pushState(
-    //     'updated', 'Planlab',
-    //     `${PAGE_PATH}?g=${encodeURIComponent(graphData)}`);
-    // }
+    // const encodedGraphData = btoa(graphData);  // base64 encode without compression
+    const encodedGraphData = btoa(LZString.compressToBase64(graphData)); // with compression
     if (graphData !== DEFAULT_GRAPH) {
-        window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${btoa(graphData)}`);
+        window.history.pushState('updated', 'Planlab', `${PAGE_PATH}?g=${encodedGraphData}`);
     }
     // Report mouse location when moving.
     const svgElement = document.querySelector('#drawarea svg');
@@ -173,8 +169,8 @@ function main() {
     const graphData = urlParams.get(GRAPH_URL_PARAM);
     const inputElement = document.querySelector(INPUT_ELEMENT_CSS);
     if (graphData) {
-        // inputElement.value = decodeURIComponent(graphData);
-        inputElement.value = atob(graphData);
+        // inputElement.value = atob(graphData);  // base64 without compression
+        inputElement.value = LZString.decompressFromBase64(atob(graphData)); // with compression
     }
     else {
         inputElement.value = DEFAULT_GRAPH;
