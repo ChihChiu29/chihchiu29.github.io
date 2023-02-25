@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.26
+// @version      1.27
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
