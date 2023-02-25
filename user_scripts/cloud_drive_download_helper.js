@@ -11,6 +11,8 @@
 // @match        https://bluemediafiles.eu/*
 // @match        http://bluemediafile.sbs/*
 // @match        https://bluemediafile.sbs/*
+// @match        http://bluemediafile.site/*
+// @match        https://bluemediafile.site/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
