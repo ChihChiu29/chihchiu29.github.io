@@ -1,0 +1,1 @@
+* Hide item names in display.
