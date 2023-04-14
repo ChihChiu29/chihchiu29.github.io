@@ -10,7 +10,7 @@ function draw(useGrid = true) {
     const renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
     const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
     // `d` is the keyword used in the user provided code.
-    const d = new DiagramDrawer(renderer);
+    const d = new diagramlang.Drawer(renderer);
     eval(graphData);
     const report = renderer.draw();
     // Since drawing has no error, safe to update URL.
@@ -95,6 +95,13 @@ window.addEventListener('DOMContentLoaded', function () {
 });
 var geometry;
 (function (geometry) {
+    /**
+     * Gets a middle point between two points.
+     */
+    function getMiddlePoint(pt1, pt2) {
+        return { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
+    }
+    geometry.getMiddlePoint = getMiddlePoint;
     /**
      * Finds the minimal bounding rect of two rects; r1 can use NaN values in which case r2 values are used.
      */
@@ -186,8 +193,8 @@ var svg;
             this.svgElement = createSvgSvgElement();
             this.hostElement.append(this.svgElement);
         }
-        addShape(shape) {
-            for (const elem of shape.getElements(this.style, this.svgElement)) {
+        addGraphElement(graphElement) {
+            for (const elem of graphElement.getElements(this.style, this.svgElement)) {
                 this.addElement(elem, elem.zValue);
             }
         }
@@ -241,7 +248,10 @@ var svg;
         }
     }
     svg.SVGRenderer = SVGRenderer;
-    class Shape {
+    class GraphElement {
+    }
+    svg.GraphElement = GraphElement;
+    class Shape extends GraphElement {
         x = 0;
         y = 0;
         width = 100;
@@ -292,16 +302,10 @@ var svg;
         }
     }
     svg.Shape = Shape;
-    class Link {
+    class Link extends GraphElement {
         from = { x: 0, y: 0 };
         to = { x: 100, y: 100 };
         hasArrow = 1; // 0: no arrow, 1: endarrow, 2: startarrow, 3: both
-        Z_VALUE = 99999;
-        addTo(renderer) {
-            for (const elem of this.getElements(renderer.style)) {
-                renderer.addElement(elem, this.Z_VALUE);
-            }
-        }
     }
     svg.Link = Link;
     // From: https://github.com/dowjones/svg-text
@@ -345,42 +349,6 @@ var svg;
             elem.zsvgCustomStyle = this.customTextCssStyle;
             if (this.name) {
                 setAttr(elem, 'name', this.name);
-            }
-            applyCustomCssStyle(elem, this.customTextCssStyle);
-            return [elem];
-        }
-    }
-    /**
-      * Multiline texts, parent is optional.
-      */
-    class MultilineTexts extends Shape {
-        GAP_LEFT = 5; // space to the left of the text.
-        linesOfTexts = [];
-        customTextCssStyle = {};
-        constructor(linesOfTexts) {
-            super();
-            this.linesOfTexts = linesOfTexts;
-        }
-        copyProperties(other) {
-            this.x = other.x;
-            this.y = other.y;
-            this.bgColor = other.bgColor;
-            this.zValue = other.zValue;
-        }
-        getElements(style, svgElement) {
-            const elem = createSvgElement('text');
-            setAttr(elem, 'x', this.x);
-            setAttr(elem, 'y', this.y);
-            setAttr(elem, 'font-size', style.textFontSize);
-            if (this.name) {
-                setAttr(elem, 'name', this.name);
-            }
-            for (const lineOfText of this.linesOfTexts) {
-                const textElement = createSvgElement('tspan');
-                setAttr(textElement, 'x', this.x + this.GAP_LEFT);
-                setAttr(textElement, 'dy', style.textLineSpace);
-                textElement.textContent = lineOfText;
-                elem.append(textElement);
             }
             applyCustomCssStyle(elem, this.customTextCssStyle);
             return [elem];
@@ -473,41 +441,6 @@ var svg;
         }
     }
     svg.Rect = Rect;
-    // /**
-    //  * A rect shape with some text support.
-    //  */
-    // export class Rect extends Shape {
-    //   // You should only use one of the following.
-    //   public texts: string[] = [];  // multiline texts starting from top-left corner.
-    //   public centeredText: string = ''; // centered single line of text.
-    //   // Used to change rect and text styles.
-    //   public customRectCssStyle: CssStyle = {};
-    //   public customTextCssStyle: CssStyle = {};
-    //   override getElements(style: Style): ZSVGElement[] {
-    //     const elements = [];
-    //     const rect = new _Rect();
-    //     rect.copyProperties(this);
-    //     rect.customRectCssStyle = this.customRectCssStyle;
-    //     if (this.name) {
-    //       // Pass the name to the actual rect element.
-    //       rect.name = this.name;
-    //     }
-    //     elements.push(...rect.getElements(style));
-    //     if (this.texts.length) {
-    //       const multilineTexts = new MultilineTexts(this.texts);
-    //       multilineTexts.copyProperties(this);
-    //       multilineTexts.customTextCssStyle = this.customTextCssStyle;
-    //       elements.push(...multilineTexts.getElements(style));
-    //     }
-    //     if (this.centeredText) {
-    //       const centeredText = new _CenteredText(this.centeredText);
-    //       centeredText.copyProperties(this);
-    //       centeredText.customTextCssStyle = this.customTextCssStyle;
-    //       elements.push(...centeredText.getElements(style));
-    //     }
-    //     return elements;
-    //   }
-    // }
     /**
      * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
      */
@@ -675,6 +608,176 @@ var svg;
             return `${midX} ${top} ${right} ${midY} ${midX} ${bottom} ${left} ${midY}`;
         }
     }
+    // ---------------- LINKS BELOW ---------------------------------------------
+    const DEFAULT_SHAPE = new Rect();
+    /**
+   * A generic path-based link.
+   */
+    class LinkPath extends Link {
+        text = '';
+        dashed = false;
+        getElements(style, svgElement) {
+            const elements = [];
+            const elem = createSvgElement('path');
+            const cmd = this.getPathCommand();
+            elem.setAttribute('d', cmd);
+            const pathId = this.computeUniqueId(cmd);
+            elem.setAttribute('id', pathId);
+            elem.setAttribute('stroke', style.lineColor);
+            elem.setAttribute('stroke-width', `${style.linkWidth}`);
+            elem.setAttribute('fill', 'transparent');
+            if (this.hasArrow === 1) {
+                elem.setAttribute('marker-end', 'url(#endarrow)');
+            }
+            else if (this.hasArrow === 2) {
+                elem.setAttribute('marker-start', 'url(#startarrow)');
+            }
+            else if (this.hasArrow === 3) {
+                elem.setAttribute('marker-start', 'url(#startarrow)');
+                elem.setAttribute('marker-end', 'url(#endarrow)');
+            }
+            if (this.dashed) {
+                elem.setAttribute('stroke-dasharray', '5,5');
+            }
+            elements.push(elem);
+            if (this.text) {
+                const textElement = createSvgElement('text');
+                textElement.setAttribute('text-anchor', 'middle');
+                textElement.setAttribute('dy', `${-style.linkTextGapSize}`);
+                textElement.innerHTML = `<textPath href="#${pathId}" startOffset="50%">${this.text}</textPath>`;
+                elements.push(textElement);
+            }
+            return elements;
+        }
+        // Computes a unique ID from the path string.
+        computeUniqueId(pathCommand) {
+            const cmd = pathCommand.replaceAll(' ', '');
+            return `LinkPath_cmd_${cmd}`;
+        }
+    }
+    class LinkStraight extends LinkPath {
+        getPathCommand() {
+            return `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`;
+        }
+    }
+    class LinkSingleCurved extends LinkPath {
+        // Optional control points.
+        // See: https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+        ctrl1;
+        ctrl2;
+        // @Implement
+        getPathCommand() {
+            if (!this.ctrl1) {
+                this.ctrl1 = this.from;
+            }
+            if (!this.ctrl2) {
+                this.ctrl2 = geometry.getMiddlePoint(this.from, this.to);
+            }
+            return `M ${this.from.x} ${this.from.y} C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.to.x} ${this.to.y}`;
+        }
+    }
+    /**
+     * A straight link, using postponed coordinates fetched from connected shapes.
+     */
+    class SmartLinkStraight extends LinkStraight {
+        fromShape = DEFAULT_SHAPE;
+        fromDirection = 'right'; // up/down/left/right
+        toShape = DEFAULT_SHAPE;
+        toDirection = 'left'; // up/down/left/right
+        // @Override
+        getPathCommand() {
+            _smartReConnection(this);
+            this.from = this.fromShape.getConnectionPoint(this.fromDirection);
+            this.to = this.toShape.getConnectionPoint(this.toDirection);
+            return super.getPathCommand();
+        }
+    }
+    /**
+     * A singlely curved link, using postponed coordinates fetched from connected shapes.
+     */
+    class SmartLinkSingleCurved extends LinkSingleCurved {
+        fromShape = DEFAULT_SHAPE;
+        fromDirection = 'right'; // up/down/left/right
+        toShape = DEFAULT_SHAPE;
+        toDirection = 'left'; // up/down/left/right
+        // @Override
+        getPathCommand() {
+            _smartReConnection(this);
+            this._setParamsFromShapes();
+            return super.getPathCommand();
+        }
+        _setParamsFromShapes() {
+            const fromShape = this.fromShape;
+            const toShape = this.toShape;
+            const fromDirection = this.fromDirection;
+            const toDirection = this.toDirection;
+            const error = `no pretty link from ${fromDirection} to ${toDirection}`;
+            const fromP = fromShape.getConnectionPoint(fromDirection);
+            const toP = toShape.getConnectionPoint(toDirection);
+            if (toP.x > fromP.x) {
+                if (fromDirection === 'left' || toDirection === 'right') {
+                    console.log(error);
+                }
+            }
+            else if (toP.x < fromP.x) {
+                if (fromDirection === 'right' || toDirection === 'left') {
+                    console.log(error);
+                }
+            }
+            if (toP.y > fromP.y) {
+                if (fromDirection === 'up' || toDirection === 'down') {
+                    console.log(error);
+                }
+            }
+            else if (toP.y < fromP.y) {
+                if (fromDirection === 'down' || toDirection === 'up') {
+                    console.log(error);
+                }
+            }
+            this.from = fromP;
+            this.to = toP;
+            this.ctrl1 = { x: 0, y: 0 };
+            this.ctrl2 = { x: 0, y: 0 };
+            if (fromDirection === 'up' || fromDirection === 'down') {
+                this.ctrl1.x = fromP.x;
+                this.ctrl1.y = toP.y;
+            }
+            else {
+                this.ctrl1.x = toP.x;
+                this.ctrl1.y = fromP.y;
+            }
+            if (toDirection === 'up' || toDirection === 'down') {
+                this.ctrl2.x = toP.x;
+                this.ctrl2.y = fromP.y;
+            }
+            else {
+                this.ctrl2.x = fromP.x;
+                this.ctrl2.y = toP.y;
+            }
+        }
+    }
+    /**
+     * Possibly change connection direction for other considerations (etc. make text left to right).
+     */
+    function _smartReConnection(smartLink) {
+        const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection);
+        const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection);
+        if (from.x <= to.x) {
+            return;
+        }
+        const oldFromShape = smartLink.fromShape;
+        smartLink.fromShape = smartLink.toShape;
+        smartLink.toShape = oldFromShape;
+        const oldFromDirection = smartLink.fromDirection;
+        smartLink.fromDirection = smartLink.toDirection;
+        smartLink.toDirection = oldFromDirection;
+        if (smartLink.hasArrow === 1) {
+            smartLink.hasArrow = 2;
+        }
+        else if (smartLink.hasArrow === 2) {
+            smartLink.hasArrow = 1;
+        }
+    }
 })(svg || (svg = {})); // namespace svg
 function assert(value, expectedValue) {
     if (value !== expectedValue) {
@@ -742,12 +845,26 @@ var color;
         'blue4': '#1071E5',
     }));
 })(color || (color = {}));
-class DiagramDrawer {
-    svgRenderer;
-    constructor(svgRenderer) {
-        this.svgRenderer = svgRenderer;
+var diagramlang;
+(function (diagramlang) {
+    class Rect {
     }
-}
+    class Link {
+    }
+    class Drawer {
+        svgRenderer;
+        constructor(svgRenderer) {
+            this.svgRenderer = svgRenderer;
+        }
+        rect() {
+            return new Rect();
+        }
+        link() {
+            return new Link();
+        }
+    }
+    diagramlang.Drawer = Drawer;
+})(diagramlang || (diagramlang = {}));
 const USE_PALETTE = color.PALETTE_LUCID;
 /**
  * Resolves a CustomStyleWithShortcuts to a new CustomStyle object.

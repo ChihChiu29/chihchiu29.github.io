@@ -12,6 +12,13 @@ namespace geometry {
   }
 
   /**
+   * Gets a middle point between two points.
+   */
+  export function getMiddlePoint(pt1: Point, pt2: Point) {
+    return { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
+  }
+
+  /**
    * Finds the minimal bounding rect of two rects; r1 can use NaN values in which case r2 values are used.
    */
   export function getMinimalCommonBoundingRect(r1: BoundingRect, r2: BoundingRect) {

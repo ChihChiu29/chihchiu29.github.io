@@ -67,8 +67,8 @@ namespace svg {
       this.hostElement.append(this.svgElement);
     }
 
-    public addShape(shape: Shape) {
-      for (const elem of shape.getElements(this.style, this.svgElement)) {
+    public addGraphElement(graphElement: GraphElement) {
+      for (const elem of graphElement.getElements(this.style, this.svgElement)) {
         this.addElement(elem, elem.zValue);
       }
     }
@@ -127,7 +127,11 @@ namespace svg {
     }
   }
 
-  export abstract class Shape {
+  export abstract class GraphElement {
+    public abstract getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
+  }
+
+  export abstract class Shape extends GraphElement {
     public x = 0;
     public y = 0;
     public width = 100;
@@ -148,8 +152,6 @@ namespace svg {
       this.bgColor = other.bgColor;
       this.zValue = other.zValue;
     }
-
-    public abstract getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
 
     getCenter(): geometry.Point {
       return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
@@ -185,20 +187,10 @@ namespace svg {
     }
   }
 
-  export abstract class Link {
+  export abstract class Link extends GraphElement {
     public from: geometry.Point = { x: 0, y: 0 };
     public to: geometry.Point = { x: 100, y: 100 };
     public hasArrow: number = 1;  // 0: no arrow, 1: endarrow, 2: startarrow, 3: both
-
-    private Z_VALUE = 99999;
-
-    addTo(renderer: SVGRenderer) {
-      for (const elem of this.getElements(renderer.style)) {
-        renderer.addElement(elem, this.Z_VALUE);
-      }
-    }
-
-    public abstract getElements(style: Style): ZSVGElement[];
   }
 
   // From: https://github.com/dowjones/svg-text
@@ -248,49 +240,6 @@ namespace svg {
       if (this.name) {
         setAttr(elem, 'name', this.name);
       }
-      applyCustomCssStyle(elem, this.customTextCssStyle);
-      return [elem];
-    }
-  }
-
-  /**
-    * Multiline texts, parent is optional.
-    */
-  class MultilineTexts extends Shape {
-    public GAP_LEFT = 5;  // space to the left of the text.
-
-    public linesOfTexts: string[] = [];
-    public customTextCssStyle: CssStyle = {};
-
-    constructor(linesOfTexts: string[]) {
-      super();
-      this.linesOfTexts = linesOfTexts;
-    }
-
-    override copyProperties(other: Shape) {
-      this.x = other.x;
-      this.y = other.y;
-      this.bgColor = other.bgColor;
-      this.zValue = other.zValue;
-    }
-
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
-      const elem = createSvgElement('text');
-      setAttr(elem, 'x', this.x);
-      setAttr(elem, 'y', this.y);
-      setAttr(elem, 'font-size', style.textFontSize);
-      if (this.name) {
-        setAttr(elem, 'name', this.name);
-      }
-
-      for (const lineOfText of this.linesOfTexts) {
-        const textElement = createSvgElement('tspan');
-        setAttr(textElement, 'x', this.x + this.GAP_LEFT);
-        setAttr(textElement, 'dy', style.textLineSpace);
-        textElement.textContent = lineOfText;
-        elem.append(textElement);
-      }
-
       applyCustomCssStyle(elem, this.customTextCssStyle);
       return [elem];
     }
@@ -395,48 +344,6 @@ namespace svg {
       return elements;
     }
   }
-
-  // /**
-  //  * A rect shape with some text support.
-  //  */
-  // export class Rect extends Shape {
-  //   // You should only use one of the following.
-  //   public texts: string[] = [];  // multiline texts starting from top-left corner.
-  //   public centeredText: string = ''; // centered single line of text.
-
-  //   // Used to change rect and text styles.
-  //   public customRectCssStyle: CssStyle = {};
-  //   public customTextCssStyle: CssStyle = {};
-
-  //   override getElements(style: Style): ZSVGElement[] {
-  //     const elements = [];
-
-  //     const rect = new _Rect();
-  //     rect.copyProperties(this);
-  //     rect.customRectCssStyle = this.customRectCssStyle;
-  //     if (this.name) {
-  //       // Pass the name to the actual rect element.
-  //       rect.name = this.name;
-  //     }
-  //     elements.push(...rect.getElements(style));
-
-  //     if (this.texts.length) {
-  //       const multilineTexts = new MultilineTexts(this.texts);
-  //       multilineTexts.copyProperties(this);
-  //       multilineTexts.customTextCssStyle = this.customTextCssStyle;
-  //       elements.push(...multilineTexts.getElements(style));
-  //     }
-
-  //     if (this.centeredText) {
-  //       const centeredText = new _CenteredText(this.centeredText);
-  //       centeredText.copyProperties(this);
-  //       centeredText.customTextCssStyle = this.customTextCssStyle;
-  //       elements.push(...centeredText.getElements(style));
-  //     }
-
-  //     return elements;
-  //   }
-  // }
 
   /**
    * Borderless container to stack multiple shapes by providing a x and y shift for background shapes.
@@ -642,5 +549,192 @@ namespace svg {
   }
 
 
+  // ---------------- LINKS BELOW ---------------------------------------------
+
+  const DEFAULT_SHAPE = new Rect();
+
+  /**
+ * A generic path-based link.
+ */
+  abstract class LinkPath extends Link {
+    public text: string = '';
+    public dashed: boolean = false;
+
+    // The actual path command.
+    abstract getPathCommand(): string;
+
+    override getElements(style: Style, svgElement: SVGSVGElement) {
+      const elements = [];
+
+      const elem = createSvgElement('path');
+      const cmd = this.getPathCommand();
+      elem.setAttribute('d', cmd);
+      const pathId = this.computeUniqueId(cmd);
+      elem.setAttribute('id', pathId);
+      elem.setAttribute('stroke', style.lineColor);
+      elem.setAttribute('stroke-width', `${style.linkWidth}`);
+      elem.setAttribute('fill', 'transparent');
+      if (this.hasArrow === 1) {
+        elem.setAttribute('marker-end', 'url(#endarrow)');
+      } else if (this.hasArrow === 2) {
+        elem.setAttribute('marker-start', 'url(#startarrow)');
+      } else if (this.hasArrow === 3) {
+        elem.setAttribute('marker-start', 'url(#startarrow)');
+        elem.setAttribute('marker-end', 'url(#endarrow)');
+      }
+      if (this.dashed) {
+        elem.setAttribute('stroke-dasharray', '5,5');
+      }
+      elements.push(elem);
+
+      if (this.text) {
+        const textElement = createSvgElement('text');
+        textElement.setAttribute('text-anchor', 'middle');
+        textElement.setAttribute('dy', `${- style.linkTextGapSize}`);
+        textElement.innerHTML = `<textPath href="#${pathId}" startOffset="50%">${this.text}</textPath>`;
+        elements.push(textElement);
+      }
+
+      return elements;
+    }
+
+    // Computes a unique ID from the path string.
+    protected computeUniqueId(pathCommand: string): string {
+      const cmd = pathCommand.replaceAll(' ', '');
+      return `LinkPath_cmd_${cmd}`;
+    }
+  }
+
+  class LinkStraight extends LinkPath {
+    override getPathCommand() {
+      return `M ${this.from.x} ${this.from.y} L ${this.to.x} ${this.to.y}`;
+    }
+  }
+
+  class LinkSingleCurved extends LinkPath {
+    // Optional control points.
+    // See: https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
+    public ctrl1?: geometry.Point;
+    public ctrl2?: geometry.Point;
+
+    // @Implement
+    getPathCommand() {
+      if (!this.ctrl1) {
+        this.ctrl1 = this.from;
+      }
+      if (!this.ctrl2) {
+        this.ctrl2 = geometry.getMiddlePoint(this.from, this.to);
+      }
+
+      return `M ${this.from.x} ${this.from.y} C ${this.ctrl1.x} ${this.ctrl1.y}, ${this.ctrl2.x} ${this.ctrl2.y}, ${this.to.x} ${this.to.y}`;
+    }
+  }
+
+  /**
+   * A straight link, using postponed coordinates fetched from connected shapes.
+   */
+  class SmartLinkStraight extends LinkStraight {
+    public fromShape: Shape = DEFAULT_SHAPE;
+    public fromDirection: string = 'right';  // up/down/left/right
+    public toShape: Shape = DEFAULT_SHAPE;
+    public toDirection = 'left';  // up/down/left/right
+
+    // @Override
+    getPathCommand() {
+      _smartReConnection(this);
+      this.from = this.fromShape.getConnectionPoint(this.fromDirection);
+      this.to = this.toShape.getConnectionPoint(this.toDirection);
+      return super.getPathCommand();
+    }
+  }
+
+  /**
+   * A singlely curved link, using postponed coordinates fetched from connected shapes.
+   */
+  class SmartLinkSingleCurved extends LinkSingleCurved {
+    public fromShape: Shape = DEFAULT_SHAPE;
+    public fromDirection: string = 'right';  // up/down/left/right
+    public toShape: Shape = DEFAULT_SHAPE;
+    public toDirection = 'left';  // up/down/left/right
+
+    // @Override
+    getPathCommand() {
+      _smartReConnection(this);
+      this._setParamsFromShapes();
+      return super.getPathCommand();
+    }
+
+    _setParamsFromShapes() {
+      const fromShape = this.fromShape;
+      const toShape = this.toShape;
+      const fromDirection = this.fromDirection;
+      const toDirection = this.toDirection;
+
+      const error = `no pretty link from ${fromDirection} to ${toDirection}`;
+      const fromP = fromShape.getConnectionPoint(fromDirection);
+      const toP = toShape.getConnectionPoint(toDirection);
+      if (toP.x > fromP.x) {
+        if (fromDirection === 'left' || toDirection === 'right') {
+          console.log(error);
+        }
+      } else if (toP.x < fromP.x) {
+        if (fromDirection === 'right' || toDirection === 'left') {
+          console.log(error);
+        }
+      }
+      if (toP.y > fromP.y) {
+        if (fromDirection === 'up' || toDirection === 'down') {
+          console.log(error);
+        }
+      } else if (toP.y < fromP.y) {
+        if (fromDirection === 'down' || toDirection === 'up') {
+          console.log(error);
+        }
+      }
+
+      this.from = fromP;
+      this.to = toP;
+      this.ctrl1 = { x: 0, y: 0 };
+      this.ctrl2 = { x: 0, y: 0 };
+
+      if (fromDirection === 'up' || fromDirection === 'down') {
+        this.ctrl1.x = fromP.x;
+        this.ctrl1.y = toP.y;
+      } else {
+        this.ctrl1.x = toP.x;
+        this.ctrl1.y = fromP.y;
+      }
+      if (toDirection === 'up' || toDirection === 'down') {
+        this.ctrl2.x = toP.x;
+        this.ctrl2.y = fromP.y;
+      } else {
+        this.ctrl2.x = fromP.x;
+        this.ctrl2.y = toP.y;
+      }
+    }
+  }
+
+  /**
+   * Possibly change connection direction for other considerations (etc. make text left to right).
+   */
+  function _smartReConnection(smartLink: SmartLinkStraight | SmartLinkSingleCurved) {
+    const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection);
+    const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection);
+    if (from.x <= to.x) {
+      return;
+    }
+
+    const oldFromShape = smartLink.fromShape;
+    smartLink.fromShape = smartLink.toShape;
+    smartLink.toShape = oldFromShape;
+    const oldFromDirection = smartLink.fromDirection;
+    smartLink.fromDirection = smartLink.toDirection;
+    smartLink.toDirection = oldFromDirection;
+    if (smartLink.hasArrow === 1) {
+      smartLink.hasArrow = 2;
+    } else if (smartLink.hasArrow === 2) {
+      smartLink.hasArrow = 1;
+    }
+  }
 
 }  // namespace svg

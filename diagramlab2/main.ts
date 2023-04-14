@@ -15,7 +15,7 @@ function draw(useGrid = true): svg.RenderReport {
   const graphData = (document.querySelector(INPUT_ELEMENT_CSS) as HTMLInputElement)!.value;
 
   // `d` is the keyword used in the user provided code.
-  const d = new DiagramDrawer(renderer);
+  const d = new diagramlang.Drawer(renderer);
   eval(graphData);
   const report = renderer.draw();
 
