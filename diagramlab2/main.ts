@@ -2,7 +2,10 @@ const PAGE_PATH = '/planlab/';
 
 const GRAPH_URL_PARAM = 'g';
 
-const DEFAULT_GRAPH = ``;
+const DEFAULT_GRAPH = `
+d.viewport(0, 0, 1000, 1000);
+d.rect("hello", 100, 100, 200, 200);
+`;
 
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
@@ -16,7 +19,12 @@ function draw(useGrid = true): svg.RenderReport {
 
   // `d` is the keyword used in the user provided code.
   const d = new diagramlang.Drawer(renderer);
-  eval(graphData);
+  try {
+    eval(graphData);
+  } catch (error) {
+    alert(error);
+  }
+  d.finalize();
   const report = renderer.draw();
 
   // Since drawing has no error, safe to update URL.

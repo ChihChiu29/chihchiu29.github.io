@@ -1,7 +1,10 @@
 "use strict";
 const PAGE_PATH = '/planlab/';
 const GRAPH_URL_PARAM = 'g';
-const DEFAULT_GRAPH = ``;
+const DEFAULT_GRAPH = `
+d.viewport(0, 0, 1000, 1000);
+d.rect("hello", 100, 100, 200, 200);
+`;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
 // Very likely we don't need this forever since Renderer has a similar margin in place already.
@@ -11,7 +14,13 @@ function draw(useGrid = true) {
     const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
     // `d` is the keyword used in the user provided code.
     const d = new diagramlang.Drawer(renderer);
-    eval(graphData);
+    try {
+        eval(graphData);
+    }
+    catch (error) {
+        alert(error);
+    }
+    d.finalize();
     const report = renderer.draw();
     // Since drawing has no error, safe to update URL.
     // const encodedGraphData = btoa(graphData);  // base64 encode without compression
@@ -193,6 +202,7 @@ var svg;
             this.svgElement = createSvgSvgElement();
             this.hostElement.append(this.svgElement);
         }
+        // Needs to be called after graphElement is no longer modified.
         addGraphElement(graphElement) {
             for (const elem of graphElement.getElements(this.style, this.svgElement)) {
                 this.addElement(elem, elem.zValue);
@@ -847,20 +857,76 @@ var color;
 })(color || (color = {}));
 var diagramlang;
 (function (diagramlang) {
+    const DEFAULT_RECT_WIDTH = 200;
+    const DEFAULT_RECT_HEIGHT = 100;
+    class GraphElementWrapper {
+    }
     class Rect {
+        rectElement;
+        constructor() {
+            this.rectElement = new svg.Rect();
+        }
+        getGraphElement() {
+            return this.rectElement;
+        }
+        text(text) {
+            this.rectElement.text = text;
+            return this;
+        }
+        moveCorner(left, top, width, height) {
+            this.maybeSetSize(width, height);
+            this.rectElement.x = left;
+            this.rectElement.y = top;
+            return this;
+        }
+        move = this.moveCorner;
+        moveCenter(x, y, width, height) {
+            this.maybeSetSize(width, height);
+            this.rectElement.x = x - this.rectElement.width / 2;
+            this.rectElement.y = y - this.rectElement.height / 2;
+            return this;
+        }
+        cmove = this.moveCenter;
+        maybeSetSize(width, height) {
+            if (width) {
+                this.rectElement.width = width;
+            }
+            if (height) {
+                this.rectElement.height = height;
+            }
+        }
     }
     class Link {
     }
     class Drawer {
+        wrappers = [];
         svgRenderer;
         constructor(svgRenderer) {
             this.svgRenderer = svgRenderer;
         }
-        rect() {
-            return new Rect();
+        registerGraphElement(graphElement) {
+            this.wrappers.push(graphElement);
+            return graphElement;
+        }
+        viewport(left, top, width, height) {
+            this.svgRenderer.left = left;
+            this.svgRenderer.top = top;
+            this.svgRenderer.width = width;
+            this.svgRenderer.height = height;
+        }
+        rect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
+            return this.registerGraphElement(new Rect().text(text).move(left, top, width, height));
+        }
+        crect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
+            return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
         }
         link() {
             return new Link();
+        }
+        finalize() {
+            for (const elementWrapper of this.wrappers) {
+                this.svgRenderer.addGraphElement(elementWrapper.getGraphElement());
+            }
         }
     }
     diagramlang.Drawer = Drawer;

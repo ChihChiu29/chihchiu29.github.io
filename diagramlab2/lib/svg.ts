@@ -67,13 +67,14 @@ namespace svg {
       this.hostElement.append(this.svgElement);
     }
 
+    // Needs to be called after graphElement is no longer modified.
     public addGraphElement(graphElement: GraphElement) {
       for (const elem of graphElement.getElements(this.style, this.svgElement)) {
         this.addElement(elem, elem.zValue);
       }
     }
 
-    addElement(element: ZSVGElement, zValue: number) {
+    private addElement(element: ZSVGElement, zValue: number) {
       element.zValue = zValue;
       this.elements.push(element);
     }
