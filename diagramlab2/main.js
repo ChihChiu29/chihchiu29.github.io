@@ -861,6 +861,7 @@ var diagramlang;
     const DEFAULT_RECT_HEIGHT = 100;
     class GraphElementWrapper {
     }
+    // Wrapper of Rect focusing on UX.
     class Rect {
         rectElement;
         constructor() {
@@ -869,6 +870,14 @@ var diagramlang;
         getGraphElement() {
             return this.rectElement;
         }
+        left() { return this.rectElement.x; }
+        right() { return this.rectElement.x + this.rectElement.width; }
+        top() { return this.rectElement.y; }
+        up = this.top;
+        bottom() { return this.rectElement.y + this.rectElement.height; }
+        down = this.bottom;
+        cx() { return this.rectElement.x + this.rectElement.width / 2; }
+        cy() { return this.rectElement.y + this.rectElement.height / 2; }
         text(text) {
             this.rectElement.text = text;
             return this;
@@ -896,6 +905,7 @@ var diagramlang;
             }
         }
     }
+    // Wrapper of Link focusing on UX.
     class Link {
     }
     class Drawer {

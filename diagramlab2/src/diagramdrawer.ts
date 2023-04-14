@@ -6,6 +6,7 @@ namespace diagramlang {
     public abstract getGraphElement(): svg.GraphElement;
   }
 
+  // Wrapper of Rect focusing on UX.
   class Rect implements GraphElementWrapper {
     private rectElement: svg.Rect;
     constructor() {
@@ -15,6 +16,15 @@ namespace diagramlang {
     getGraphElement(): svg.GraphElement {
       return this.rectElement;
     }
+
+    public left() { return this.rectElement.x; }
+    public right() { return this.rectElement.x + this.rectElement.width; }
+    public top() { return this.rectElement.y; }
+    up = this.top;
+    public bottom() { return this.rectElement.y + this.rectElement.height; }
+    down = this.bottom;
+    public cx() { return this.rectElement.x + this.rectElement.width / 2; }
+    public cy() { return this.rectElement.y + this.rectElement.height / 2; }
 
     public text(text: string): Rect {
       this.rectElement.text = text;
@@ -48,6 +58,7 @@ namespace diagramlang {
 
   }
 
+  // Wrapper of Link focusing on UX.
   class Link {
 
   }
