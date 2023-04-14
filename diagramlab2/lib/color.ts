@@ -1,4 +1,4 @@
-namespace color {
+namespace colors {
 
   // For each color, higher postfix value means it's darker.
   export type PALETTE = Map<string, string>;

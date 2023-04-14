@@ -2,18 +2,28 @@ namespace diagramlang {
   const DEFAULT_RECT_WIDTH = 200;
   const DEFAULT_RECT_HEIGHT = 100;
 
+  const DEFAULT_COLOR_PALETTE = colors.PALETTE_LUCID;
+
   abstract class GraphElementWrapper {
     public abstract getGraphElement(): svg.GraphElement;
   }
 
+  abstract class ShapeWrapper {
+    getGraphElement() {
+      return this.getShape();
+    }
+    public abstract getShape(): svg.Shape;
+  }
+
   // Wrapper of Rect focusing on UX.
-  class Rect implements GraphElementWrapper {
+  class Rect extends ShapeWrapper {
     private rectElement: svg.Rect;
     constructor() {
+      super();
       this.rectElement = new svg.Rect();
     }
 
-    getGraphElement(): svg.GraphElement {
+    getShape(): svg.Shape {
       return this.rectElement;
     }
 
@@ -56,11 +66,88 @@ namespace diagramlang {
       }
     }
 
+    // Set style override on rect or on text.
+    public style(style: svg.CssStyle, onRect: boolean = true): Rect {
+      if (onRect) {
+        this.rectElement.customRectCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+      } else {
+        this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+      }
+      return this;
+    }
+    public textStyle(style: svg.CssStyle): Rect {
+      return this.style(style, false);
+    }
+
+    // Set color on rect and on text.
+    public color(color: string, palette_name?: string, onRect: boolean = true): Rect {
+      return this.style({ fill: this.getColor(color, palette_name) }, onRect);
+    }
+    public textColor(color: string, palette_name?: string): Rect {
+      return this.color(color, palette_name, false);
+    }
+
+    private getColor(color: string, palette_name?: string): string {
+      if (palette_name === 'lucid') {
+        return colors.getColor(color, colors.PALETTE_LUCID);
+      } else {
+        return colors.getColor(color, DEFAULT_COLOR_PALETTE);
+      }
+    }
   }
 
   // Wrapper of Link focusing on UX.
-  class Link {
+  class Link implements GraphElementWrapper {
+    private link: svg.SmartLinkStraight | svg.SmartLinkSingleCurved;
+    constructor(type: string = 'curved') {
+      if (type === 'curved') {
+        this.link = new svg.SmartLinkSingleCurved();
+      } else {
+        this.link = new svg.SmartLinkStraight();
+      }
+    }
 
+    getGraphElement(): svg.GraphElement {
+      return this.link;
+    }
+
+    public text(text: string): Link {
+      this.link.text = text;
+      return this;
+    }
+
+    public from(shapeWrapper: ShapeWrapper, connectionDirection: string): Link {
+      this.link.fromShape = shapeWrapper.getShape();
+      this.link.fromDirection = connectionDirection;
+      return this;
+    }
+
+    public to(shapeWrapper: ShapeWrapper, connectionDirection: string): Link {
+      this.link.toShape = shapeWrapper.getShape();
+      this.link.toDirection = connectionDirection;
+      return this;
+    }
+
+    // Link style.
+    public dashed(isDashed: boolean = true): Link {
+      this.link.dashed = isDashed;
+      return this;
+    }
+    public solid(): Link {
+      return this.dashed(false);
+    }
+  }
+
+  // Wrapper of straight Link focusing on UX.
+  class StraightLink implements GraphElementWrapper {
+    private rectElement: svg.Rect;
+    constructor() {
+      this.rectElement = new svg.Rect();
+    }
+
+    getGraphElement(): svg.GraphElement {
+      return this.rectElement;
+    }
   }
 
   export class Drawer {

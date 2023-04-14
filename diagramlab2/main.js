@@ -102,6 +102,67 @@ window.addEventListener('DOMContentLoaded', function () {
     main();
     // runTests();
 });
+var colors;
+(function (colors) {
+    /**
+     * Gets the CSS color string from the given description.
+     * If the description is not among the keys, it's assumed to be a color string
+     * and it's returned.
+     */
+    function getColor(descriptionOrColor, palette) {
+        return palette.get(descriptionOrColor) || descriptionOrColor;
+    }
+    colors.getColor = getColor;
+    colors.WHITE = '#FFFFFF';
+    colors.BLACK = '#000000';
+    // 9 colors with 4 scales each, and 8 grey scales.
+    colors.PALETTE_LUCID = new Map(Object.entries({
+        'grey1': '#FFFFFF',
+        'grey2': '#F2F3F5',
+        'grey3': '#DFE3E8',
+        'grey4': '#CED4DB',
+        'grey5': '#979EA9',
+        'grey6': '#6F7681',
+        'grey7': '#4C535D',
+        'grey8': '#000000',
+        'slateblue1': '#F2F2FF',
+        'slateblue2': '#DEDEFF',
+        'slateblue3': '#9391FF',
+        'slateblue4': '#635DFF',
+        'purple1': '#FBF0FF',
+        'purple2': '#F4D9FF',
+        'purple3': '#E08FFF',
+        'purple4': '#BA24F6',
+        'pink1': '#FFF0FB',
+        'pink2': '#FFD6F5',
+        'pink3': '#FF80DF',
+        'pink4': '#D916A8',
+        'red1': '#FFF0F0',
+        'red2': '#FFD9D9',
+        'red3': '#FF8F8F',
+        'red4': '#E81313',
+        'orange1': '#FFF3D9',
+        'orange2': '#FFDDA6',
+        'orange3': '#FC9432',
+        'orange4': '#CC4E00',
+        'yellow1': '#FCFCCA',
+        'yellow2': '#FFF7A1',
+        'yellow3': '#FFE342',
+        'yellow4': '#FCCE14',
+        'green1': '#E3FAE3',
+        'green2': '#C3F7C9',
+        'green3': '#54C45E',
+        'green4': '#008A0E',
+        'cyan1': '#D7FAF5',
+        'cyan2': '#B8F5ED',
+        'cyan3': '#00C2A8',
+        'cyan4': '#008573',
+        'blue1': '#EDF5FF',
+        'blue2': '#CFE4FF',
+        'blue3': '#6DB1FF',
+        'blue4': '#1071E5',
+    }));
+})(colors || (colors = {}));
 var geometry;
 (function (geometry) {
     /**
@@ -175,6 +236,11 @@ var svg;
         textLineSpace = '1.2em';
     }
     svg.Style = Style;
+    // Returns a new style merged from base with override.
+    function mergeCssStyles(base, override) {
+        return { ...base, ...override };
+    }
+    svg.mergeCssStyles = mergeCssStyles;
     function applyCustomCssStyle(elem, cssStyle) {
         for (const [key, value] of Object.entries(cssStyle)) {
             setAttr(elem, key, value);
@@ -702,6 +768,7 @@ var svg;
             return super.getPathCommand();
         }
     }
+    svg.SmartLinkStraight = SmartLinkStraight;
     /**
      * A singlely curved link, using postponed coordinates fetched from connected shapes.
      */
@@ -766,6 +833,7 @@ var svg;
             }
         }
     }
+    svg.SmartLinkSingleCurved = SmartLinkSingleCurved;
     /**
      * Possibly change connection direction for other considerations (etc. make text left to right).
      */
@@ -794,80 +862,26 @@ function assert(value, expectedValue) {
         throw `${value} does not equal to expected value ${expectedValue}`;
     }
 }
-var color;
-(function (color) {
-    /**
-     * Gets the CSS color string from the given description.
-     * If the description is not among the keys, it's assumed to be a color string
-     * and it's returned.
-     */
-    function getColor(descriptionOrColor, palette) {
-        return palette.get(descriptionOrColor) || descriptionOrColor;
-    }
-    color.getColor = getColor;
-    color.WHITE = '#FFFFFF';
-    color.BLACK = '#000000';
-    // 9 colors with 4 scales each, and 8 grey scales.
-    color.PALETTE_LUCID = new Map(Object.entries({
-        'grey1': '#FFFFFF',
-        'grey2': '#F2F3F5',
-        'grey3': '#DFE3E8',
-        'grey4': '#CED4DB',
-        'grey5': '#979EA9',
-        'grey6': '#6F7681',
-        'grey7': '#4C535D',
-        'grey8': '#000000',
-        'slateblue1': '#F2F2FF',
-        'slateblue2': '#DEDEFF',
-        'slateblue3': '#9391FF',
-        'slateblue4': '#635DFF',
-        'purple1': '#FBF0FF',
-        'purple2': '#F4D9FF',
-        'purple3': '#E08FFF',
-        'purple4': '#BA24F6',
-        'pink1': '#FFF0FB',
-        'pink2': '#FFD6F5',
-        'pink3': '#FF80DF',
-        'pink4': '#D916A8',
-        'red1': '#FFF0F0',
-        'red2': '#FFD9D9',
-        'red3': '#FF8F8F',
-        'red4': '#E81313',
-        'orange1': '#FFF3D9',
-        'orange2': '#FFDDA6',
-        'orange3': '#FC9432',
-        'orange4': '#CC4E00',
-        'yellow1': '#FCFCCA',
-        'yellow2': '#FFF7A1',
-        'yellow3': '#FFE342',
-        'yellow4': '#FCCE14',
-        'green1': '#E3FAE3',
-        'green2': '#C3F7C9',
-        'green3': '#54C45E',
-        'green4': '#008A0E',
-        'cyan1': '#D7FAF5',
-        'cyan2': '#B8F5ED',
-        'cyan3': '#00C2A8',
-        'cyan4': '#008573',
-        'blue1': '#EDF5FF',
-        'blue2': '#CFE4FF',
-        'blue3': '#6DB1FF',
-        'blue4': '#1071E5',
-    }));
-})(color || (color = {}));
 var diagramlang;
 (function (diagramlang) {
     const DEFAULT_RECT_WIDTH = 200;
     const DEFAULT_RECT_HEIGHT = 100;
+    const DEFAULT_COLOR_PALETTE = colors.PALETTE_LUCID;
     class GraphElementWrapper {
     }
+    class ShapeWrapper {
+        getGraphElement() {
+            return this.getShape();
+        }
+    }
     // Wrapper of Rect focusing on UX.
-    class Rect {
+    class Rect extends ShapeWrapper {
         rectElement;
         constructor() {
+            super();
             this.rectElement = new svg.Rect();
         }
-        getGraphElement() {
+        getShape() {
             return this.rectElement;
         }
         left() { return this.rectElement.x; }
@@ -904,9 +918,81 @@ var diagramlang;
                 this.rectElement.height = height;
             }
         }
+        // Set style override on rect or on text.
+        style(style, onRect = true) {
+            if (onRect) {
+                this.rectElement.customRectCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+            }
+            else {
+                this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+            }
+            return this;
+        }
+        textStyle(style) {
+            return this.style(style, false);
+        }
+        // Set color on rect and on text.
+        color(color, palette_name, onRect = true) {
+            return this.style({ fill: this.getColor(color, palette_name) }, onRect);
+        }
+        textColor(color, palette_name) {
+            return this.color(color, palette_name, false);
+        }
+        getColor(color, palette_name) {
+            if (palette_name === 'lucid') {
+                return colors.getColor(color, colors.PALETTE_LUCID);
+            }
+            else {
+                return colors.getColor(color, DEFAULT_COLOR_PALETTE);
+            }
+        }
     }
     // Wrapper of Link focusing on UX.
     class Link {
+        link;
+        constructor(type = 'curved') {
+            if (type === 'curved') {
+                this.link = new svg.SmartLinkSingleCurved();
+            }
+            else {
+                this.link = new svg.SmartLinkStraight();
+            }
+        }
+        getGraphElement() {
+            return this.link;
+        }
+        text(text) {
+            this.link.text = text;
+            return this;
+        }
+        from(shapeWrapper, connectionDirection) {
+            this.link.fromShape = shapeWrapper.getShape();
+            this.link.fromDirection = connectionDirection;
+            return this;
+        }
+        to(shapeWrapper, connectionDirection) {
+            this.link.toShape = shapeWrapper.getShape();
+            this.link.toDirection = connectionDirection;
+            return this;
+        }
+        // Link style.
+        dashed(isDashed = true) {
+            this.link.dashed = isDashed;
+            return this;
+        }
+        solid() {
+            return this.dashed(false);
+        }
+    }
+    // Wrapper of straight Link focusing on UX.
+    class StraightLink {
+        rectElement;
+        constructor() {
+            this.rectElement = new svg.Rect();
+        }
+        getGraphElement() {
+            return this.rectElement;
+        }
     }
     class Drawer {
         wrappers = [];
@@ -941,75 +1027,3 @@ var diagramlang;
     }
     diagramlang.Drawer = Drawer;
 })(diagramlang || (diagramlang = {}));
-const USE_PALETTE = color.PALETTE_LUCID;
-/**
- * Resolves a CustomStyleWithShortcuts to a new CustomStyle object.
- * If style if not defined, create an empty CustomStyle object.
- */
-function resolveCustomStyle(style) {
-    if (style) {
-        const resolvedStyle = { rect: { ...style.rect }, text: { ...style.text } };
-        // Next resolve custom color settings.
-        if (style.bgcolor) {
-            resolvedStyle.rect['fill'] = color.getColor(style.bgcolor, USE_PALETTE);
-        }
-        if (style.textcolor) {
-            resolvedStyle.text['fill'] = color.getColor(style.textcolor, USE_PALETTE);
-        }
-        return resolvedStyle;
-    }
-    else {
-        return { rect: {}, text: {} };
-    }
-}
-/**
- * Creates a new CustomStyle from merging two CustomStyleWithShortcuts objects.
- * The two CustomStyleWithShortcuts objects are resolved individually first.
- */
-function resolveAndMergeCustomStyles(source, target) {
-    const resolvedSource = resolveCustomStyle(source);
-    const resolvedTarget = resolveCustomStyle(target);
-    return {
-        ...resolvedSource, ...resolvedTarget,
-        rect: { ...resolvedSource.rect, ...resolvedTarget.rect },
-        text: { ...resolvedSource.text, ...resolvedTarget.text },
-    };
-}
-class RenderStyleConfig {
-    // Both groups and items.
-    // Height of each row.
-    rowHeight = 25;
-    rowGap = 5;
-    // Whether to report capacity and capacity sum.
-    reportCapacity = true;
-    // Items only.
-    // Width of a column for items.
-    itemColWidth = 300;
-    itemColGap = 10;
-    // If true, hide all item names in rendering.
-    hideItemNames = false;
-    // Can override defaultItemBgColor.
-    defaultItemStyles = {
-        rect: {
-            stroke: 'none',
-        },
-        bgcolor: '#6EB2FF',
-        text: {},
-        textcolor: 'white',
-    };
-    // Groups only.
-    // Default width of group when not set in custom.
-    defaultGroupWidth = 60;
-    groupColGap = 5;
-    // A map from group depth to width.
-    customGroupWidths = [];
-    // Can override defaultGroupBgColor.
-    defaultGroupStyles = {
-        rect: {
-            stroke: 'none',
-        },
-        bgcolor: '#FCFCCC',
-        text: {},
-        textcolor: undefined,
-    };
-}

@@ -28,6 +28,10 @@ namespace svg {
 
   // Used to pass in any CSS style.
   export type CssStyle = { [key: string]: string };
+  // Returns a new style merged from base with override.
+  export function mergeCssStyles(base: CssStyle, override: CssStyle): CssStyle {
+    return { ...base, ...override };
+  }
   function applyCustomCssStyle(elem: ZSVGElement, cssStyle: CssStyle) {
     for (const [key, value] of Object.entries(cssStyle)) {
       setAttr(elem, key, value);
@@ -634,7 +638,7 @@ namespace svg {
   /**
    * A straight link, using postponed coordinates fetched from connected shapes.
    */
-  class SmartLinkStraight extends LinkStraight {
+  export class SmartLinkStraight extends LinkStraight {
     public fromShape: Shape = DEFAULT_SHAPE;
     public fromDirection: string = 'right';  // up/down/left/right
     public toShape: Shape = DEFAULT_SHAPE;
@@ -652,7 +656,7 @@ namespace svg {
   /**
    * A singlely curved link, using postponed coordinates fetched from connected shapes.
    */
-  class SmartLinkSingleCurved extends LinkSingleCurved {
+  export class SmartLinkSingleCurved extends LinkSingleCurved {
     public fromShape: Shape = DEFAULT_SHAPE;
     public fromDirection: string = 'right';  // up/down/left/right
     public toShape: Shape = DEFAULT_SHAPE;
