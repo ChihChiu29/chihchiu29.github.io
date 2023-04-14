@@ -2,8 +2,22 @@
 const PAGE_PATH = '/planlab/';
 const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `
-d.viewport(0, 0, 1000, 1000);
-d.rect("hello", 100, 100, 200, 200);
+d.viewport(0, 0, 1200, 1000);
+
+var w = 200;
+var h = 100;
+var O = d.rect("THINK").cmove(100, 500, w, 300).color("purple2");
+
+function createLoop(text, width, height) {
+  return d.rect(text, O.cx(), O.cy() - height / 2, width, height);
+}
+var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
+var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
+var l3 = createLoop("Outer Loop", 900, 700).color("grey1").setZ(-102);
+
+
+
+
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
@@ -335,6 +349,11 @@ var svg;
         bgColor = '#f5f3ed';
         zValue = 1;
         name;
+        getElements(style, svgElement) {
+            const elements = this.getElementsImpl(style, svgElement);
+            elements.map((elem) => { elem.zValue = this.zValue; });
+            return elements;
+        }
         /**
          * Copy geometry and style properties.
          */
@@ -403,7 +422,7 @@ var svg;
             this.bgColor = other.bgColor;
             this.zValue = other.zValue;
         }
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             const center = this.getCenter();
             // Requires `svg-text.js` in HTML.
             // @ts-ignore
@@ -441,7 +460,7 @@ var svg;
             this.text = singleLineOfText;
         }
         // @Implement
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             const elem = createSvgElement('text');
             const center = this.getCenter();
             setAttr(elem, 'x', center.x);
@@ -464,7 +483,7 @@ var svg;
         CORNER_RADIUS = 5;
         customRectCssStyle = {};
         // @Implement
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             const elem = createSvgElement('rect');
             elem.zsvgCustomStyle = this.customRectCssStyle;
             setAttr(elem, 'x', this.x);
@@ -495,7 +514,7 @@ var svg;
         // Used to change rect and text styles.
         customRectCssStyle = {};
         customTextCssStyle = {};
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             const elements = [];
             const rect = new _Rect();
             rect.copyProperties(this);
@@ -530,7 +549,7 @@ var svg;
             super();
         }
         // @Override
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             if (!this.shapes.length) {
                 return [];
             }
@@ -567,7 +586,7 @@ var svg;
             super();
         }
         // @Override
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             if (!this.shapes.length) {
                 return [];
             }
@@ -600,7 +619,7 @@ var svg;
             super();
         }
         // @Implement
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             if (!this.childShape) {
                 return [];
             }
@@ -626,7 +645,7 @@ var svg;
      */
     class _Polygon extends Shape {
         // @Implement
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             const elem = createSvgElement('polygon');
             setAttr(elem, 'points', this.getPoints());
             setAttr(elem, 'stroke', style.lineColor);
@@ -649,7 +668,7 @@ var svg;
             super();
         }
         // @Implement
-        getElements(style, svgElement) {
+        getElementsImpl(style, svgElement) {
             if (!this.getShape) {
                 throw new Error('you need to set getShape function first');
             }
@@ -872,6 +891,9 @@ var diagramlang;
     class ShapeWrapper {
         getGraphElement() {
             return this.getShape();
+        }
+        setZ(z) {
+            this.getShape().zValue = z;
         }
     }
     // Wrapper of Rect focusing on UX.

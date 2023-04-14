@@ -13,6 +13,10 @@ namespace diagramlang {
       return this.getShape();
     }
     public abstract getShape(): svg.Shape;
+
+    public setZ(z: number) {
+      this.getShape().zValue = z;
+    }
   }
 
   // Wrapper of Rect focusing on UX.

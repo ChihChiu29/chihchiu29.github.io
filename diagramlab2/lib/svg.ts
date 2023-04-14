@@ -146,6 +146,13 @@ namespace svg {
 
     public name: string | undefined;
 
+    public getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+      const elements = this.getElementsImpl(style, svgElement)
+      elements.map((elem) => { elem.zValue = this.zValue });
+      return elements;
+    }
+    public abstract getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
+
     /**
      * Copy geometry and style properties.
      */
@@ -220,7 +227,7 @@ namespace svg {
       this.zValue = other.zValue;
     }
 
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const center = this.getCenter();
 
       // Requires `svg-text.js` in HTML.
@@ -263,7 +270,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('text');
       const center = this.getCenter();
       setAttr(elem, 'x', center.x);
@@ -289,7 +296,7 @@ namespace svg {
     public customRectCssStyle: CssStyle = {};
 
     // @Implement
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('rect');
       elem.zsvgCustomStyle = this.customRectCssStyle;
       setAttr(elem, 'x', this.x);
@@ -325,7 +332,7 @@ namespace svg {
     public customRectCssStyle: CssStyle = {};
     public customTextCssStyle: CssStyle = {};
 
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elements = [];
 
       const rect = new _Rect();
@@ -366,7 +373,7 @@ namespace svg {
     }
 
     // @Override
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -409,7 +416,7 @@ namespace svg {
     }
 
     // @Override
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -448,7 +455,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.childShape) {
         return [];
       }
@@ -484,7 +491,7 @@ namespace svg {
     abstract getPoints(): string;
 
     // @Implement
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       const elem = createSvgElement('polygon');
       setAttr(elem, 'points', this.getPoints());
 
@@ -512,7 +519,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
       if (!this.getShape) {
         throw new Error('you need to set getShape function first');
       }

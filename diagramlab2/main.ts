@@ -3,8 +3,22 @@ const PAGE_PATH = '/planlab/';
 const GRAPH_URL_PARAM = 'g';
 
 const DEFAULT_GRAPH = `
-d.viewport(0, 0, 1000, 1000);
-d.rect("hello", 100, 100, 200, 200);
+d.viewport(0, 0, 1200, 1000);
+
+var w = 200;
+var h = 100;
+var O = d.rect("THINK").cmove(100, 500, w, 300).color("purple2");
+
+function createLoop(text, width, height) {
+  return d.rect(text, O.cx(), O.cy() - height / 2, width, height);
+}
+var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
+var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
+var l3 = createLoop("Outer Loop", 900, 700).color("grey1").setZ(-102);
+
+
+
+
 `;
 
 const INPUT_ELEMENT_CSS = '#input';
