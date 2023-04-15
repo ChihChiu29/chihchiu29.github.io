@@ -11,8 +11,9 @@ const DEFAULT_GRAPH = `
 //     move, cmove, text, up/down/left/right, cx, cy, color, style, textColor, ...
 //   - 'd.link' creates a link that can connect two rects. Then use:
 //     from, to, text, dashed, ...
-// The example below has some illustration of APIs, for a more complete list,
-// use Chrome dev tool then creates an instance of 'd' to play with it:
+// The example below has some illustration of APIs, for a more complete list, visit:
+// https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/diagramlab2/src/diagramdrawer.ts
+// Alternatively, use Chrome dev tool then creates an instance of 'd' to play with it:
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
 //   d = new diagramlang.Drawer(renderer);
 // Note that using this d it won't draw anything, but the auto-completion should
