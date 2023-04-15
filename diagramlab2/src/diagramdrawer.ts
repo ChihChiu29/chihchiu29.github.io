@@ -14,8 +14,9 @@ namespace diagramlang {
     }
     public abstract getShape(): svg.Shape;
 
-    public setZ(z: number) {
+    public setZ(z: number): this {
       this.getShape().zValue = z;
+      return this;
     }
   }
 

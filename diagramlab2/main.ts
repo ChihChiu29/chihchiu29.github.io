@@ -1,13 +1,16 @@
-const PAGE_PATH = '/planlab/';
+const PAGE_PATH = '.';
 
 const GRAPH_URL_PARAM = 'g';
 
+// Use chrome dev tool to test the code, start with:
+//   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
+//   d = new diagramlang.Drawer(renderer);
 const DEFAULT_GRAPH = `
 d.viewport(0, 0, 1200, 1000);
 
 var w = 200;
 var h = 100;
-var O = d.rect("THINK").cmove(100, 500, w, 300).color("purple2");
+var O = d.rect("THINK").cmove(100, 500, w, 200).color("purple2");
 
 function createLoop(text, width, height) {
   return d.rect(text, O.cx(), O.cy() - height / 2, width, height);
@@ -16,6 +19,9 @@ var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
 var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
 var l3 = createLoop("Outer Loop", 900, 700).color("grey1").setZ(-102);
 
+var a1 = d.rect("create CL").cmove(l1.cx(), l1.top(), w, h);
+var a2 = d.rect("Something").cmove(l1.cx(), l1.top(), w, h);
+var a3 = d.rect("Interactive testing").cmove(l1.cx(), l1.top(), w, h);
 
 
 
@@ -46,7 +52,7 @@ function draw(useGrid = true): svg.RenderReport {
   const encodedGraphData = btoa(LZString.compressToBase64(graphData));  // with compression
   if (graphData !== DEFAULT_GRAPH) {
     window.history.pushState(
-      'updated', 'Planlab',
+      'updated', 'DiagramLab2',
       `${PAGE_PATH}?g=${encodedGraphData}`);
   }
 
