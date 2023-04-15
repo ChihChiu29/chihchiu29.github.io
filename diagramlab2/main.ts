@@ -66,8 +66,8 @@ function draw(useGrid = true): svg.RenderReport {
 
   // Since drawing has no error, safe to update URL.
   // const encodedGraphData = btoa(graphData);  // base64 encode without compression
-  const encodedGraphData = btoa(LZString.compressToBase64(graphData));  // with compression
   if (graphData !== DEFAULT_GRAPH) {
+    const encodedGraphData = btoa(LZString.compressToBase64(graphData));  // with compression
     window.history.pushState(
       'updated', 'DiagramLab2',
       `${PAGE_PATH}?g=${encodedGraphData}`);

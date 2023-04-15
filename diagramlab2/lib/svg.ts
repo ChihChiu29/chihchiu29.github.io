@@ -49,6 +49,7 @@ namespace svg {
   export class SVGRenderer {
     public hostElement: HTMLElement;
     private svgElement: SVGSVGElement;
+    private cssElement: HTMLStyleElement;
     public style: Style = new Style();
 
     public left: number = 0;
@@ -71,11 +72,19 @@ namespace svg {
       }
       this.svgElement = createSvgSvgElement();
       this.hostElement.append(this.svgElement);
+
+      let cssElement = this.hostElement.querySelector('style');
+      if (cssElement) {
+        cssElement.remove();
+      }
+      this.cssElement = document.createElement('style');
+      this.hostElement.append(this.cssElement);
     }
 
     // Needs to be called after graphElement is no longer modified.
     public addGraphElement(graphElement: GraphElement) {
-      for (const elem of graphElement.getElements(this.style, this.svgElement)) {
+      for (const elem of graphElement.getElements(
+        this.style, { svgElement: this.svgElement, cssElement: this.cssElement })) {
         this.addElement(elem, elem.zValue);
       }
       if (graphElement instanceof Shape) {
@@ -134,8 +143,12 @@ namespace svg {
     }
   }
 
+  interface DrawingElements {
+    svgElement: SVGSVGElement;
+    cssElement: HTMLStyleElement;
+  }
   export abstract class GraphElement {
-    public abstract getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
+    public abstract getElements(style: Style, drawingElements: DrawingElements): ZSVGElement[];
   }
 
   export abstract class Shape extends GraphElement {
@@ -148,12 +161,12 @@ namespace svg {
 
     public name: string | undefined;
 
-    public getElements(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
-      const elements = this.getElementsImpl(style, svgElement)
+    public getElements(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
+      const elements = this.getElementsImpl(style, drawingElements)
       elements.map((elem) => { elem.zValue = this.zValue });
       return elements;
     }
-    public abstract getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[];
+    public abstract getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[];
 
     /**
      * Copy geometry and style properties.
@@ -230,7 +243,7 @@ namespace svg {
       this.zValue = other.zValue;
     }
 
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       const center = this.getCenter();
 
       // Requires `svg-text.js` in HTML.
@@ -238,7 +251,7 @@ namespace svg {
       const SvgText = window.SvgText.default;
       const svgTextOption = {
         text: this.text,
-        element: svgElement,
+        element: drawingElements.svgElement,
         x: (this.textAlignToCenter ? center.x : this.x) + this.textShift.x,
         y: (this.textVerticalAlignToCenter ? center.y : this.y) + this.textShift.y,
         outerWidth: this.outerWidth ? this.outerWidth : this.width,
@@ -248,7 +261,12 @@ namespace svg {
         padding: this.textAlignToCenter ? 0 : '0 0 0 5',
         textOverflow: 'ellipsis',
         style: this.customTextCssStyle,
+        // WARNING: when `style` is set, if `styleElement` is not set, it will be
+        // the first `<style>`, then it will KEEP APPENDING TO IT until the css
+        // becomes too long then crash.
+        styleElement: drawingElements.cssElement,
       };
+      // @ts-ignore
       const svgText = new SvgText(svgTextOption);
       const elem = svgText.text;
       // DO NOT DO THIS, since then changing text style is done at a much later time,
@@ -276,7 +294,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       const elem = createSvgElement('text');
       const center = this.getCenter();
       setAttr(elem, 'x', center.x);
@@ -302,7 +320,7 @@ namespace svg {
     public customRectCssStyle: CssStyle = {};
 
     // @Implement
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       const elem = createSvgElement('rect');
       elem.zsvgCustomStyle = this.customRectCssStyle;
       setAttr(elem, 'x', this.x);
@@ -339,7 +357,7 @@ namespace svg {
     public customRectCssStyle: CssStyle = {};
     public customTextCssStyle: CssStyle = {};
 
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       const elements = [];
 
       const rect = new _Rect();
@@ -349,7 +367,7 @@ namespace svg {
         // Pass the name to the actual rect element.
         rect.name = this.name;
       }
-      elements.push(...rect.getElements(style, svgElement));
+      elements.push(...rect.getElements(style, drawingElements));
 
       if (this.text) {
         const textElem = new MagicText(this.text);
@@ -359,7 +377,7 @@ namespace svg {
         textElem.textShift = this.textShift;
         textElem.outerWidth = this.outerWidth;
         textElem.customTextCssStyle = this.customTextCssStyle;
-        elements.push(...textElem.getElements(style, svgElement));
+        elements.push(...textElem.getElements(style, drawingElements));
       }
 
       return elements;
@@ -382,7 +400,7 @@ namespace svg {
     }
 
     // @Override
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -399,7 +417,7 @@ namespace svg {
         shape.y = this.y + accumulatedShiftY;
         shape.width = shapeWidth;
         shape.height = shapeHeight;
-        elements.push(...shape.getElements(style, svgElement));
+        elements.push(...shape.getElements(style, drawingElements));
         accumulatedShiftX += this.shiftX;
         accumulatedShiftY += this.shiftY;
       }
@@ -425,7 +443,7 @@ namespace svg {
     }
 
     // @Override
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       if (!this.shapes.length) {
         return [];
       }
@@ -442,7 +460,7 @@ namespace svg {
         shape.y = this.y + (this.gapY + shapeHeight) * rowIdx;
         shape.width = shapeWidth;
         shape.height = shapeHeight;
-        elements.push(...shape.getElements(style, svgElement));
+        elements.push(...shape.getElements(style, drawingElements));
       }
 
       return elements;
@@ -464,7 +482,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       if (!this.childShape) {
         return [];
       }
@@ -478,13 +496,13 @@ namespace svg {
       if (this.name) {
         rect.name = this.name;
       }
-      elements.push(...rect.getElements(style, svgElement));
+      elements.push(...rect.getElements(style, drawingElements));
 
       this.childShape.x = this.x + this.childGapX;
       this.childShape.y = this.y + this.childGapY + this.childShiftY;
       this.childShape.width = this.width - this.childGapX * 2;
       this.childShape.height = this.height - this.childGapY * 2 - this.childShiftY;
-      elements.push(...this.childShape.getElements(style, svgElement));
+      elements.push(...this.childShape.getElements(style, drawingElements));
 
       return elements;
     }
@@ -500,7 +518,7 @@ namespace svg {
     abstract getPoints(): string;
 
     // @Implement
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       const elem = createSvgElement('polygon');
       setAttr(elem, 'points', this.getPoints());
 
@@ -528,7 +546,7 @@ namespace svg {
     }
 
     // @Implement
-    override getElementsImpl(style: Style, svgElement: SVGSVGElement): ZSVGElement[] {
+    override getElementsImpl(style: Style, drawingElements: DrawingElements): ZSVGElement[] {
       if (!this.getShape) {
         throw new Error('you need to set getShape function first');
       }
@@ -540,12 +558,12 @@ namespace svg {
         // Pass the name to the actual rect element.
         shape.name = this.name;
       }
-      elements.push(...shape.getElements(style, svgElement));
+      elements.push(...shape.getElements(style, drawingElements));
 
       if (this.text) {
         const centeredText = new _CenteredText(this.text);
         centeredText.copyProperties(this);
-        elements.push(...centeredText.getElements(style, svgElement));
+        elements.push(...centeredText.getElements(style, drawingElements));
       }
 
       return elements;
@@ -584,7 +602,7 @@ namespace svg {
     // The actual path command.
     abstract getPathCommand(): string;
 
-    override getElements(style: Style, svgElement: SVGSVGElement) {
+    override getElements(style: Style, drawingElements: DrawingElements) {
       const elements = [];
 
       const elem = createSvgElement('path');
