@@ -8,8 +8,10 @@ const GRAPH_URL_PARAM = 'g';
 const DEFAULT_GRAPH = `
 // Quickstart:
 //   - Every action starts with the drawer 'd'.
-//   - 'd.rect' creates a new rect with text.
-//   - 'd.link' creates a link that can connect two rects.
+//   - 'd.rect' creates a new rect with text. Then you can use:
+//     move, cmove, text, up/down/left/right, cx, cy, color, style, textColor, ...
+//   - 'd.link' creates a link that can connect two rects. Then use:
+//     from, to, text, dashed, ...
 // The example below has some illustration of APIs, for a more complete list,
 // use Chrome dev tool then creates an instance of 'd' to play with it:
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
