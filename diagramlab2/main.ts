@@ -52,6 +52,7 @@ const SAVE_SVG_MARGIN = 0;
 
 function draw(useGrid = true): svg.RenderReport {
   const renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR)!);
+  renderer.useGrid = useGrid;
   const graphData = (document.querySelector(INPUT_ELEMENT_CSS) as HTMLInputElement)!.value;
 
   // `d` is the keyword used in the user provided code.

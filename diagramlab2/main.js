@@ -48,6 +48,7 @@ const DRAW_AREA_SELECTOR = '#drawarea';
 const SAVE_SVG_MARGIN = 0;
 function draw(useGrid = true) {
     const renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
+    renderer.useGrid = useGrid;
     const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
     // `d` is the keyword used in the user provided code.
     const d = new diagramlang.Drawer(renderer);
