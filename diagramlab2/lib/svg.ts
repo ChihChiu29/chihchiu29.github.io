@@ -210,6 +210,7 @@ namespace svg {
     public text: string;
     public textAlignToCenter = true;  // otherwise to left
     public textVerticalAlignToCenter = true;  // otherwise to top
+    public textShift: geometry.Point = { x: 0, y: 0 }; // text shift relative to anchor
     public outerWidth?: number; // with of texts; default to element width
     public customTextCssStyle: CssStyle = {};
 
@@ -236,18 +237,21 @@ namespace svg {
       const svgTextOption = {
         text: this.text,
         element: svgElement,
-        x: this.textAlignToCenter ? center.x : this.x,
-        y: this.textVerticalAlignToCenter ? center.y : this.y,
+        x: (this.textAlignToCenter ? center.x : this.x) + this.textShift.x,
+        y: (this.textVerticalAlignToCenter ? center.y : this.y) + this.textShift.y,
         outerWidth: this.outerWidth ? this.outerWidth : this.width,
         outerHeight: this.height,
         align: this.textAlignToCenter ? 'center' : 'left',
         verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
         padding: this.textAlignToCenter ? 0 : '0 0 0 5',
         textOverflow: 'ellipsis',
+        style: this.customTextCssStyle,
       };
       const svgText = new SvgText(svgTextOption);
       const elem = svgText.text;
-      elem.zsvgCustomStyle = this.customTextCssStyle;
+      // DO NOT DO THIS, since then changing text style is done at a much later time,
+      // and it can mess up with the text newline computation.
+      // elem.zsvgCustomStyle = this.customTextCssStyle;
 
       if (this.name) {
         setAttr(elem, 'name', this.name);
@@ -326,6 +330,7 @@ namespace svg {
     public text: string = '';
     public textAlignToCenter = true;  // otherwise to left
     public textVerticalAlignToCenter = true;  // otherwise to top
+    public textShift: geometry.Point = { x: 0, y: 0 };
     public outerWidth?: number; // with of texts; default to element width
 
     // Used to change rect and text styles.
@@ -349,6 +354,7 @@ namespace svg {
         textElem.copyProperties(this);
         textElem.textAlignToCenter = this.textAlignToCenter;
         textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
+        textElem.textShift = this.textShift;
         textElem.outerWidth = this.outerWidth;
         textElem.customTextCssStyle = this.customTextCssStyle;
         elements.push(...textElem.getElements(style, svgElement));

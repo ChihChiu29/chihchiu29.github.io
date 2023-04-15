@@ -81,6 +81,11 @@ namespace diagramlang {
       return this;
     }
 
+    public textShift(shiftX: number, shiftY: number): Rect {
+      this.rectElement.textShift = { x: shiftX, y: shiftY };
+      return this;
+    }
+
     // Set style override on rect or on text.
     public style(style: svg.CssStyle, onRect: boolean = true): Rect {
       if (onRect) {

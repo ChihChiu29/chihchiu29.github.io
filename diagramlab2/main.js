@@ -9,20 +9,22 @@ d.viewport(0, 0, 1500, 1200);
 
 var w = 140;
 var h = 60;
-var O = d.rect("THINK").cmove(200, 600, w, 100).color("purple3")
-         .textStyle({"font-size": 32, "font-weight": "bold"});
+var O = d.rect("THINK DEBUG ANALYZE").cmove(200, 600, w, 120).color("purple3")
+         .textStyle({"font-size": 26, "font-weight": "bold"});
 
 function createLoop(text, width, height) {
   return d.rect(text, O.cx(), O.cy() - height / 2, width, height)
-          .style({rx: '20%', ry: '20%', stroke: 'none'})
           .textStyle({"font-size": 24, "font-weight": "lighter"});
 }
-var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue3").setZ(-100);
-var l2 = createLoop("Outer Loop - Experimentation", 700, 400).color("blue2").textPos(false, true).setZ(-101);
+var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue3")
+    .style({rx: '20%', ry: '20%', stroke: 'none'}).setZ(-100);
+var l2 = createLoop("Outer Loop - Experimentation", 800, 400).color("blue2")
+    .style({rx: '20%', ry: '20%', stroke: 'none'})
+    .textPos(false, true).textShift(0, 10).setZ(-101);
 
 var a1 = d.rect("Create CL").cmove(l1.cx(), l1.top(), w, h);
-var a2 = d.rect("Interactive Testing").cmove(l1.right(), l1.cy(), w, h);
-var a3 = d.rect("Debugging / CL Review").cmove(l1.cx(), l1.bottom(), w, h);
+var a2 = d.rect("Run Dev Server").cmove(l1.right(), l1.cy(), w, h);
+var a3 = d.rect("Interactive Testing").cmove(l1.cx(), l1.bottom(), w, h);
 d.link(O, "up", a1, "left");
 d.link(a1, "right", a2, "up");
 d.link(a2, "down", a3, "right");
@@ -30,7 +32,7 @@ d.link(a3, "left", O, "down");
 
 var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
 var b2 = d.rect("Run Experiment").cmove(l2.right(), l2.cy(), w, h);
-var b3 = d.rect("Collect Data Analyze Data").cmove(l2.cx(), l2.bottom(), w, h);
+var b3 = d.rect("Collect Data").cmove(l2.cx(), l2.bottom(), w, h);
 d.link(O, "up", b1, "left");
 d.link(b1, "right", b2, "up");
 d.link(b2, "down", b3, "right");
@@ -38,7 +40,7 @@ d.link(b3, "left", O, "down");
 
 // Since we no longer need the loops for location, make them bigger to look better.
 l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 100);
-l2.cmove(l2.cx(), l2.cy(), l2.width() + 200, l2.height() + 100);
+l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 150);
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
@@ -429,6 +431,7 @@ var svg;
         text;
         textAlignToCenter = true; // otherwise to left
         textVerticalAlignToCenter = true; // otherwise to top
+        textShift = { x: 0, y: 0 }; // text shift relative to anchor
         outerWidth; // with of texts; default to element width
         customTextCssStyle = {};
         constructor(text) {
@@ -451,18 +454,21 @@ var svg;
             const svgTextOption = {
                 text: this.text,
                 element: svgElement,
-                x: this.textAlignToCenter ? center.x : this.x,
-                y: this.textVerticalAlignToCenter ? center.y : this.y,
+                x: (this.textAlignToCenter ? center.x : this.x) + this.textShift.x,
+                y: (this.textVerticalAlignToCenter ? center.y : this.y) + this.textShift.y,
                 outerWidth: this.outerWidth ? this.outerWidth : this.width,
                 outerHeight: this.height,
                 align: this.textAlignToCenter ? 'center' : 'left',
                 verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
                 padding: this.textAlignToCenter ? 0 : '0 0 0 5',
                 textOverflow: 'ellipsis',
+                style: this.customTextCssStyle,
             };
             const svgText = new SvgText(svgTextOption);
             const elem = svgText.text;
-            elem.zsvgCustomStyle = this.customTextCssStyle;
+            // DO NOT DO THIS, since then changing text style is done at a much later time,
+            // and it can mess up with the text newline computation.
+            // elem.zsvgCustomStyle = this.customTextCssStyle;
             if (this.name) {
                 setAttr(elem, 'name', this.name);
             }
@@ -531,6 +537,7 @@ var svg;
         text = '';
         textAlignToCenter = true; // otherwise to left
         textVerticalAlignToCenter = true; // otherwise to top
+        textShift = { x: 0, y: 0 };
         outerWidth; // with of texts; default to element width
         // Used to change rect and text styles.
         customRectCssStyle = {};
@@ -550,6 +557,7 @@ var svg;
                 textElem.copyProperties(this);
                 textElem.textAlignToCenter = this.textAlignToCenter;
                 textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
+                textElem.textShift = this.textShift;
                 textElem.outerWidth = this.outerWidth;
                 textElem.customTextCssStyle = this.customTextCssStyle;
                 elements.push(...textElem.getElements(style, svgElement));
@@ -976,6 +984,10 @@ var diagramlang;
         textPos(left = false, top = false) {
             this.rectElement.textAlignToCenter = !left;
             this.rectElement.textVerticalAlignToCenter = !top;
+            return this;
+        }
+        textShift(shiftX, shiftY) {
+            this.rectElement.textShift = { x: shiftX, y: shiftY };
             return this;
         }
         // Set style override on rect or on text.
