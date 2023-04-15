@@ -186,9 +186,9 @@ namespace svg {
     }
 
     getConnectionPoint(direction: string) {
-      if (direction === 'up') {
+      if (direction === 'up' || direction === 'top') {
         return this.getUpMiddle();
-      } else if (direction === 'down') {
+      } else if (direction === 'down' || direction === 'bottom') {
         return this.getDownMiddle();
       } else if (direction === 'left') {
         return this.getLeftMiddle();

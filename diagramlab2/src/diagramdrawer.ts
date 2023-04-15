@@ -32,14 +32,17 @@ namespace diagramlang {
       return this.rectElement;
     }
 
-    public left() { return this.rectElement.x; }
-    public right() { return this.rectElement.x + this.rectElement.width; }
-    public top() { return this.rectElement.y; }
+    public left(): number { return this.rectElement.x; }
+    public right(): number { return this.rectElement.x + this.rectElement.width; }
+    public top(): number { return this.rectElement.y; }
     up = this.top;
-    public bottom() { return this.rectElement.y + this.rectElement.height; }
+    public bottom(): number { return this.rectElement.y + this.rectElement.height; }
     down = this.bottom;
-    public cx() { return this.rectElement.x + this.rectElement.width / 2; }
-    public cy() { return this.rectElement.y + this.rectElement.height / 2; }
+    public cx(): number { return this.rectElement.x + this.rectElement.width / 2; }
+    public cy(): number { return this.rectElement.y + this.rectElement.height / 2; }
+
+    public width(): number { return this.rectElement.width; }
+    public height(): number { return this.rectElement.height; }
 
     public text(text: string): Rect {
       this.rectElement.text = text;
@@ -83,7 +86,7 @@ namespace diagramlang {
       if (onRect) {
         this.rectElement.customRectCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
       } else {
-        this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+        this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customTextCssStyle, style);
       }
       return this;
     }
@@ -201,8 +204,15 @@ namespace diagramlang {
       return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
     }
 
-    link(): Link {
-      return new Link();
+    link(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string): Link {
+      const link = new Link();
+      if (fromShape && fromDirection && toShape && toDirection) {
+        link.from(fromShape, fromDirection).to(toShape, toDirection);
+      }
+      if (text) {
+        link.text(text);
+      }
+      return this.registerGraphElement(link);
     }
 
     finalize() {

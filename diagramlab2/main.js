@@ -5,25 +5,40 @@ const GRAPH_URL_PARAM = 'g';
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
 //   d = new diagramlang.Drawer(renderer);
 const DEFAULT_GRAPH = `
-d.viewport(0, 0, 1200, 1000);
+d.viewport(0, 0, 1500, 1200);
 
-var w = 200;
-var h = 100;
-var O = d.rect("THINK").cmove(200, 500, w, 200).color("purple2");
+var w = 140;
+var h = 60;
+var O = d.rect("THINK").cmove(200, 600, w, 100).color("purple3")
+         .textStyle({"font-size": 32, "font-weight": "bold"});
 
 function createLoop(text, width, height) {
-  return d.rect(text, O.cx(), O.cy() - height / 2, width, height).textPos(true, true);
+  return d.rect(text, O.cx(), O.cy() - height / 2, width, height)
+          .style({rx: '20%', ry: '20%', stroke: 'none'})
+          .textStyle({"font-size": 24, "font-weight": "lighter"});
 }
-var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
-var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
-var l3 = createLoop("Outer Loop", 900, 700).color("grey1").setZ(-102);
+var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue3").setZ(-100);
+var l2 = createLoop("Outer Loop - Experimentation", 700, 400).color("blue2").textPos(false, true).setZ(-101);
 
-var a1 = d.rect("create CL").cmove(l1.cx(), l1.top(), w, h);
-var a2 = d.rect("Something").cmove(l1.cx(), l1.top(), w, h);
-var a3 = d.rect("Interactive testing").cmove(l1.cx(), l1.top(), w, h);
+var a1 = d.rect("Create CL").cmove(l1.cx(), l1.top(), w, h);
+var a2 = d.rect("Interactive Testing").cmove(l1.right(), l1.cy(), w, h);
+var a3 = d.rect("Debugging / CL Review").cmove(l1.cx(), l1.bottom(), w, h);
+d.link(O, "up", a1, "left");
+d.link(a1, "right", a2, "up");
+d.link(a2, "down", a3, "right");
+d.link(a3, "left", O, "down");
 
+var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
+var b2 = d.rect("Run Experiment").cmove(l2.right(), l2.cy(), w, h);
+var b3 = d.rect("Collect Data Analyze Data").cmove(l2.cx(), l2.bottom(), w, h);
+d.link(O, "up", b1, "left");
+d.link(b1, "right", b2, "up");
+d.link(b2, "down", b3, "right");
+d.link(b3, "left", O, "down");
 
-
+// Since we no longer need the loops for location, make them bigger to look better.
+l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 100);
+l2.cmove(l2.cx(), l2.cy(), l2.width() + 200, l2.height() + 100);
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
@@ -387,10 +402,10 @@ var svg;
             return { x: this.x + this.width, y: this.getCenter().y };
         }
         getConnectionPoint(direction) {
-            if (direction === 'up') {
+            if (direction === 'up' || direction === 'top') {
                 return this.getUpMiddle();
             }
-            else if (direction === 'down') {
+            else if (direction === 'down' || direction === 'bottom') {
                 return this.getDownMiddle();
             }
             else if (direction === 'left') {
@@ -922,6 +937,8 @@ var diagramlang;
         down = this.bottom;
         cx() { return this.rectElement.x + this.rectElement.width / 2; }
         cy() { return this.rectElement.y + this.rectElement.height / 2; }
+        width() { return this.rectElement.width; }
+        height() { return this.rectElement.height; }
         text(text) {
             this.rectElement.text = text;
             return this;
@@ -960,7 +977,7 @@ var diagramlang;
                 this.rectElement.customRectCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
             }
             else {
-                this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
+                this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customTextCssStyle, style);
             }
             return this;
         }
@@ -1052,8 +1069,15 @@ var diagramlang;
         crect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
             return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
         }
-        link() {
-            return new Link();
+        link(fromShape, fromDirection, toShape, toDirection, text) {
+            const link = new Link();
+            if (fromShape && fromDirection && toShape && toDirection) {
+                link.from(fromShape, fromDirection).to(toShape, toDirection);
+            }
+            if (text) {
+                link.text(text);
+            }
+            return this.registerGraphElement(link);
         }
         finalize() {
             for (const elementWrapper of this.wrappers) {
