@@ -9,10 +9,10 @@ d.viewport(0, 0, 1200, 1000);
 
 var w = 200;
 var h = 100;
-var O = d.rect("THINK").cmove(100, 500, w, 200).color("purple2");
+var O = d.rect("THINK").cmove(200, 500, w, 200).color("purple2");
 
 function createLoop(text, width, height) {
-  return d.rect(text, O.cx(), O.cy() - height / 2, width, height);
+  return d.rect(text, O.cx(), O.cy() - height / 2, width, height).textPos(true, true);
 }
 var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
 var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
@@ -413,7 +413,7 @@ var svg;
     class MagicText extends Shape {
         text;
         textAlignToCenter = true; // otherwise to left
-        textverticalAlignToCenter = true; // otherwise to top
+        textVerticalAlignToCenter = true; // otherwise to top
         outerWidth; // with of texts; default to element width
         customTextCssStyle = {};
         constructor(text) {
@@ -437,11 +437,11 @@ var svg;
                 text: this.text,
                 element: svgElement,
                 x: this.textAlignToCenter ? center.x : this.x,
-                y: this.textverticalAlignToCenter ? center.y : this.y,
+                y: this.textVerticalAlignToCenter ? center.y : this.y,
                 outerWidth: this.outerWidth ? this.outerWidth : this.width,
                 outerHeight: this.height,
                 align: this.textAlignToCenter ? 'center' : 'left',
-                verticalAlign: this.textverticalAlignToCenter ? 'middle' : 'top',
+                verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
                 padding: this.textAlignToCenter ? 0 : '0 0 0 5',
                 textOverflow: 'ellipsis',
             };
@@ -515,7 +515,7 @@ var svg;
     class Rect extends Shape {
         text = '';
         textAlignToCenter = true; // otherwise to left
-        textverticalAlignToCenter = true; // otherwise to top
+        textVerticalAlignToCenter = true; // otherwise to top
         outerWidth; // with of texts; default to element width
         // Used to change rect and text styles.
         customRectCssStyle = {};
@@ -534,6 +534,7 @@ var svg;
                 const textElem = new MagicText(this.text);
                 textElem.copyProperties(this);
                 textElem.textAlignToCenter = this.textAlignToCenter;
+                textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
                 textElem.outerWidth = this.outerWidth;
                 textElem.customTextCssStyle = this.customTextCssStyle;
                 elements.push(...textElem.getElements(style, svgElement));
@@ -633,7 +634,7 @@ var svg;
             const rect = new Rect();
             rect.copyProperties(this);
             rect.text = this.title;
-            rect.textverticalAlignToCenter = false;
+            rect.textVerticalAlignToCenter = false;
             if (this.name) {
                 rect.name = this.name;
             }
@@ -946,6 +947,12 @@ var diagramlang;
             if (height) {
                 this.rectElement.height = height;
             }
+        }
+        // Sets location of the text, left/center, top/center.
+        textPos(left = false, top = false) {
+            this.rectElement.textAlignToCenter = !left;
+            this.rectElement.textVerticalAlignToCenter = !top;
+            return this;
         }
         // Set style override on rect or on text.
         style(style, onRect = true) {

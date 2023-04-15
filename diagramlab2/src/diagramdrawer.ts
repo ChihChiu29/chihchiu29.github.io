@@ -71,6 +71,13 @@ namespace diagramlang {
       }
     }
 
+    // Sets location of the text, left/center, top/center.
+    public textPos(left: boolean = false, top: boolean = false): Rect {
+      this.rectElement.textAlignToCenter = !left;
+      this.rectElement.textVerticalAlignToCenter = !top;
+      return this;
+    }
+
     // Set style override on rect or on text.
     public style(style: svg.CssStyle, onRect: boolean = true): Rect {
       if (onRect) {

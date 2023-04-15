@@ -209,7 +209,7 @@ namespace svg {
   class MagicText extends Shape {
     public text: string;
     public textAlignToCenter = true;  // otherwise to left
-    public textverticalAlignToCenter = true;  // otherwise to top
+    public textVerticalAlignToCenter = true;  // otherwise to top
     public outerWidth?: number; // with of texts; default to element width
     public customTextCssStyle: CssStyle = {};
 
@@ -237,11 +237,11 @@ namespace svg {
         text: this.text,
         element: svgElement,
         x: this.textAlignToCenter ? center.x : this.x,
-        y: this.textverticalAlignToCenter ? center.y : this.y,
+        y: this.textVerticalAlignToCenter ? center.y : this.y,
         outerWidth: this.outerWidth ? this.outerWidth : this.width,
         outerHeight: this.height,
         align: this.textAlignToCenter ? 'center' : 'left',
-        verticalAlign: this.textverticalAlignToCenter ? 'middle' : 'top',
+        verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
         padding: this.textAlignToCenter ? 0 : '0 0 0 5',
         textOverflow: 'ellipsis',
       };
@@ -325,7 +325,7 @@ namespace svg {
   export class Rect extends Shape {
     public text: string = '';
     public textAlignToCenter = true;  // otherwise to left
-    public textverticalAlignToCenter = true;  // otherwise to top
+    public textVerticalAlignToCenter = true;  // otherwise to top
     public outerWidth?: number; // with of texts; default to element width
 
     // Used to change rect and text styles.
@@ -348,6 +348,7 @@ namespace svg {
         const textElem = new MagicText(this.text);
         textElem.copyProperties(this);
         textElem.textAlignToCenter = this.textAlignToCenter;
+        textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
         textElem.outerWidth = this.outerWidth;
         textElem.customTextCssStyle = this.customTextCssStyle;
         elements.push(...textElem.getElements(style, svgElement));
@@ -465,7 +466,7 @@ namespace svg {
       const rect = new Rect();
       rect.copyProperties(this);
       rect.text = this.title;
-      rect.textverticalAlignToCenter = false;
+      rect.textVerticalAlignToCenter = false;
       if (this.name) {
         rect.name = this.name;
       }

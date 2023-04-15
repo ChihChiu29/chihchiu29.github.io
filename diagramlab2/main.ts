@@ -10,10 +10,10 @@ d.viewport(0, 0, 1200, 1000);
 
 var w = 200;
 var h = 100;
-var O = d.rect("THINK").cmove(100, 500, w, 200).color("purple2");
+var O = d.rect("THINK").cmove(200, 500, w, 200).color("purple2");
 
 function createLoop(text, width, height) {
-  return d.rect(text, O.cx(), O.cy() - height / 2, width, height);
+  return d.rect(text, O.cx(), O.cy() - height / 2, width, height).textPos(true, true);
 }
 var l1 = createLoop("Inner Loop", 500, 300).color("grey3").setZ(-100);
 var l2 = createLoop("Middle Loop", 700, 500).color("grey2").setZ(-101);
