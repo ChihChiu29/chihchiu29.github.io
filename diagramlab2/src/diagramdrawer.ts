@@ -119,8 +119,8 @@ namespace diagramlang {
   // Wrapper of Link focusing on UX.
   class Link implements GraphElementWrapper {
     private link: svg.SmartLinkStraight | svg.SmartLinkSingleCurved;
-    constructor(type: string = 'curved') {
-      if (type === 'curved') {
+    constructor(type: string) {
+      if (type === 'curved_single_ctrl') {
         this.link = new svg.SmartLinkSingleCurved();
       } else {
         this.link = new svg.SmartLinkStraight();
@@ -213,8 +213,9 @@ namespace diagramlang {
       return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
     }
 
-    link(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string): Link {
-      const link = new Link();
+    // Link, default to a link with a single control point.
+    link(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string, type: string = 'curved_single_ctrl'): Link {
+      const link = new Link(type);
       if (fromShape && fromDirection && toShape && toDirection) {
         link.from(fromShape, fromDirection).to(toShape, toDirection);
       }
@@ -222,6 +223,10 @@ namespace diagramlang {
         link.text(text);
       }
       return this.registerGraphElement(link);
+    }
+    // Straight link.
+    slink(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string): Link {
+      return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
     }
 
     finalize() {

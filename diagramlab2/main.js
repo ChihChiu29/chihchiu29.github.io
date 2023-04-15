@@ -1052,8 +1052,8 @@ var diagramlang;
     // Wrapper of Link focusing on UX.
     class Link {
         link;
-        constructor(type = 'curved') {
-            if (type === 'curved') {
+        constructor(type) {
+            if (type === 'curved_single_ctrl') {
                 this.link = new svg.SmartLinkSingleCurved();
             }
             else {
@@ -1121,8 +1121,9 @@ var diagramlang;
         crect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
             return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
         }
-        link(fromShape, fromDirection, toShape, toDirection, text) {
-            const link = new Link();
+        // Link, default to a link with a single control point.
+        link(fromShape, fromDirection, toShape, toDirection, text, type = 'curved_single_ctrl') {
+            const link = new Link(type);
             if (fromShape && fromDirection && toShape && toDirection) {
                 link.from(fromShape, fromDirection).to(toShape, toDirection);
             }
@@ -1130,6 +1131,10 @@ var diagramlang;
                 link.text(text);
             }
             return this.registerGraphElement(link);
+        }
+        // Straight link.
+        slink(fromShape, fromDirection, toShape, toDirection, text) {
+            return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
         }
         finalize() {
             for (const elementWrapper of this.wrappers) {
