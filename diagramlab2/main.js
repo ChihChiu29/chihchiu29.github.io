@@ -5,6 +5,17 @@ const GRAPH_URL_PARAM = 'g';
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
 //   d = new diagramlang.Drawer(renderer);
 const DEFAULT_GRAPH = `
+// Quickstart:
+//   - Every action starts with the drawer 'd'.
+//   - 'd.rect' creates a new rect with text.
+//   - 'd.link' creates a link that can connect two rects.
+// The example below has some illustration of APIs, for a more complete list,
+// use Chrome dev tool then creates an instance of 'd' to play with it:
+//   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
+//   d = new diagramlang.Drawer(renderer);
+// Note that using this d it won't draw anything, but the auto-completion should
+// help you get familiar with the interfaces.
+
 d.viewport(0, 0, 1200, 600);
 
 var w = 140;
