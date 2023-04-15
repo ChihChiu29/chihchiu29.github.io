@@ -58,8 +58,13 @@ l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 150);
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
 
+interface CodeMirrorInterface {
+  getValue: () => string;
+  setValue: (value: string) => void;
+}
+
 // @ts-ignore
-const CODE_MIRROR_ELEMENT: { value: string, getValue: () => string } = CodeMirror(
+const CODE_MIRROR_ELEMENT: CodeMirrorInterface = CodeMirror(
   document.querySelector(INPUT_ELEMENT_CSS), {
   value: DEFAULT_GRAPH,
   mode: 'javascript',
@@ -156,7 +161,7 @@ function reportLocationListener(evt: any) {
   (document.querySelector('#report #location')! as HTMLElement).innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
 }
 
-function getInputElement(): { value: string, getValue: () => string } {
+function getInputElement(): CodeMirrorInterface {
   return CODE_MIRROR_ELEMENT;
 }
 
@@ -167,9 +172,7 @@ function main() {
   const inputElement = getInputElement();
   if (graphData) {
     // inputElement.value = atob(graphData);  // base64 without compression
-    inputElement.value = LZString.decompressFromBase64(atob(graphData));  // with compression
-  } else {
-    inputElement.value = DEFAULT_GRAPH;
+    inputElement.setValue(LZString.decompressFromBase64(atob(graphData)));  // with compression
   }
 
   draw();

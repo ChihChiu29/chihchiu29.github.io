@@ -148,10 +148,7 @@ function main() {
     const inputElement = getInputElement();
     if (graphData) {
         // inputElement.value = atob(graphData);  // base64 without compression
-        inputElement.value = LZString.decompressFromBase64(atob(graphData)); // with compression
-    }
-    else {
-        inputElement.value = DEFAULT_GRAPH;
+        inputElement.setValue(LZString.decompressFromBase64(atob(graphData))); // with compression
     }
     draw();
 }
