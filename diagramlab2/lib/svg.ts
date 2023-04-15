@@ -60,6 +60,8 @@ namespace svg {
 
     private elements: ZSVGElement[] = [];
 
+    private reportRect: geometry.BoundingRect = { x: NaN, y: NaN, width: NaN, height: NaN };
+
     constructor(hostElement: HTMLElement) {
       this.hostElement = hostElement;
 
@@ -75,6 +77,16 @@ namespace svg {
     public addGraphElement(graphElement: GraphElement) {
       for (const elem of graphElement.getElements(this.style, this.svgElement)) {
         this.addElement(elem, elem.zValue);
+      }
+      if (graphElement instanceof Shape) {
+        this.reportRect = geometry.getMinimalCommonBoundingRect(
+          this.reportRect,
+          {
+            x: graphElement.x,
+            y: graphElement.y,
+            width: graphElement.width,
+            height: graphElement.height
+          });
       }
     }
 
@@ -114,21 +126,11 @@ namespace svg {
         svgElement.append(rect);
       }
 
-      const report: RenderReport = {
-        dimension: {
-          x: NaN,
-          y: NaN,
-          width: NaN,
-          height: NaN,
-        },
-        message: '',
-      };
       for (const element of this.elements.sort((e1, e2) => { return e1.zValue - e2.zValue; })) {
         svgElement.append(element);
-        report.dimension = geometry.getMinimalCommonBoundingRect(report.dimension, element.getBoundingClientRect());
       }
 
-      return report;
+      return { dimension: this.reportRect, message: '' };
     }
   }
 

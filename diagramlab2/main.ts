@@ -78,6 +78,7 @@ function draw(useGrid = true): svg.RenderReport {
   svgElement.removeEventListener('mousemove', reportLocationListener);
   svgElement.addEventListener('mousemove', reportLocationListener, false);
 
+  console.log(report);
   return report;
 }
 

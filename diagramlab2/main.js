@@ -69,6 +69,7 @@ function draw(useGrid = true) {
     const svgElement = document.querySelector('#drawarea svg');
     svgElement.removeEventListener('mousemove', reportLocationListener);
     svgElement.addEventListener('mousemove', reportLocationListener, false);
+    console.log(report);
     return report;
 }
 function save() {
@@ -296,6 +297,7 @@ var svg;
         height = 0;
         useGrid = true;
         elements = [];
+        reportRect = { x: NaN, y: NaN, width: NaN, height: NaN };
         constructor(hostElement) {
             this.hostElement = hostElement;
             let svgElement = this.hostElement.querySelector('svg');
@@ -309,6 +311,14 @@ var svg;
         addGraphElement(graphElement) {
             for (const elem of graphElement.getElements(this.style, this.svgElement)) {
                 this.addElement(elem, elem.zValue);
+            }
+            if (graphElement instanceof Shape) {
+                this.reportRect = geometry.getMinimalCommonBoundingRect(this.reportRect, {
+                    x: graphElement.x,
+                    y: graphElement.y,
+                    width: graphElement.width,
+                    height: graphElement.height
+                });
             }
         }
         addElement(element, zValue) {
@@ -344,20 +354,10 @@ var svg;
                 rect.setAttribute('fill', 'url(#grid)');
                 svgElement.append(rect);
             }
-            const report = {
-                dimension: {
-                    x: NaN,
-                    y: NaN,
-                    width: NaN,
-                    height: NaN,
-                },
-                message: '',
-            };
             for (const element of this.elements.sort((e1, e2) => { return e1.zValue - e2.zValue; })) {
                 svgElement.append(element);
-                report.dimension = geometry.getMinimalCommonBoundingRect(report.dimension, element.getBoundingClientRect());
             }
-            return report;
+            return { dimension: this.reportRect, message: '' };
         }
     }
     svg.SVGRenderer = SVGRenderer;
