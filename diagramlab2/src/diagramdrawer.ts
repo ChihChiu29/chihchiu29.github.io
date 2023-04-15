@@ -143,6 +143,10 @@ namespace diagramlang {
       return this;
     }
 
+    public sharpness(sharpness: number) {
+      this.link.sharpness = sharpness;
+    }
+
     // Link style.
     public dashed(isDashed: boolean = true): Link {
       this.link.dashed = isDashed;

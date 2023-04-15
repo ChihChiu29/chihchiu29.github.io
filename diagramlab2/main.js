@@ -801,6 +801,8 @@ var svg;
         fromDirection = 'right'; // up/down/left/right
         toShape = DEFAULT_SHAPE;
         toDirection = 'left'; // up/down/left/right
+        // NOT used; adding here to match interface from SmartLinkSingleCurved.
+        sharpness = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -818,6 +820,8 @@ var svg;
         fromDirection = 'right'; // up/down/left/right
         toShape = DEFAULT_SHAPE;
         toDirection = 'left'; // up/down/left/right
+        // Controls how "sharp" the turn is.
+        sharpness = 0.9;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -872,6 +876,9 @@ var svg;
                 this.ctrl2.x = fromP.x;
                 this.ctrl2.y = toP.y;
             }
+            const mid = geometry.getMiddlePoint(this.from, this.to);
+            this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
+            this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
         }
     }
     svg.SmartLinkSingleCurved = SmartLinkSingleCurved;
@@ -1027,6 +1034,9 @@ var diagramlang;
             this.link.toShape = shapeWrapper.getShape();
             this.link.toDirection = connectionDirection;
             return this;
+        }
+        sharpness(sharpness) {
+            this.link.sharpness = sharpness;
         }
         // Link style.
         dashed(isDashed = true) {

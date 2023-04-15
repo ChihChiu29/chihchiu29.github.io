@@ -652,6 +652,9 @@ namespace svg {
     public toShape: Shape = DEFAULT_SHAPE;
     public toDirection = 'left';  // up/down/left/right
 
+    // NOT used; adding here to match interface from SmartLinkSingleCurved.
+    public sharpness: number = 0;
+
     // @Override
     getPathCommand() {
       _smartReConnection(this);
@@ -669,6 +672,9 @@ namespace svg {
     public fromDirection: string = 'right';  // up/down/left/right
     public toShape: Shape = DEFAULT_SHAPE;
     public toDirection = 'left';  // up/down/left/right
+
+    // Controls how "sharp" the turn is.
+    public sharpness: number = 0.9;
 
     // @Override
     getPathCommand() {
@@ -717,6 +723,7 @@ namespace svg {
         this.ctrl1.x = toP.x;
         this.ctrl1.y = fromP.y;
       }
+
       if (toDirection === 'up' || toDirection === 'down') {
         this.ctrl2.x = toP.x;
         this.ctrl2.y = fromP.y;
@@ -724,6 +731,10 @@ namespace svg {
         this.ctrl2.x = fromP.x;
         this.ctrl2.y = toP.y;
       }
+
+      const mid = geometry.getMiddlePoint(this.from, this.to);
+      this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
+      this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
     }
   }
 
