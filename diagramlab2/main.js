@@ -5,11 +5,11 @@ const GRAPH_URL_PARAM = 'g';
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
 //   d = new diagramlang.Drawer(renderer);
 const DEFAULT_GRAPH = `
-d.viewport(0, 0, 1500, 1200);
+d.viewport(0, 0, 1200, 600);
 
 var w = 140;
 var h = 60;
-var O = d.rect("THINK DEBUG ANALYZE").cmove(200, 600, w, 120).color("purple3")
+var O = d.rect("THINK DEBUG ANALYZE").cmove(200, 300, w, 120).color("purple3")
          .textStyle({"font-size": 26, "font-weight": "bold"});
 
 function createLoop(text, width, height) {
@@ -44,12 +44,17 @@ l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 150);
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
+// @ts-ignore
+const CODE_MIRROR_ELEMENT = CodeMirror(document.querySelector(INPUT_ELEMENT_CSS), {
+    value: DEFAULT_GRAPH,
+    mode: 'javascript',
+});
 // Very likely we don't need this forever since Renderer has a similar margin in place already.
 const SAVE_SVG_MARGIN = 0;
 function draw(useGrid = true) {
     const renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
     renderer.useGrid = useGrid;
-    const graphData = document.querySelector(INPUT_ELEMENT_CSS).value;
+    const graphData = getInputElement().getValue();
     // `d` is the keyword used in the user provided code.
     const d = new diagramlang.Drawer(renderer);
     try {
@@ -70,7 +75,6 @@ function draw(useGrid = true) {
     const svgElement = document.querySelector('#drawarea svg');
     svgElement.removeEventListener('mousemove', reportLocationListener);
     svgElement.addEventListener('mousemove', reportLocationListener, false);
-    console.log(report);
     return report;
 }
 function save() {
@@ -123,11 +127,14 @@ function reportLocationListener(evt) {
     const { x, y } = pt.matrixTransform(svgElement.getScreenCTM().inverse());
     document.querySelector('#report #location').innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
 }
+function getInputElement() {
+    return CODE_MIRROR_ELEMENT;
+}
 function main() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const graphData = urlParams.get(GRAPH_URL_PARAM);
-    const inputElement = document.querySelector(INPUT_ELEMENT_CSS);
+    const inputElement = getInputElement();
     if (graphData) {
         // inputElement.value = atob(graphData);  // base64 without compression
         inputElement.value = LZString.decompressFromBase64(atob(graphData)); // with compression
@@ -139,7 +146,6 @@ function main() {
 }
 window.addEventListener('DOMContentLoaded', function () {
     main();
-    // runTests();
 });
 var colors;
 (function (colors) {

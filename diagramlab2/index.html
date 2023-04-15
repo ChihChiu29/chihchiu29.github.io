@@ -11,6 +11,10 @@
   <script src="externallib/svg-text.js"></script>
   <script src="externallib/lz-string.js"></script>
 
+  <script src="externallib/cm/codemirror.js"></script>
+  <link rel="stylesheet" href="externallib/cm/codemirror.css">
+  <script src="externallib/cm/javascript.js"></script>
+
   <style>
     #input-wrapper {
       height: 50%;
@@ -20,6 +24,10 @@
     #input {
       height: 100%;
       width: 100%;
+    }
+
+    div .CodeMirror {
+      height: 100%;
     }
 
     #info-area-wrapper {
@@ -37,7 +45,8 @@
 
     #drawarea {
       height: 100%;
-      width: 100%;
+      width: 90%;
+      min-width: 600px;
     }
 
     #report {
@@ -84,7 +93,8 @@
     </div>
 
     <div class="row" id="input-wrapper">
-      <textarea id="input" spellcheck="false"></textarea>
+      <div id="input" spellcheck="false"></div>
+      <!-- <textarea id="input" spellcheck="false"></textarea> -->
     </div>
   </div>
 
