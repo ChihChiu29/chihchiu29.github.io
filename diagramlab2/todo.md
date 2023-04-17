@@ -1,4 +1,4 @@
-* Make link to point to coordinates.
 * Allow text without rect.
-* Add other shapes.
 * testPos use up/down etc.
+* Allow "3 point" links.
+* Add other shapes.
