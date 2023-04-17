@@ -200,7 +200,11 @@ namespace svg {
       return { x: this.x + this.width, y: this.getCenter().y };
     }
 
-    getConnectionPoint(direction: string) {
+    getConnectionPoint(direction: string, connectionPointOverride?: geometry.Point): geometry.Point {
+      if (connectionPointOverride) {
+        return connectionPointOverride;
+      }
+
       if (direction === 'up' || direction === 'top') {
         return this.getUpMiddle();
       } else if (direction === 'down' || direction === 'bottom') {
@@ -669,14 +673,28 @@ namespace svg {
     }
   }
 
+  // Connects two shapes.
+  interface SmarkLink {
+    fromShape: Shape;
+    fromDirection: string;
+    fromConnectionPointOverride?: geometry.Point;
+    toShape: Shape;
+    toDirection: string;
+    toConnectionPointOverride?: geometry.Point;
+  }
+
   /**
    * A straight link, using postponed coordinates fetched from connected shapes.
    */
-  export class SmartLinkStraight extends LinkStraight {
+  export class SmartLinkStraight extends LinkStraight implements SmarkLink {
     public fromShape: Shape = DEFAULT_SHAPE;
     public fromDirection: string = 'right';  // up/down/left/right
     public toShape: Shape = DEFAULT_SHAPE;
     public toDirection = 'left';  // up/down/left/right
+
+    // Use these to override the connection points.
+    public fromConnectionPointOverride?: geometry.Point = undefined;
+    public toConnectionPointOverride?: geometry.Point = undefined;
 
     // NOT used; adding here to match interface from SmartLinkSingleCurved.
     public sharpness: number = 0;
@@ -684,8 +702,8 @@ namespace svg {
     // @Override
     getPathCommand() {
       _smartReConnection(this);
-      this.from = this.fromShape.getConnectionPoint(this.fromDirection);
-      this.to = this.toShape.getConnectionPoint(this.toDirection);
+      this.from = this.fromShape.getConnectionPoint(this.fromDirection, this.fromConnectionPointOverride);
+      this.to = this.toShape.getConnectionPoint(this.toDirection, this.toConnectionPointOverride);
       return super.getPathCommand();
     }
   }
@@ -693,11 +711,15 @@ namespace svg {
   /**
    * A singlely curved link, using postponed coordinates fetched from connected shapes.
    */
-  export class SmartLinkSingleCurved extends LinkSingleCurved {
+  export class SmartLinkSingleCurved extends LinkSingleCurved implements SmarkLink {
     public fromShape: Shape = DEFAULT_SHAPE;
     public fromDirection: string = 'right';  // up/down/left/right
     public toShape: Shape = DEFAULT_SHAPE;
     public toDirection = 'left';  // up/down/left/right
+
+    // Use these to override the connection points.
+    public fromConnectionPointOverride?: geometry.Point = undefined;
+    public toConnectionPointOverride?: geometry.Point = undefined;
 
     // Controls how "sharp" the turn is.
     public sharpness: number = 0.9;
@@ -716,8 +738,8 @@ namespace svg {
       const toDirection = this.toDirection;
 
       const error = `no pretty link from ${fromDirection} to ${toDirection}`;
-      const fromP = fromShape.getConnectionPoint(fromDirection);
-      const toP = toShape.getConnectionPoint(toDirection);
+      const fromP = fromShape.getConnectionPoint(fromDirection, this.fromConnectionPointOverride);
+      const toP = toShape.getConnectionPoint(toDirection, this.toConnectionPointOverride);
       if (toP.x > fromP.x) {
         if (fromDirection === 'left' || toDirection === 'right') {
           console.log(error);
@@ -768,8 +790,8 @@ namespace svg {
    * Possibly change connection direction for other considerations (etc. make text left to right).
    */
   function _smartReConnection(smartLink: SmartLinkStraight | SmartLinkSingleCurved) {
-    const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection);
-    const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection);
+    const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection, smartLink.fromConnectionPointOverride);
+    const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection, smartLink.toConnectionPointOverride);
     if (from.x <= to.x) {
       return;
     }

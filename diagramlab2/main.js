@@ -428,7 +428,10 @@ var svg;
         getRightMiddle() {
             return { x: this.x + this.width, y: this.getCenter().y };
         }
-        getConnectionPoint(direction) {
+        getConnectionPoint(direction, connectionPointOverride) {
+            if (connectionPointOverride) {
+                return connectionPointOverride;
+            }
             if (direction === 'up' || direction === 'top') {
                 return this.getUpMiddle();
             }
@@ -839,13 +842,16 @@ var svg;
         fromDirection = 'right'; // up/down/left/right
         toShape = DEFAULT_SHAPE;
         toDirection = 'left'; // up/down/left/right
+        // Use these to override the connection points.
+        fromConnectionPointOverride = undefined;
+        toConnectionPointOverride = undefined;
         // NOT used; adding here to match interface from SmartLinkSingleCurved.
         sharpness = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
-            this.from = this.fromShape.getConnectionPoint(this.fromDirection);
-            this.to = this.toShape.getConnectionPoint(this.toDirection);
+            this.from = this.fromShape.getConnectionPoint(this.fromDirection, this.fromConnectionPointOverride);
+            this.to = this.toShape.getConnectionPoint(this.toDirection, this.toConnectionPointOverride);
             return super.getPathCommand();
         }
     }
@@ -858,6 +864,9 @@ var svg;
         fromDirection = 'right'; // up/down/left/right
         toShape = DEFAULT_SHAPE;
         toDirection = 'left'; // up/down/left/right
+        // Use these to override the connection points.
+        fromConnectionPointOverride = undefined;
+        toConnectionPointOverride = undefined;
         // Controls how "sharp" the turn is.
         sharpness = 0.9;
         // @Override
@@ -872,8 +881,8 @@ var svg;
             const fromDirection = this.fromDirection;
             const toDirection = this.toDirection;
             const error = `no pretty link from ${fromDirection} to ${toDirection}`;
-            const fromP = fromShape.getConnectionPoint(fromDirection);
-            const toP = toShape.getConnectionPoint(toDirection);
+            const fromP = fromShape.getConnectionPoint(fromDirection, this.fromConnectionPointOverride);
+            const toP = toShape.getConnectionPoint(toDirection, this.toConnectionPointOverride);
             if (toP.x > fromP.x) {
                 if (fromDirection === 'left' || toDirection === 'right') {
                     console.log(error);
@@ -924,8 +933,8 @@ var svg;
      * Possibly change connection direction for other considerations (etc. make text left to right).
      */
     function _smartReConnection(smartLink) {
-        const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection);
-        const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection);
+        const from = smartLink.fromShape.getConnectionPoint(smartLink.fromDirection, smartLink.fromConnectionPointOverride);
+        const to = smartLink.toShape.getConnectionPoint(smartLink.toDirection, smartLink.toConnectionPointOverride);
         if (from.x <= to.x) {
             return;
         }
@@ -1067,6 +1076,7 @@ var diagramlang;
             this.link.text = text;
             return this;
         }
+        // Connect to shapes.
         from(shapeWrapper, connectionDirection) {
             this.link.fromShape = shapeWrapper.getShape();
             this.link.fromDirection = connectionDirection;
@@ -1074,6 +1084,17 @@ var diagramlang;
         }
         to(shapeWrapper, connectionDirection) {
             this.link.toShape = shapeWrapper.getShape();
+            this.link.toDirection = connectionDirection;
+            return this;
+        }
+        // If these are used, override connection points from `from` and `to` functions.
+        fromPoint(x, y, connectionDirection) {
+            this.link.fromConnectionPointOverride = { x, y };
+            this.link.fromDirection = connectionDirection;
+            return this;
+        }
+        toPoint(x, y, connectionDirection) {
+            this.link.toConnectionPointOverride = { x, y };
             this.link.toDirection = connectionDirection;
             return this;
         }

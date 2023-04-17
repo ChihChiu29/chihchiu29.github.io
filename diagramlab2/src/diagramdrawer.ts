@@ -136,14 +136,26 @@ namespace diagramlang {
       return this;
     }
 
+    // Connect to shapes.
     public from(shapeWrapper: ShapeWrapper, connectionDirection: string): Link {
       this.link.fromShape = shapeWrapper.getShape();
       this.link.fromDirection = connectionDirection;
       return this;
     }
-
     public to(shapeWrapper: ShapeWrapper, connectionDirection: string): Link {
       this.link.toShape = shapeWrapper.getShape();
+      this.link.toDirection = connectionDirection;
+      return this;
+    }
+
+    // If these are used, override connection points from `from` and `to` functions.
+    public fromPoint(x: number, y: number, connectionDirection: string): Link {
+      this.link.fromConnectionPointOverride = { x, y };
+      this.link.fromDirection = connectionDirection;
+      return this;
+    }
+    public toPoint(x: number, y: number, connectionDirection: string): Link {
+      this.link.toConnectionPointOverride = { x, y };
       this.link.toDirection = connectionDirection;
       return this;
     }
