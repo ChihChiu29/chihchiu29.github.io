@@ -97,12 +97,11 @@ d.link(O, "up", a1, "left");
 d.link(a1, "right", a2, "up");
 // d.link(a2, "down", a3, "right");
 // d.link(a3, "left", O, "down");
-var a31 = d.rect("Interactive Testing & Debugging").cmove(l1.cx(), l1.bottom() - h, w, h);
-var a32 = d.rect("Tee traffic & Analysis");
-var a33 = d.rect("...");
-{ var 
-d.tile([a31, a32, a33], l1.cx() - w/2, l1.bottom() - h, w * 1.2, h*2, 1);
-}
+d.layout().setShapes([
+  d.rect("Interactive Testing"),
+  d.rect("Debugging"),
+  d.rect("Tee traffic & Analysis"),
+  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h*2).tile();
 
 
 var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);

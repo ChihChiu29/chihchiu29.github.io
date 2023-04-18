@@ -32,6 +32,18 @@ namespace diagramlang {
     }
     cmove = this.moveCenter;
 
+    public left(): number { return this.getShape().x; }
+    public right(): number { return this.getShape().x + this.getShape().width; }
+    public top(): number { return this.getShape().y; }
+    up = this.top;
+    public bottom(): number { return this.getShape().y + this.getShape().height; }
+    down = this.bottom;
+    public cx(): number { return this.getShape().x + this.getShape().width / 2; }
+    public cy(): number { return this.getShape().y + this.getShape().height / 2; }
+
+    public width(): number { return this.getShape().width; }
+    public height(): number { return this.getShape().height; }
+
     private maybeSetSize(width?: number, height?: number) {
       const shape = this.getShape();
       if (width) {
@@ -59,18 +71,6 @@ namespace diagramlang {
     getShape(): svg.Shape {
       return this.rectElement;
     }
-
-    public left(): number { return this.rectElement.x; }
-    public right(): number { return this.rectElement.x + this.rectElement.width; }
-    public top(): number { return this.rectElement.y; }
-    up = this.top;
-    public bottom(): number { return this.rectElement.y + this.rectElement.height; }
-    down = this.bottom;
-    public cx(): number { return this.rectElement.x + this.rectElement.width / 2; }
-    public cy(): number { return this.rectElement.y + this.rectElement.height / 2; }
-
-    public width(): number { return this.rectElement.width; }
-    public height(): number { return this.rectElement.height; }
 
     public text(text: string): Rect {
       this.rectElement.text = text;
@@ -115,37 +115,6 @@ namespace diagramlang {
         return colors.getColor(color, colors.PALETTE_LUCID);
       } else {
         return colors.getColor(color, DEFAULT_COLOR_PALETTE);
-      }
-    }
-  }
-
-  // Helps to organize rect shapes.
-  namespace layout {
-    // Arranges shapes in a "tile" layout.
-    export function tileShapes(
-      shapes: ShapeWrapper[],
-      left: number,
-      top: number,
-      width: number,
-      height: number,
-      numOfShapesPerRow: number,
-      gapX: number,
-      gapY: number) {
-      if (!shapes.length) { return; }
-
-      const numOfRows = Math.ceil(shapes.length / numOfShapesPerRow);
-      const shapeWidth = (width - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
-      const shapeHeight = (height - (numOfRows - 1) * gapY) / numOfRows;
-
-      const elements = [];
-      for (const [idx, shape] of shapes.entries()) {
-        const colIdx = idx % numOfShapesPerRow;
-        const rowIdx = Math.floor(idx / numOfShapesPerRow);
-        shape.move(
-          left + (gapX + shapeWidth) * colIdx,
-          top + (gapY + shapeHeight) * rowIdx,
-          shapeWidth,
-          shapeHeight)
       }
     }
   }
@@ -220,6 +189,48 @@ namespace diagramlang {
     }
   }
 
+  // Helps to organize rect shapes.
+  class Layout extends ShapeWrapper {
+    // Used to compute layout, not displayed.
+    private rectElement: svg.Rect = new svg.Rect();
+
+    private shapeList: ShapeWrapper[] = [];
+
+    override getShape(): svg.Shape {
+      return this.rectElement;
+    }
+
+    // Set to compute layout for the given shapes.
+    setShapes(shapes: ShapeWrapper[]): ShapeWrapper {
+      this.shapeList = shapes;
+      return this;
+    }
+    getShapes(): ShapeWrapper[] {
+      return this.shapeList;
+    }
+
+    // Arranges shapes in a "tile" layout.
+    tile(numOfShapesPerRow: number = 1, gapX: number = 5, gapY: number = 5): ShapeWrapper {
+      if (!this.shapeList.length) { return this; }
+
+      const numOfRows = Math.ceil(this.shapeList.length / numOfShapesPerRow);
+      const shapeWidth = (this.width() - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
+      const shapeHeight = (this.height() - (numOfRows - 1) * gapY) / numOfRows;
+
+      for (const [idx, shape] of this.shapeList.entries()) {
+        const colIdx = idx % numOfShapesPerRow;
+        const rowIdx = Math.floor(idx / numOfShapesPerRow);
+        shape.move(
+          this.left() + (gapX + shapeWidth) * colIdx,
+          this.top() + (gapY + shapeHeight) * rowIdx,
+          shapeWidth,
+          shapeHeight)
+      }
+
+      return this;
+    }
+  }
+
   export class Drawer {
     public wrappers: GraphElementWrapper[] = [];
 
@@ -282,16 +293,8 @@ namespace diagramlang {
       return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
     }
 
-    tile(
-      shapes: ShapeWrapper[],
-      left: number,
-      top: number,
-      width: number,
-      height: number,
-      numOfShapesPerRow: number = 1,
-      gapX: number = 5,
-      gapY: number = 5) {
-      layout.tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY);
+    layout(): Layout {
+      return new Layout();
     }
 
     finalize() {

@@ -89,12 +89,11 @@ d.link(O, "up", a1, "left");
 d.link(a1, "right", a2, "up");
 // d.link(a2, "down", a3, "right");
 // d.link(a3, "left", O, "down");
-var a31 = d.rect("Interactive Testing & Debugging").cmove(l1.cx(), l1.bottom() - h, w, h);
-var a32 = d.rect("Tee traffic & Analysis");
-var a33 = d.rect("...");
-{ var 
-d.tile([a31, a32, a33], l1.cx() - w/2, l1.bottom() - h, w * 1.2, h*2, 1);
-}
+d.layout().setShapes([
+  d.rect("Interactive Testing"),
+  d.rect("Debugging"),
+  d.rect("Tee traffic & Analysis"),
+  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h*2).tile();
 
 
 var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
@@ -1067,6 +1066,16 @@ var diagramlang;
             return this;
         }
         cmove = this.moveCenter;
+        left() { return this.getShape().x; }
+        right() { return this.getShape().x + this.getShape().width; }
+        top() { return this.getShape().y; }
+        up = this.top;
+        bottom() { return this.getShape().y + this.getShape().height; }
+        down = this.bottom;
+        cx() { return this.getShape().x + this.getShape().width / 2; }
+        cy() { return this.getShape().y + this.getShape().height / 2; }
+        width() { return this.getShape().width; }
+        height() { return this.getShape().height; }
         maybeSetSize(width, height) {
             const shape = this.getShape();
             if (width) {
@@ -1091,16 +1100,6 @@ var diagramlang;
         getShape() {
             return this.rectElement;
         }
-        left() { return this.rectElement.x; }
-        right() { return this.rectElement.x + this.rectElement.width; }
-        top() { return this.rectElement.y; }
-        up = this.top;
-        bottom() { return this.rectElement.y + this.rectElement.height; }
-        down = this.bottom;
-        cx() { return this.rectElement.x + this.rectElement.width / 2; }
-        cy() { return this.rectElement.y + this.rectElement.height / 2; }
-        width() { return this.rectElement.width; }
-        height() { return this.rectElement.height; }
         text(text) {
             this.rectElement.text = text;
             return this;
@@ -1144,26 +1143,6 @@ var diagramlang;
             }
         }
     }
-    // Helps to organize rect shapes.
-    let layout;
-    (function (layout) {
-        // Arranges shapes in a "tile" layout.
-        function tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY) {
-            if (!shapes.length) {
-                return;
-            }
-            const numOfRows = Math.ceil(shapes.length / numOfShapesPerRow);
-            const shapeWidth = (width - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
-            const shapeHeight = (height - (numOfRows - 1) * gapY) / numOfRows;
-            const elements = [];
-            for (const [idx, shape] of shapes.entries()) {
-                const colIdx = idx % numOfShapesPerRow;
-                const rowIdx = Math.floor(idx / numOfShapesPerRow);
-                shape.move(left + (gapX + shapeWidth) * colIdx, top + (gapY + shapeHeight) * rowIdx, shapeWidth, shapeHeight);
-            }
-        }
-        layout.tileShapes = tileShapes;
-    })(layout || (layout = {}));
     // Wrapper of Link focusing on UX.
     class Link {
         link;
@@ -1226,6 +1205,38 @@ var diagramlang;
             return this.rectElement;
         }
     }
+    // Helps to organize rect shapes.
+    class Layout extends ShapeWrapper {
+        // Used to compute layout, not displayed.
+        rectElement = new svg.Rect();
+        shapeList = [];
+        getShape() {
+            return this.rectElement;
+        }
+        // Set to compute layout for the given shapes.
+        setShapes(shapes) {
+            this.shapeList = shapes;
+            return this;
+        }
+        getShapes() {
+            return this.shapeList;
+        }
+        // Arranges shapes in a "tile" layout.
+        tile(numOfShapesPerRow = 1, gapX = 5, gapY = 5) {
+            if (!this.shapeList.length) {
+                return this;
+            }
+            const numOfRows = Math.ceil(this.shapeList.length / numOfShapesPerRow);
+            const shapeWidth = (this.width() - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
+            const shapeHeight = (this.height() - (numOfRows - 1) * gapY) / numOfRows;
+            for (const [idx, shape] of this.shapeList.entries()) {
+                const colIdx = idx % numOfShapesPerRow;
+                const rowIdx = Math.floor(idx / numOfShapesPerRow);
+                shape.move(this.left() + (gapX + shapeWidth) * colIdx, this.top() + (gapY + shapeHeight) * rowIdx, shapeWidth, shapeHeight);
+            }
+            return this;
+        }
+    }
     class Drawer {
         wrappers = [];
         svgRenderer;
@@ -1270,8 +1281,8 @@ var diagramlang;
         slink(fromShape, fromDirection, toShape, toDirection, text) {
             return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
         }
-        tile(shapes, left, top, width, height, numOfShapesPerRow = 1, gapX = 5, gapY = 5) {
-            layout.tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY);
+        layout() {
+            return new Layout();
         }
         finalize() {
             for (const elementWrapper of this.wrappers) {
