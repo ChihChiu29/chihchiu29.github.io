@@ -46,7 +46,7 @@ var a3 = d.layout().setShapes([
   d.rect("Interactive Testing"),
   d.rect("Debugging"),
   d.rect("Tee traffic & Analysis"),
-  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h*2).tile();
+  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h * 2).tile();
 d.links([a2], "down", a3.shapes(), "right");
 d.links(a3.shapes(), "left", [O], "down");
 

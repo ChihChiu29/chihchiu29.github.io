@@ -245,6 +245,7 @@ namespace svg {
     public text: string;
     public textAlignToCenter = true;  // otherwise to left
     public textVerticalAlignToCenter = true;  // otherwise to top
+    public padding: number | string = 0;
     public textShift: geometry.Point = { x: 0, y: 0 }; // text shift relative to anchor
     public outerWidth?: number; // with of texts; default to element width
     public customTextCssStyle: CssStyle = {};
@@ -278,7 +279,7 @@ namespace svg {
         outerHeight: this.height,
         align: this.textAlignToCenter ? 'center' : 'left',
         verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
-        padding: this.textAlignToCenter ? 0 : '0 0 0 5',
+        padding: this.padding,
         textOverflow: 'ellipsis',
         style: this.customTextCssStyle,
         // WARNING: when `style` is set, if `styleElement` is not set, it will be
@@ -370,6 +371,7 @@ namespace svg {
     public text: string = '';
     public textAlignToCenter = true;  // otherwise to left
     public textVerticalAlignToCenter = true;  // otherwise to top
+    public padding: number | string = 0;
     public textShift: geometry.Point = { x: 0, y: 0 };
     public outerWidth?: number; // with of texts; default to element width
 
@@ -394,6 +396,7 @@ namespace svg {
         textElem.copyProperties(this);
         textElem.textAlignToCenter = this.textAlignToCenter;
         textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
+        textElem.padding = this.padding;
         textElem.textShift = this.textShift;
         textElem.outerWidth = this.outerWidth;
         textElem.customTextCssStyle = this.customTextCssStyle;

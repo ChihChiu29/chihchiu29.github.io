@@ -45,7 +45,7 @@ var a3 = d.layout().setShapes([
   d.rect("Interactive Testing"),
   d.rect("Debugging"),
   d.rect("Tee traffic & Analysis"),
-  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h*2).tile();
+  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h * 2).tile();
 d.links([a2], "down", a3.shapes(), "right");
 d.links(a3.shapes(), "left", [O], "down");
 
@@ -482,6 +482,7 @@ var svg;
         text;
         textAlignToCenter = true; // otherwise to left
         textVerticalAlignToCenter = true; // otherwise to top
+        padding = 0;
         textShift = { x: 0, y: 0 }; // text shift relative to anchor
         outerWidth; // with of texts; default to element width
         customTextCssStyle = {};
@@ -511,7 +512,7 @@ var svg;
                 outerHeight: this.height,
                 align: this.textAlignToCenter ? 'center' : 'left',
                 verticalAlign: this.textVerticalAlignToCenter ? 'middle' : 'top',
-                padding: this.textAlignToCenter ? 0 : '0 0 0 5',
+                padding: this.padding,
                 textOverflow: 'ellipsis',
                 style: this.customTextCssStyle,
                 // WARNING: when `style` is set, if `styleElement` is not set, it will be
@@ -593,6 +594,7 @@ var svg;
         text = '';
         textAlignToCenter = true; // otherwise to left
         textVerticalAlignToCenter = true; // otherwise to top
+        padding = 0;
         textShift = { x: 0, y: 0 };
         outerWidth; // with of texts; default to element width
         // Used to change rect and text styles.
@@ -613,6 +615,7 @@ var svg;
                 textElem.copyProperties(this);
                 textElem.textAlignToCenter = this.textAlignToCenter;
                 textElem.textVerticalAlignToCenter = this.textVerticalAlignToCenter;
+                textElem.padding = this.padding;
                 textElem.textShift = this.textShift;
                 textElem.outerWidth = this.outerWidth;
                 textElem.customTextCssStyle = this.customTextCssStyle;
@@ -1050,6 +1053,10 @@ var diagramlang;
         textPos(left = false, top = false) {
             this.rectElement.textAlignToCenter = !left;
             this.rectElement.textVerticalAlignToCenter = !top;
+            return this;
+        }
+        padding(padding) {
+            this.rectElement.padding = padding;
             return this;
         }
         textShift(shiftX, shiftY) {

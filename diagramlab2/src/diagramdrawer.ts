@@ -86,6 +86,11 @@ namespace diagramlang {
       return this;
     }
 
+    public padding(padding: number | string): Rect {
+      this.rectElement.padding = padding;
+      return this;
+    }
+
     public textShift(shiftX: number, shiftY: number): Rect {
       this.rectElement.textShift = { x: shiftX, y: shiftY };
       return this;
