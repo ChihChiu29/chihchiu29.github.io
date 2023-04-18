@@ -169,11 +169,13 @@ namespace diagramlang {
       this.link.fromDirection = connectionDirection;
       return this;
     }
+    fromP = this.fromPoint;
     public toPoint(x: number, y: number, connectionDirection: string): Link {
       this.link.toConnectionPointOverride = { x, y };
       this.link.toDirection = connectionDirection;
       return this;
     }
+    toP = this.toPoint;
 
     public sharpness(sharpness: number) {
       this.link.sharpness = sharpness;

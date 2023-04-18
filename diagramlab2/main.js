@@ -1131,11 +1131,13 @@ var diagramlang;
             this.link.fromDirection = connectionDirection;
             return this;
         }
+        fromP = this.fromPoint;
         toPoint(x, y, connectionDirection) {
             this.link.toConnectionPointOverride = { x, y };
             this.link.toDirection = connectionDirection;
             return this;
         }
+        toP = this.toPoint;
         sharpness(sharpness) {
             this.link.sharpness = sharpness;
         }
