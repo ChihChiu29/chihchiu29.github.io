@@ -4,6 +4,8 @@ namespace diagramlang {
 
   const DEFAULT_COLOR_PALETTE = colors.PALETTE_LUCID;
 
+  const DEFAULT_LINK_TYPE = 'curved_single_ctrl';
+
   abstract class GraphElementWrapper {
     public abstract getGraphElement(): svg.GraphElement;
   }
@@ -208,6 +210,7 @@ namespace diagramlang {
     getShapes(): ShapeWrapper[] {
       return this.shapeList;
     }
+    shapes = this.getShapes;
 
     // Arranges shapes in a "tile" layout.
     tile(numOfShapesPerRow: number = 1, gapX: number = 5, gapY: number = 5): ShapeWrapper {
@@ -278,7 +281,7 @@ namespace diagramlang {
     }
 
     // Link, default to a link with a single control point.
-    link(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string, type: string = 'curved_single_ctrl'): Link {
+    link(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string, type: string = DEFAULT_LINK_TYPE): Link {
       const link = new Link(type);
       if (fromShape && fromDirection && toShape && toDirection) {
         link.from(fromShape, fromDirection).to(toShape, toDirection);
@@ -291,6 +294,17 @@ namespace diagramlang {
     // Straight link.
     slink(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string): Link {
       return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
+    }
+
+    // Create multiple links.
+    links(fromShapes: ShapeWrapper[], fromDirection: string, toShapes: ShapeWrapper[], toDirection: string, type: string = DEFAULT_LINK_TYPE): Link[] {
+      const links: Link[] = [];
+      for (const fromShape of fromShapes) {
+        for (const toShape of toShapes) {
+          links.push(this.link(fromShape, fromDirection, toShape, toDirection, '', type));
+        }
+      }
+      return links;
     }
 
     layout(): Layout {
