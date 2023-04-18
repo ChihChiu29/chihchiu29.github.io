@@ -1076,6 +1076,10 @@ var diagramlang;
         textStyle(style) {
             return this.style(style, false);
         }
+        // Quick style setters.
+        fontSize(fontSize) {
+            return this.textStyle({ 'font-size': fontSize });
+        }
         // Set color on rect and on text.
         color(color, palette_name, onRect = true) {
             return this.style({ fill: this.getColor(color, palette_name) }, onRect);

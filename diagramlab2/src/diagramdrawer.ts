@@ -109,6 +109,11 @@ namespace diagramlang {
       return this.style(style, false);
     }
 
+    // Quick style setters.
+    public fontSize(fontSize: string): Rect {
+      return this.textStyle({ 'font-size': fontSize });
+    }
+
     // Set color on rect and on text.
     public color(color: string, palette_name?: string, onRect: boolean = true): Rect {
       return this.style({ fill: this.getColor(color, palette_name) }, onRect);
