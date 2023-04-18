@@ -41,11 +41,11 @@ var a1 = d.rect("Create / Modify CL").cmove(l1.cx(), l1.top(), w, h);
 var a2 = d.rect("Run Dev Servers").cmove(l1.right(), l1.cy(), w, h);
 d.link(O, "up", a1, "left");
 d.link(a1, "right", a2, "up");
-var a3 = d.layout().setShapes([
+var a3 = d.layout().setShapes(
   d.rect("Interactive Testing"),
   d.rect("Debugging"),
   d.rect("Tee traffic & Analysis"),
-  d.rect("...")]).cmove(l1.cx(), l1.bottom(), w * 1.5, h * 2).tile();
+  d.rect("...")).cmove(l1.cx(), l1.bottom(), w * 1.5, h * 2).tile();
 d.links([a2], "down", a3.shapes(), "right");
 d.links(a3.shapes(), "left", [O], "down");
 
@@ -1167,7 +1167,7 @@ var diagramlang;
             return this.rectElement;
         }
         // Set to compute layout for the given shapes.
-        setShapes(shapes) {
+        setShapes(...shapes) {
             this.shapeList = shapes;
             return this;
         }

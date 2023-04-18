@@ -213,7 +213,7 @@ namespace diagramlang {
     }
 
     // Set to compute layout for the given shapes.
-    setShapes(shapes: ShapeWrapper[]): ShapeWrapper {
+    setShapes(...shapes: ShapeWrapper[]): ShapeWrapper {
       this.shapeList = shapes;
       return this;
     }
