@@ -607,7 +607,6 @@ namespace svg {
     }
   }
 
-
   // ---------------- LINKS BELOW ---------------------------------------------
 
   const DEFAULT_SHAPE = new Rect();

@@ -4,7 +4,54 @@ const GRAPH_URL_PARAM = 'g';
 // Use chrome dev tool to test the code, start with:
 //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
 //   d = new diagramlang.Drawer(renderer);
+// const DEFAULT_GRAPH = `
+// // Quickstart:
+// //   - Every action starts with the drawer 'd'.
+// //   - 'd.rect' creates a new rect with text. Then you can use:
+// //     move, cmove, text, up/down/left/right, cx, cy, color, style, textColor, ...
+// //   - 'd.link' creates a link that can connect two rects. Then use:
+// //     from, to, text, dashed, ...
+// // The example below has some illustration of APIs, for a more complete list, visit:
+// // https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/diagramlab2/src/diagramdrawer.ts
+// // Alternatively, use Chrome dev tool then creates an instance of 'd' to play with it:
+// //   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
+// //   d = new diagramlang.Drawer(renderer);
+// // Note that using this d it won't draw anything, but the auto-completion should
+// // help you get familiar with the interfaces.
+// d.viewport(0, 0, 1200, 600);
+// var w = 140;
+// var h = 60;
+// var O = d.rect("THINK DEBUG ANALYZE").cmove(200, 300, w, 120).color("purple3")
+//          .textStyle({"font-size": 26, "font-weight": "bold"});
+// function createLoop(text, width, height) {
+//   return d.rect(text, O.cx(), O.cy() - height / 2, width, height)
+//           .textStyle({"font-size": 24, "font-weight": "lighter"});
+// }
+// var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue3")
+//     .style({rx: '20%', ry: '20%', stroke: 'none'}).setZ(-100);
+// var l2 = createLoop("Outer Loop - Experimentation", 800, 400).color("blue2")
+//     .style({rx: '20%', ry: '20%', stroke: 'none'})
+//     .textPos(false, true).textShift(0, 10).setZ(-101);
+// var a1 = d.rect("Create CL").cmove(l1.cx(), l1.top(), w, h);
+// var a2 = d.rect("Run Dev Server").cmove(l1.right(), l1.cy(), w, h);
+// var a3 = d.rect("Interactive Testing").cmove(l1.cx(), l1.bottom(), w, h);
+// d.link(O, "up", a1, "left");
+// d.link(a1, "right", a2, "up");
+// d.link(a2, "down", a3, "right");
+// d.link(a3, "left", O, "down");
+// var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
+// var b2 = d.rect("Run Experiment").cmove(l2.right(), l2.cy(), w, h);
+// var b3 = d.rect("Collect Data").cmove(l2.cx(), l2.bottom(), w, h);
+// d.link(O, "up", b1, "left");
+// d.link(b1, "right", b2, "up");
+// d.link(b2, "down", b3, "right");
+// d.link(b3, "left", O, "down");
+// // Since we no longer need the loops for location, make them bigger to look better.
+// l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 100);
+// l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 150);
+// `;
 const DEFAULT_GRAPH = `
+
 // Quickstart:
 //   - Every action starts with the drawer 'd'.
 //   - 'd.rect' creates a new rect with text. Then you can use:
@@ -19,30 +66,36 @@ const DEFAULT_GRAPH = `
 // Note that using this d it won't draw anything, but the auto-completion should
 // help you get familiar with the interfaces.
 
-d.viewport(0, 0, 1200, 600);
-
 var w = 140;
 var h = 60;
-var O = d.rect("THINK DEBUG ANALYZE").cmove(200, 300, w, 120).color("purple3")
-         .textStyle({"font-size": 26, "font-weight": "bold"});
+var O = d.rect("THINK").cmove(200, 300, w, h);
+
+//var O = d.rect("THINK").cmove(200, 300, w, 120).color("purple3")
+        //  .textStyle({"font-size": 26, "font-weight": "bold"});
 
 function createLoop(text, width, height) {
   return d.rect(text, O.cx(), O.cy() - height / 2, width, height)
-          .textStyle({"font-size": 24, "font-weight": "lighter"});
+          .textStyle({"font-size": 26});
 }
-var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue3")
+var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue2")
     .style({rx: '20%', ry: '20%', stroke: 'none'}).setZ(-100);
-var l2 = createLoop("Outer Loop - Experimentation", 800, 400).color("blue2")
-    .style({rx: '20%', ry: '20%', stroke: 'none'})
+var l2 = createLoop("Outer Loop - Experimentation", 800, 400).color("blue1")
+    .style({rx: '50%', ry: '50%', stroke: 'none'})
     .textPos(false, true).textShift(0, 10).setZ(-101);
 
-var a1 = d.rect("Create CL").cmove(l1.cx(), l1.top(), w, h);
-var a2 = d.rect("Run Dev Server").cmove(l1.right(), l1.cy(), w, h);
-var a3 = d.rect("Interactive Testing").cmove(l1.cx(), l1.bottom(), w, h);
+var a1 = d.rect("Create / Modify CL").cmove(l1.cx(), l1.top(), w, h);
+var a2 = d.rect("Run Dev Servers").cmove(l1.right(), l1.cy(), w, h);
 d.link(O, "up", a1, "left");
 d.link(a1, "right", a2, "up");
-d.link(a2, "down", a3, "right");
-d.link(a3, "left", O, "down");
+// d.link(a2, "down", a3, "right");
+// d.link(a3, "left", O, "down");
+var a31 = d.rect("Interactive Testing & Debugging").cmove(l1.cx(), l1.bottom() - h, w, h);
+var a32 = d.rect("Tee traffic & Analysis");
+var a33 = d.rect("...");
+{ var 
+d.tile([a31, a32, a33], l1.cx() - w/2, l1.bottom() - h, w * 1.2, h*2, 1);
+}
+
 
 var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
 var b2 = d.rect("Run Experiment").cmove(l2.right(), l2.cy(), w, h);
@@ -52,9 +105,21 @@ d.link(b1, "right", b2, "up");
 d.link(b2, "down", b3, "right");
 d.link(b3, "left", O, "down");
 
+var r1 = d.rect("Recs3 Systems").move(l2.right() + 200, l2.cy() - 200, 800, 50).textPos(true, true);
+
+var r2 = d.rect("ML-Serving: Ranking Models, Nomination Models").move(r1.left(), r1.down() + 100, 300, 100);
+d.link().from(r2, "up").toPoint(r2.cx(), r1.down(), "down").text("dependency");
+var r3 = d.rect("Discovery Data: User Data, Video Metadata").move(r2.right() + 50, r2.top(), 300, r2.height());
+d.link().from(r3, "up").toPoint(r3.cx(), r1.down(), "down").text("dependency");
+var r4 = d.rect("ML-Training: Continous training of new models for prod and experiments")
+          .move(r2.left(), r2.down() + 200, r2.width(), r2.height());
+d.link().from(r4, "up").to(r2, "down").text("dependency");
+
+
 // Since we no longer need the loops for location, make them bigger to look better.
-l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 100);
-l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 150);
+l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 50);
+l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 200);
+
 `;
 const INPUT_ELEMENT_CSS = '#input';
 const DRAW_AREA_SELECTOR = '#drawarea';
@@ -986,6 +1051,31 @@ var diagramlang;
         getGraphElement() {
             return this.getShape();
         }
+        moveCorner(left, top, width, height) {
+            const shape = this.getShape();
+            this.maybeSetSize(width, height);
+            shape.x = left;
+            shape.y = top;
+            return this;
+        }
+        move = this.moveCorner;
+        moveCenter(x, y, width, height) {
+            const shape = this.getShape();
+            this.maybeSetSize(width, height);
+            shape.x = x - shape.width / 2;
+            shape.y = y - shape.height / 2;
+            return this;
+        }
+        cmove = this.moveCenter;
+        maybeSetSize(width, height) {
+            const shape = this.getShape();
+            if (width) {
+                shape.width = width;
+            }
+            if (height) {
+                shape.height = height;
+            }
+        }
         setZ(z) {
             this.getShape().zValue = z;
             return this;
@@ -1014,28 +1104,6 @@ var diagramlang;
         text(text) {
             this.rectElement.text = text;
             return this;
-        }
-        moveCorner(left, top, width, height) {
-            this.maybeSetSize(width, height);
-            this.rectElement.x = left;
-            this.rectElement.y = top;
-            return this;
-        }
-        move = this.moveCorner;
-        moveCenter(x, y, width, height) {
-            this.maybeSetSize(width, height);
-            this.rectElement.x = x - this.rectElement.width / 2;
-            this.rectElement.y = y - this.rectElement.height / 2;
-            return this;
-        }
-        cmove = this.moveCenter;
-        maybeSetSize(width, height) {
-            if (width) {
-                this.rectElement.width = width;
-            }
-            if (height) {
-                this.rectElement.height = height;
-            }
         }
         // Sets location of the text, left/center, top/center.
         textPos(left = false, top = false) {
@@ -1076,6 +1144,26 @@ var diagramlang;
             }
         }
     }
+    // Helps to organize rect shapes.
+    let layout;
+    (function (layout) {
+        // Arranges shapes in a "tile" layout.
+        function tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY) {
+            if (!shapes.length) {
+                return;
+            }
+            const numOfRows = Math.ceil(shapes.length / numOfShapesPerRow);
+            const shapeWidth = (width - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
+            const shapeHeight = (height - (numOfRows - 1) * gapY) / numOfRows;
+            const elements = [];
+            for (const [idx, shape] of shapes.entries()) {
+                const colIdx = idx % numOfShapesPerRow;
+                const rowIdx = Math.floor(idx / numOfShapesPerRow);
+                shape.move(left + (gapX + shapeWidth) * colIdx, top + (gapY + shapeHeight) * rowIdx, shapeWidth, shapeHeight);
+            }
+        }
+        layout.tileShapes = tileShapes;
+    })(layout || (layout = {}));
     // Wrapper of Link focusing on UX.
     class Link {
         link;
@@ -1181,6 +1269,9 @@ var diagramlang;
         // Straight link.
         slink(fromShape, fromDirection, toShape, toDirection, text) {
             return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
+        }
+        tile(shapes, left, top, width, height, numOfShapesPerRow = 1, gapX = 5, gapY = 5) {
+            layout.tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY);
         }
         finalize() {
             for (const elementWrapper of this.wrappers) {

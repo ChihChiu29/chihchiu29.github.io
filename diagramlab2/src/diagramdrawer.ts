@@ -14,6 +14,34 @@ namespace diagramlang {
     }
     public abstract getShape(): svg.Shape;
 
+    public moveCorner(left: number, top: number, width?: number, height?: number): this {
+      const shape = this.getShape();
+      this.maybeSetSize(width, height);
+      shape.x = left;
+      shape.y = top;
+      return this;
+    }
+    move = this.moveCorner;
+
+    public moveCenter(x: number, y: number, width?: number, height?: number): this {
+      const shape = this.getShape();
+      this.maybeSetSize(width, height);
+      shape.x = x - shape.width / 2;
+      shape.y = y - shape.height / 2;
+      return this;
+    }
+    cmove = this.moveCenter;
+
+    private maybeSetSize(width?: number, height?: number) {
+      const shape = this.getShape();
+      if (width) {
+        shape.width = width;
+      }
+      if (height) {
+        shape.height = height;
+      }
+    }
+
     public setZ(z: number): this {
       this.getShape().zValue = z;
       return this;
@@ -47,31 +75,6 @@ namespace diagramlang {
     public text(text: string): Rect {
       this.rectElement.text = text;
       return this;
-    }
-
-    public moveCorner(left: number, top: number, width?: number, height?: number): Rect {
-      this.maybeSetSize(width, height);
-      this.rectElement.x = left;
-      this.rectElement.y = top;
-      return this;
-    }
-    move = this.moveCorner;
-
-    public moveCenter(x: number, y: number, width?: number, height?: number): Rect {
-      this.maybeSetSize(width, height);
-      this.rectElement.x = x - this.rectElement.width / 2;
-      this.rectElement.y = y - this.rectElement.height / 2;
-      return this;
-    }
-    cmove = this.moveCenter;
-
-    private maybeSetSize(width?: number, height?: number) {
-      if (width) {
-        this.rectElement.width = width;
-      }
-      if (height) {
-        this.rectElement.height = height;
-      }
     }
 
     // Sets location of the text, left/center, top/center.
@@ -112,6 +115,37 @@ namespace diagramlang {
         return colors.getColor(color, colors.PALETTE_LUCID);
       } else {
         return colors.getColor(color, DEFAULT_COLOR_PALETTE);
+      }
+    }
+  }
+
+  // Helps to organize rect shapes.
+  namespace layout {
+    // Arranges shapes in a "tile" layout.
+    export function tileShapes(
+      shapes: ShapeWrapper[],
+      left: number,
+      top: number,
+      width: number,
+      height: number,
+      numOfShapesPerRow: number,
+      gapX: number,
+      gapY: number) {
+      if (!shapes.length) { return; }
+
+      const numOfRows = Math.ceil(shapes.length / numOfShapesPerRow);
+      const shapeWidth = (width - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
+      const shapeHeight = (height - (numOfRows - 1) * gapY) / numOfRows;
+
+      const elements = [];
+      for (const [idx, shape] of shapes.entries()) {
+        const colIdx = idx % numOfShapesPerRow;
+        const rowIdx = Math.floor(idx / numOfShapesPerRow);
+        shape.move(
+          left + (gapX + shapeWidth) * colIdx,
+          top + (gapY + shapeHeight) * rowIdx,
+          shapeWidth,
+          shapeHeight)
       }
     }
   }
@@ -246,6 +280,18 @@ namespace diagramlang {
     // Straight link.
     slink(fromShape?: ShapeWrapper, fromDirection?: string, toShape?: ShapeWrapper, toDirection?: string, text?: string): Link {
       return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
+    }
+
+    tile(
+      shapes: ShapeWrapper[],
+      left: number,
+      top: number,
+      width: number,
+      height: number,
+      numOfShapesPerRow: number = 1,
+      gapX: number = 5,
+      gapY: number = 5) {
+      layout.tileShapes(shapes, left, top, width, height, numOfShapesPerRow, gapX, gapY);
     }
 
     finalize() {
