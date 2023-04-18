@@ -1080,6 +1080,7 @@ var diagramlang;
         fontSize(fontSize) {
             return this.textStyle({ 'font-size': fontSize });
         }
+        textSize = this.fontSize;
         // Set color on rect and on text.
         color(color, palette_name, onRect = true) {
             return this.style({ fill: this.getColor(color, palette_name) }, onRect);

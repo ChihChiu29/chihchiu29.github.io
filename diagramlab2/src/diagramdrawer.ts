@@ -113,6 +113,7 @@ namespace diagramlang {
     public fontSize(fontSize: string): Rect {
       return this.textStyle({ 'font-size': fontSize });
     }
+    textSize = this.fontSize;
 
     // Set color on rect and on text.
     public color(color: string, palette_name?: string, onRect: boolean = true): Rect {
