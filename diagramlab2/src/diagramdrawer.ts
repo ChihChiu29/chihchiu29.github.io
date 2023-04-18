@@ -122,6 +122,13 @@ namespace diagramlang {
       return this.color(color, palette_name, false);
     }
 
+    // Remove border and make background color transparent.
+    public textOnly(): Rect {
+      this.style({ stroke: 'none' });
+      this.color('rgba(0, 0, 0, 0)');
+      return this;
+    }
+
     private getColor(color: string, palette_name?: string): string {
       if (palette_name === 'lucid') {
         return colors.getColor(color, colors.PALETTE_LUCID);

@@ -1087,6 +1087,12 @@ var diagramlang;
         textColor(color, palette_name) {
             return this.color(color, palette_name, false);
         }
+        // Remove border and make background color transparent.
+        textOnly() {
+            this.style({ stroke: 'none' });
+            this.color('rgba(0, 0, 0, 0)');
+            return this;
+        }
         getColor(color, palette_name) {
             if (palette_name === 'lucid') {
                 return colors.getColor(color, colors.PALETTE_LUCID);
