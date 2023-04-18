@@ -97,10 +97,13 @@ function save() {
     //   - http://bl.ocks.org/biovisualize/8187844
     const report = draw(/*useGrid*/ false);
     const svgElement = document.querySelector('#drawarea svg');
-    svgElement.setAttribute('viewBox', `${report.dimension.x - SAVE_SVG_MARGIN} 
-      ${report.dimension.y - SAVE_SVG_MARGIN}
-      ${report.dimension.width + SAVE_SVG_MARGIN * 2}
-      ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
+    // Now done within svgRender.
+    // svgElement.setAttribute(
+    //   'viewBox',
+    //   `${report.dimension.x - SAVE_SVG_MARGIN} 
+    //     ${report.dimension.y - SAVE_SVG_MARGIN}
+    //     ${report.dimension.width + SAVE_SVG_MARGIN * 2}
+    //     ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
     const { width, height } = svgElement.getBBox();
     var svgString = new XMLSerializer().serializeToString(svgElement);
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
@@ -309,12 +312,17 @@ var svg;
         hostElement;
         svgElement;
         cssElement;
+        // Style element used by svg-text.
         style = new Style();
         left = 0;
         top = 0;
         width = 0;
         height = 0;
         useGrid = true;
+        // If true, automatically set viewport to include all shapes.
+        autoViewport = true;
+        // If autoViewport is used, use this gap outside of the minimal rect.
+        autoViewportMargin = 10;
         elements = [];
         reportRect = { x: NaN, y: NaN, width: NaN, height: NaN };
         constructor(hostElement) {
@@ -352,6 +360,12 @@ var svg;
         }
         draw() {
             const svgElement = this.svgElement;
+            if (this.autoViewport) {
+                this.left = this.reportRect.x - this.autoViewportMargin;
+                this.top = this.reportRect.y - this.autoViewportMargin;
+                this.width = this.reportRect.width + this.autoViewportMargin * 2;
+                this.height = this.reportRect.height + this.autoViewportMargin * 2;
+            }
             svgElement.setAttribute('viewBox', `${this.left} ${this.top} ${this.width} ${this.height}`);
             // For arrow, see: http://thenewcode.com/1068/Making-Arrows-in-SVG
             // For grid, see: https://stackoverflow.com/questions/14208673/how-to-draw-grid-using-html5-and-canvas-or-svg
@@ -374,8 +388,12 @@ var svg;
             svgElement.append(defsElement);
             if (this.useGrid) {
                 const rect = createSvgElement('rect');
-                rect.setAttribute('width', '100%');
-                rect.setAttribute('height', '100%');
+                setAttr(rect, 'x', this.left);
+                setAttr(rect, 'y', this.top);
+                setAttr(rect, 'width', this.width);
+                setAttr(rect, 'height', this.height);
+                // rect.setAttribute('width', '100%');
+                // rect.setAttribute('height', '100%');
                 rect.setAttribute('fill', 'url(#grid)');
                 svgElement.append(rect);
             }
@@ -1130,11 +1148,18 @@ var diagramlang;
             this.wrappers.push(graphElement);
             return graphElement;
         }
+        // Manually set viewport / disables auto viewport.
         viewport(left, top, width, height) {
             this.svgRenderer.left = left;
             this.svgRenderer.top = top;
             this.svgRenderer.width = width;
             this.svgRenderer.height = height;
+            this.svgRenderer.autoViewport = false;
+        }
+        // Sets viewport to auto.
+        autoViewport(margin = 5) {
+            this.svgRenderer.autoViewport = true;
+            this.svgRenderer.autoViewportMargin = margin;
         }
         rect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
             return this.registerGraphElement(new Rect().text(text).move(left, top, width, height));

@@ -114,12 +114,13 @@ function save() {
   //   - http://bl.ocks.org/biovisualize/8187844
   const report: svg.RenderReport = draw(/*useGrid*/false);
   const svgElement = document.querySelector('#drawarea svg') as SVGSVGElement;
-  svgElement.setAttribute(
-    'viewBox',
-    `${report.dimension.x - SAVE_SVG_MARGIN} 
-      ${report.dimension.y - SAVE_SVG_MARGIN}
-      ${report.dimension.width + SAVE_SVG_MARGIN * 2}
-      ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
+  // Now done within svgRender.
+  // svgElement.setAttribute(
+  //   'viewBox',
+  //   `${report.dimension.x - SAVE_SVG_MARGIN} 
+  //     ${report.dimension.y - SAVE_SVG_MARGIN}
+  //     ${report.dimension.width + SAVE_SVG_MARGIN * 2}
+  //     ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
 
   const { width, height } = svgElement.getBBox();
   var svgString = new XMLSerializer().serializeToString(svgElement);

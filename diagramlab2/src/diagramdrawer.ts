@@ -200,11 +200,18 @@ namespace diagramlang {
       return graphElement;
     }
 
+    // Manually set viewport / disables auto viewport.
     viewport(left: number, top: number, width: number, height: number) {
       this.svgRenderer.left = left;
       this.svgRenderer.top = top;
       this.svgRenderer.width = width;
       this.svgRenderer.height = height;
+      this.svgRenderer.autoViewport = false;
+    }
+    // Sets viewport to auto.
+    autoViewport(margin: number = 5) {
+      this.svgRenderer.autoViewport = true;
+      this.svgRenderer.autoViewportMargin = margin;
     }
 
     rect(

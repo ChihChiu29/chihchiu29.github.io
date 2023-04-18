@@ -50,6 +50,7 @@ namespace svg {
     public hostElement: HTMLElement;
     private svgElement: SVGSVGElement;
     private cssElement: HTMLStyleElement;
+    // Style element used by svg-text.
     public style: Style = new Style();
 
     public left: number = 0;
@@ -58,6 +59,11 @@ namespace svg {
     public height: number = 0;
 
     public useGrid: boolean = true;
+
+    // If true, automatically set viewport to include all shapes.
+    public autoViewport: boolean = true;
+    // If autoViewport is used, use this gap outside of the minimal rect.
+    public autoViewportMargin: number = 10;
 
     private elements: ZSVGElement[] = [];
 
@@ -106,6 +112,12 @@ namespace svg {
 
     public draw(): RenderReport {
       const svgElement = this.svgElement;
+      if (this.autoViewport) {
+        this.left = this.reportRect.x - this.autoViewportMargin;
+        this.top = this.reportRect.y - this.autoViewportMargin;
+        this.width = this.reportRect.width + this.autoViewportMargin * 2;
+        this.height = this.reportRect.height + this.autoViewportMargin * 2;
+      }
       svgElement.setAttribute('viewBox', `${this.left} ${this.top} ${this.width} ${this.height}`);
 
       // For arrow, see: http://thenewcode.com/1068/Making-Arrows-in-SVG
@@ -129,8 +141,12 @@ namespace svg {
       svgElement.append(defsElement);
       if (this.useGrid) {
         const rect = createSvgElement('rect');
-        rect.setAttribute('width', '100%');
-        rect.setAttribute('height', '100%');
+        setAttr(rect, 'x', this.left);
+        setAttr(rect, 'y', this.top);
+        setAttr(rect, 'width', this.width);
+        setAttr(rect, 'height', this.height);
+        // rect.setAttribute('width', '100%');
+        // rect.setAttribute('height', '100%');
         rect.setAttribute('fill', 'url(#grid)');
         svgElement.append(rect);
       }
