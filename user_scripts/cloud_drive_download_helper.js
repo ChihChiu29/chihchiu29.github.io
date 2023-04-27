@@ -105,6 +105,7 @@
         }, 5, 30);
     } else if (hostname === 'nsw2u.com') {
         runUntil(function() {
+            // Requires other ad blocker to trigger this element.
             const elements = document.querySelectorAll('body > div');
             if (elements[0].id === 'page') {
                 elements[1].remove();
