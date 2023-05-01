@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.28
+// @version      1.29
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -31,9 +31,14 @@
 (function() {
     GM_log('Welcome to Cloud Drive Download Helper!');
     function runUntil(fn, intervalSec, untilSec) {
-        const intervalId = setInterval(fn, intervalSec * 1000);
+        const intervalId = setInterval(()=>{
+            GM_log('Running periodic function...');
+            fn();
+            GM_log('Periodic function completed');
+        }, intervalSec * 1000);
         setTimeout(function() {
             clearInterval(intervalId);
+            GM_log('Periodic function removed');
         }, untilSec * 1000);
     }
 
@@ -107,10 +112,10 @@
         runUntil(function() {
             // Requires other ad blocker to trigger this element.
             const elements = document.querySelectorAll('body > div');
-            if (elements[0].id === 'page') {
+            if (elements[0].id === 'page' && elements.length > 1) {
                 elements[1].remove();
             }
-        }
+        }, 2, 10);
     } else if (hostname === 'letsupload.io') {
         runUntil(function() {
             for (const button of document.querySelectorAll('button')) {
