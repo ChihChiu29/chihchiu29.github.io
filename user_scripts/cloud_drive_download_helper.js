@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.29
+// @version      1.30
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -17,6 +17,7 @@
 // @match        https://download.megaup.net/*
 // @match        https://megaup.net/*
 // @match        https://nsw2u.com/*
+// @match        https://nsw2u.net/*
 // @match        https://letsupload.io/*
 // @match        https://igg-games.com/*
 // @match        https://steamunlocked.net/*
@@ -108,7 +109,7 @@
                 form.submit();
             }
         }, 5, 30);
-    } else if (hostname === 'nsw2u.com') {
+    } else if (contains(hostname, 'nsw2u')) {
         runUntil(function() {
             // Requires other ad blocker to trigger this element.
             const elements = document.querySelectorAll('body > div');
