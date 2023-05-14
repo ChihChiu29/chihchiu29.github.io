@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.30
+// @version      1.31
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -15,6 +15,8 @@
 // @match        https://bluemediafile.site/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
+// @match        https://game-2u.com/*
+// @match        https://game-2u.net/*
 // @match        https://megaup.net/*
 // @match        https://nsw2u.com/*
 // @match        https://nsw2u.net/*
@@ -109,7 +111,7 @@
                 form.submit();
             }
         }, 5, 30);
-    } else if (contains(hostname, 'nsw2u')) {
+    } else if (contains(hostname, 'nsw2u') || contains(hostname, 'game-2u')) {
         runUntil(function() {
             // Requires other ad blocker to trigger this element.
             const elements = document.querySelectorAll('body > div');
