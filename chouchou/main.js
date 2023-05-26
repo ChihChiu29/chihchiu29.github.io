@@ -15,6 +15,17 @@ function main() {
 window.addEventListener('DOMContentLoaded', function () {
     main();
 });
+var Arrays;
+(function (Arrays) {
+    function splitArrayIntoChunk(array, chunkSize) {
+        const resultArray = [];
+        for (let i = 0; i < array.length; i += chunkSize) {
+            resultArray.push(array.slice(i, i + chunkSize));
+        }
+        return resultArray;
+    }
+    Arrays.splitArrayIntoChunk = splitArrayIntoChunk;
+})(Arrays || (Arrays = {}));
 var colors;
 (function (colors) {
     /**
@@ -106,13 +117,17 @@ var geometry;
     }
     geometry.getMinimalCommonBoundingRect = getMinimalCommonBoundingRect;
 })(geometry || (geometry = {}));
-var math;
-(function (math) {
+var Maths;
+(function (Maths) {
     function sum(array) {
         return array.reduce((partialSum, a) => partialSum + a, 0);
     }
-    math.sum = sum;
-})(math || (math = {}));
+    Maths.sum = sum;
+    function product(array) {
+        return array.reduce((partialSum, a) => partialSum * a, 1);
+    }
+    Maths.product = product;
+})(Maths || (Maths = {}));
 var Strings;
 (function (Strings) {
     // Returns if str contains subStr.
@@ -834,11 +849,21 @@ var svg;
         }
     }
 })(svg || (svg = {})); // namespace svg
-function assert(value, expectedValue) {
-    if (value !== expectedValue) {
-        throw `${value} does not equal to expected value ${expectedValue}`;
+var Tests;
+(function (Tests) {
+    function assertEq(value, expectedValue) {
+        if (value !== expectedValue) {
+            throw `${value} does not equal to expected value ${expectedValue}`;
+        }
     }
-}
+    Tests.assertEq = assertEq;
+    function assertAlmostEq(value, expectedValue, tolerance = 1e-7) {
+        if (Math.abs(value - expectedValue) > tolerance) {
+            throw `${value} does not almost equal to expected value ${expectedValue}`;
+        }
+    }
+    Tests.assertAlmostEq = assertAlmostEq;
+})(Tests || (Tests = {}));
 var chouchou;
 (function (chouchou) {
     let dom;
@@ -895,7 +920,7 @@ var chouchou;
     chouchou.compute = compute;
     // Compute with a single price config; result in text.
     function computeSinglePriceConfig(priceConfig, numberRemainingConfigs) {
-        let totalAvailable = math.sum(numberRemainingConfigs.map(c => c.numberRemaining));
+        let totalAvailable = Maths.sum(numberRemainingConfigs.map(c => c.numberRemaining));
         let report = [`一次抽${priceConfig.numberOfTickets}的话，抽中至少一个的中奖概率和成本是：`];
         for (const config of numberRemainingConfigs) {
             let probNotGetIt = 1;
@@ -912,6 +937,28 @@ var chouchou;
         }
         return report;
     }
+    // Returns an array of probabilies for not being able to get an item in a
+    // sequence of gatcha, starting with 1 pull, and ending with prob 0.
+    function computeProbNotGet(numAvailable, total) {
+        if (numAvailable > total) {
+            throw new Error(`numAvailable (${numAvailable}) cannot be larger than total (${total})`);
+        }
+        const results = [];
+        let remaining = total;
+        while (numAvailable <= remaining) {
+            results.push(1 - numAvailable / remaining);
+            remaining--;
+        }
+        return results;
+    }
+    chouchou.computeProbNotGet = computeProbNotGet;
+    // Returns an array of probabilities for being able to get at least one item
+    // in a sequence of gatcha, when pulls are batched.
+    function computeProbGet(numAvailable, total, numBatch) {
+        const notProbs = computeProbNotGet(numAvailable, total);
+        return Arrays.splitArrayIntoChunk(notProbs, numBatch).map(chunk => (1 - Maths.product(chunk)));
+    }
+    chouchou.computeProbGet = computeProbGet;
     function writeReport(report) {
         dom.calculationResultArea.innerHTML = '';
         for (const sentence of report) {
@@ -922,3 +969,18 @@ var chouchou;
     }
     chouchou.writeReport = writeReport;
 })(chouchou || (chouchou = {}));
+var chouchouTest;
+(function (chouchouTest) {
+    function testComputations() {
+        let result;
+        result = chouchou.computeProbNotGet(2, 5);
+        Tests.assertAlmostEq(result[0], 3 / 5);
+        Tests.assertAlmostEq(result[1], 2 / 4);
+        Tests.assertAlmostEq(result[2], 1 / 3);
+        Tests.assertAlmostEq(result[3], 0 / 2);
+        result = chouchou.computeProbGet(1, 10, 5);
+        Tests.assertAlmostEq(result[0], 0.5);
+        Tests.assertAlmostEq(result[1], 1);
+    }
+    chouchouTest.testComputations = testComputations;
+})(chouchouTest || (chouchouTest = {}));
