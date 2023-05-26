@@ -909,16 +909,24 @@ var chouchou;
     // Compute and generate report in texts.
     function compute(priceConfigs, numberRemainingConfigs) {
         const allReports = [];
+        allReports.push('<b>总体来说：</b>');
+        for (const priceConfig of priceConfigs) {
+            for (const sentence of computeSinglePriceConfig(priceConfig, numberRemainingConfigs, false)) {
+                allReports.push(sentence);
+            }
+        }
+        allReports.push('<hr/>');
+        allReports.push('<b>细节：</b>');
         for (const priceConfig of priceConfigs) {
             for (const sentence of computeSinglePriceConfig(priceConfig, numberRemainingConfigs)) {
                 allReports.push(sentence);
             }
-            allReports.push('--------------------');
+            allReports.push('----------------------------------');
         }
         return allReports;
     }
     chouchou.compute = compute;
-    function computeSinglePriceConfig(priceConfig, numberRemainingConfigs) {
+    function computeSinglePriceConfig(priceConfig, numberRemainingConfigs, showDetails = true) {
         let numTotalRemainingItems = Maths.sum(numberRemainingConfigs.map(c => c.numberRemaining));
         let report = [
             `一次抽${priceConfig.numberOfTickets}的话，抽中至少一个的中奖概率和成本`
@@ -937,9 +945,11 @@ var chouchou;
                 cumulatedNotGetProb *= (1 - prob);
             }
             const singleReportSummary = `总体期望支出：$${expectedCost.toFixed(0)}`;
-            report.push(`${singleReportHeader}
-        <b>${singleReportSummary}</b>, 每次买的细节：
-        ${singleReportContent.join(', ')}`);
+            let singleReport = `${singleReportHeader} <b>${singleReportSummary}</b>`;
+            if (showDetails) {
+                singleReport += `, 每次买的细节：${singleReportContent.join(', ')}`;
+            }
+            report.push(singleReport);
         }
         return report;
     }
