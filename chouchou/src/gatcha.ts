@@ -82,27 +82,37 @@ namespace chouchou {
     return allReports;
   }
 
-  // Compute with a single price config; result in text.
   function computeSinglePriceConfig(
     priceConfig: PriceConfig,
     numberRemainingConfigs: NumberRemainingInfo[]): string[] {
 
-    let totalAvailable = Maths.sum(
+    let numTotalRemainingItems = Maths.sum(
       numberRemainingConfigs.map(c => c.numberRemaining));
 
-    let report = [`一次抽${priceConfig.numberOfTickets}的话，抽中至少一个的中奖概率和成本是：`];
-    for (const config of numberRemainingConfigs) {
-      let probNotGetIt = 1;
-      if (priceConfig.numberOfTickets >= totalAvailable) {
-        probNotGetIt = 0;
-      } else {
-        for (let i = 1; i <= priceConfig.numberOfTickets; i++) {
-          probNotGetIt *= 1 - config.numberRemaining / (totalAvailable - i);
-        }
+    let report = [
+      `一次抽${priceConfig.numberOfTickets}的话，抽中至少一个的中奖概率和成本`];
+    for (const itemTierConfig of numberRemainingConfigs) {
+      report.push();
+      const singleReportHeader = `>>> 对于${itemTierConfig.tier} <<< `;
+      const singleReportContent: string[] = [];
+      let cumulatedNotGetProb = 1;
+      let expectedCost = 0;
+      for (const [idx, prob] of computeProbGet(
+        itemTierConfig.numberRemaining,
+        numTotalRemainingItems,
+        priceConfig.numberOfTickets).entries()) {
+        const numBuy = idx + 1;
+        const cost = priceConfig.price * numBuy;
+        singleReportContent.push(
+          `${numBuy}次：${(prob * 100).toFixed(2)}%, $${cost}`);
+
+        expectedCost += cumulatedNotGetProb * prob * cost;
+        cumulatedNotGetProb *= (1 - prob);
       }
-      const prob = 1 - probNotGetIt;
-      report.push(
-        `${config.tier}: ${(prob * 100).toFixed(2)}%, $${(priceConfig.price / prob).toFixed(1)}`);
+      const singleReportSummary = `总体期望支出：$${expectedCost.toFixed(0)}`;
+      report.push(`${singleReportHeader}
+        <b>${singleReportSummary}</b>, 每次买的细节：
+        ${singleReportContent.join(', ')}`);
     }
 
     return report;
@@ -113,7 +123,11 @@ namespace chouchou {
   export function computeProbNotGet(numAvailable: number, total: number): number[] {
     if (numAvailable > total) {
       throw new Error(
-        `numAvailable (${numAvailable}) cannot be larger than total (${total})`);
+        `numAvailable(${numAvailable}) cannot be larger than total(${total})`);
+    }
+
+    if (numAvailable <= 0) {
+      return [1];
     }
 
     const results: number[] = [];
@@ -156,6 +170,10 @@ namespace chouchouTest {
     Tests.assertAlmostEq(result[1], 2 / 4);
     Tests.assertAlmostEq(result[2], 1 / 3);
     Tests.assertAlmostEq(result[3], 0 / 2);
+
+    result = chouchou.computeProbNotGet(0, 5);
+    Tests.assertEq(result.length, 1);
+    Tests.assertAlmostEq(result[0], 1);
 
     result = chouchou.computeProbGet(1, 10, 5);
     Tests.assertAlmostEq(result[0], 0.5);
