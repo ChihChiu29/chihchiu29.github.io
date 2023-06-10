@@ -799,6 +799,8 @@ namespace svg {
       }
 
       const mid = geometry.getMiddlePoint(this.from, this.to);
+      this.ctrl1.x = this.ctrl1.x * this.sharpness + mid.x * (1 - this.sharpness);
+      this.ctrl1.y = this.ctrl1.y * this.sharpness + mid.y * (1 - this.sharpness);
       this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
       this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
     }
