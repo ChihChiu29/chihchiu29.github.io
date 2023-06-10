@@ -229,6 +229,29 @@ var colors;
 })(colors || (colors = {}));
 var geometry;
 (function (geometry) {
+    let vector;
+    (function (vector) {
+        function add(vec1, vec2) {
+            return { x: vec1.x + vec2.x, y: vec1.y + vec2.y };
+        }
+        vector.add = add;
+        function sub(fromVec, byVec) {
+            return { x: fromVec.x - byVec.x, y: fromVec.y - byVec.y };
+        }
+        vector.sub = sub;
+        function mul(vec, scalar) {
+            return { x: vec.x * scalar, y: vec.y * scalar };
+        }
+        vector.mul = mul;
+        /**
+         * Returns a new vector that's the old vector rotated 90 deg
+         * clockwisely in canvas coordinates (postive y points down).
+         */
+        function rotateClockwiseBy90Deg(vec) {
+            return { x: -vec.y, y: vec.x };
+        }
+        vector.rotateClockwiseBy90Deg = rotateClockwiseBy90Deg;
+    })(vector = geometry.vector || (geometry.vector = {}));
     /**
      * Gets a middle point between two points.
      */
@@ -236,6 +259,21 @@ var geometry;
         return { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
     }
     geometry.getMiddlePoint = getMiddlePoint;
+    /**
+     * Gets a vector from fromPt to toPt.
+     */
+    function getVectorBetween(fromPt, toPt) {
+        return { x: toPt.x - fromPt.x, y: toPt.y - fromPt.y };
+    }
+    geometry.getVectorBetween = getVectorBetween;
+    /**
+     * Returns the point from linear interpolation between pt1 and pt2.
+     * When param == 0, it returns pt1, when param == 1, it returns pt2.
+     */
+    function linearInterpolate(pt1, pt2, param) {
+        return vector.add(vector.mul(pt1, (1 - param)), vector.mul(pt2, param));
+    }
+    geometry.linearInterpolate = linearInterpolate;
     /**
      * Finds the minimal bounding rect of two rects; r1 can use NaN values in which case r2 values are used.
      */
@@ -871,8 +909,9 @@ var svg;
         // Use these to override the connection points.
         fromConnectionPointOverride = undefined;
         toConnectionPointOverride = undefined;
-        // NOT used; adding here to match interface from SmartLinkSingleCurved.
+        // There are NOT used; adding here to match interface from SmartLinkSingleCurved.
         sharpness = 0;
+        ctrlPtsShiftFactor = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -895,6 +934,15 @@ var svg;
         toConnectionPointOverride = undefined;
         // Controls how "sharp" the turn is.
         sharpness = 0.9;
+        // If set, shift ctrl points by this factor multiple the length of the
+        // two control point, in direction that's 90 deg rotated from the
+        // vector pointing from start point to end point.
+        // This factor is used for example in case to draw links between
+        // two shapes with the same y value, which would be a flat arrow.
+        // But if the user wants to make it curved, they can use this factor.
+        // Setting it to 0.5 should give a circular-looking curve in this
+        // case.
+        ctrlPtsShiftFactor = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -950,10 +998,13 @@ var svg;
                 this.ctrl2.y = toP.y;
             }
             const mid = geometry.getMiddlePoint(this.from, this.to);
-            this.ctrl1.x = this.ctrl1.x * this.sharpness + mid.x * (1 - this.sharpness);
-            this.ctrl1.y = this.ctrl1.y * this.sharpness + mid.y * (1 - this.sharpness);
-            this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
-            this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
+            this.ctrl1 = geometry.linearInterpolate(mid, this.ctrl1, this.sharpness);
+            this.ctrl2 = geometry.linearInterpolate(mid, this.ctrl2, this.sharpness);
+            if (this.ctrlPtsShiftFactor) {
+                const shiftVec = geometry.vector.rotateClockwiseBy90Deg(geometry.getVectorBetween(this.from, this.to));
+                this.ctrl1 = geometry.vector.add(this.ctrl1, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
+                this.ctrl2 = geometry.vector.add(this.ctrl2, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
+            }
         }
     }
     svg.SmartLinkSingleCurved = SmartLinkSingleCurved;
@@ -1147,8 +1198,25 @@ var diagramlang;
             return this;
         }
         toP = this.toPoint;
+        /**
+         * Sets "sharpness", which defaults to 0.9, and setting it to 0 gives
+         * straight link. Othervalues are linear interpolated.
+         */
         sharpness(sharpness) {
             this.link.sharpness = sharpness;
+            return this;
+        }
+        /**
+         * Sets "shift" factor, which defaults to 0. When used, it pushes the
+         * curve towards the direction that's 90deg clockwisely rotated from
+         * the link vector (if it's straight).
+         * This should only be used in corner cases, for example you have
+         * rectA and rectB at the same y value, and you want to draw a link
+         * from rectA down to rectB down, the default opiton draws a horizontal
+         * link, and you can use this option to add curves to it.
+         */
+        bend(ctrlPtsShiftFactor) {
+            this.link.ctrlPtsShiftFactor = ctrlPtsShiftFactor;
             return this;
         }
         // Link style.

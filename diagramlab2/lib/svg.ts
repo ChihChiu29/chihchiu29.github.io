@@ -714,8 +714,9 @@ namespace svg {
     public fromConnectionPointOverride?: geometry.Point = undefined;
     public toConnectionPointOverride?: geometry.Point = undefined;
 
-    // NOT used; adding here to match interface from SmartLinkSingleCurved.
+    // There are NOT used; adding here to match interface from SmartLinkSingleCurved.
     public sharpness: number = 0;
+    public ctrlPtsShiftFactor: number = 0;
 
     // @Override
     getPathCommand() {
@@ -741,6 +742,16 @@ namespace svg {
 
     // Controls how "sharp" the turn is.
     public sharpness: number = 0.9;
+
+    // If set, shift ctrl points by this factor multiple the length of the
+    // two control point, in direction that's 90 deg rotated from the
+    // vector pointing from start point to end point.
+    // This factor is used for example in case to draw links between
+    // two shapes with the same y value, which would be a flat arrow.
+    // But if the user wants to make it curved, they can use this factor.
+    // Setting it to 0.5 should give a circular-looking curve in this
+    // case.
+    public ctrlPtsShiftFactor: number = 0;
 
     // @Override
     getPathCommand() {
@@ -799,10 +810,17 @@ namespace svg {
       }
 
       const mid = geometry.getMiddlePoint(this.from, this.to);
-      this.ctrl1.x = this.ctrl1.x * this.sharpness + mid.x * (1 - this.sharpness);
-      this.ctrl1.y = this.ctrl1.y * this.sharpness + mid.y * (1 - this.sharpness);
-      this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
-      this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
+      this.ctrl1 = geometry.linearInterpolate(mid, this.ctrl1, this.sharpness);
+      this.ctrl2 = geometry.linearInterpolate(mid, this.ctrl2, this.sharpness);
+
+      if (this.ctrlPtsShiftFactor) {
+        const shiftVec = geometry.vector.rotateClockwiseBy90Deg(
+          geometry.getVectorBetween(this.from, this.to));
+        this.ctrl1 = geometry.vector.add(
+          this.ctrl1, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
+        this.ctrl2 = geometry.vector.add(
+          this.ctrl2, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
+      }
     }
   }
 
