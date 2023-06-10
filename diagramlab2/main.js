@@ -1149,6 +1149,7 @@ var diagramlang;
         toP = this.toPoint;
         sharpness(sharpness) {
             this.link.sharpness = sharpness;
+            return this;
         }
         // Link style.
         dashed(isDashed = true) {

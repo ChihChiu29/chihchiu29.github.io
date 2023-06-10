@@ -187,6 +187,7 @@ namespace diagramlang {
 
     public sharpness(sharpness: number) {
       this.link.sharpness = sharpness;
+      return this;
     }
 
     // Link style.
