@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.31
+// @version      1.32
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -129,6 +129,8 @@
             }
         }, 5, 30);
     } else if (hostname === 'igg-games.com') {
+        // (2023-06-25) Doesn't seem to be necessary anymore.
+        return;
         // Remove ads and spam.
         // The two "notification" to the top-right.
         runUntil(function() {
