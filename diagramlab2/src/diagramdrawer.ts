@@ -185,8 +185,27 @@ namespace diagramlang {
     }
     toP = this.toPoint;
 
-    public sharpness(sharpness: number) {
+    /**
+     * Sets "sharpness", which defaults to 0.9, and setting it to 0 gives
+     * straight link. Othervalues are linear interpolated.
+     */
+    public sharpness(sharpness: number): Link {
       this.link.sharpness = sharpness;
+      return this;
+    }
+
+    /**
+     * Sets "shift" factor, which defaults to 0. When used, it pushes the
+     * curve towards the direction that's 90deg clockwisely rotated from
+     * the link vector (if it's straight).
+     * This should only be used in corner cases, for example you have
+     * rectA and rectB at the same y value, and you want to draw a link
+     * from rectA down to rectB down, the default opiton draws a horizontal
+     * link, and you can use this option to add curves to it.
+     */
+    public bend(ctrlPtsShiftFactor: number): Link {
+      this.link.ctrlPtsShiftFactor = ctrlPtsShiftFactor;
+      return this;
     }
 
     // Link style.

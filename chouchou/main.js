@@ -1,171 +1,31 @@
 "use strict";
-const PAGE_PATH = '.';
-const GRAPH_URL_PARAM = 'g';
-// Use chrome dev tool to test the code, start with:
-//   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
-//   d = new diagramlang.Drawer(renderer);
-const DEFAULT_GRAPH = `
-// Quickstart:
-//   - Every action starts with the drawer 'd'.
-//   - 'd.rect' creates a new rect with text. Then you can use:
-//     move, cmove, text, up/down/left/right, cx, cy, color, style, textColor, ...
-//   - 'd.link' creates a link that can connect two rects. Then use:
-//     from, to, text, dashed, ...
-//   - 'd.links' creates a group of links from two groups of shapes.
-//   - 'd.layout' creates a layout object that helps to layout shapes. Try:
-//     move, cmove, tile
-// The example below has some illustration of APIs, for a more complete list, visit:
-// https://github.com/ChihChiu29/chihchiu29.github.io/blob/master/diagramlab2/src/diagramdrawer.ts
-// Alternatively, use Chrome dev tool then creates an instance of 'd' to play with it:
-//   var renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
-//   d = new diagramlang.Drawer(renderer);
-// Note that using this d it won't draw anything, but the auto-completion should
-// help you get familiar with the interfaces.
-
-var w = 140;
-var h = 60;
-var O = d.rect("THINK").cmove(200, 300, w, 60).color("purple3")
-         .textStyle({"font-size": 26, "font-weight": "bold"});
-
-function createLoop(text, width, height) {
-  return d.rect(text, O.cx(), O.cy() - height / 2, width, height)
-          .textStyle({"font-size": 26});
-}
-var l1 = createLoop("Inner Loop - Development", 500, 200).color("blue2")
-    .style({rx: '20%', ry: '20%', stroke: 'none'}).setZ(-100);
-var l2 = createLoop("Outer Loop - Experimentation", 800, 400).color("blue1")
-    .style({rx: '50%', ry: '50%', stroke: 'none'})
-    .textPos(false, true).textShift(0, 10).setZ(-101);
-
-var a1 = d.rect("Create / Modify CL").cmove(l1.cx(), l1.top(), w, h);
-var a2 = d.rect("Run Dev Servers").cmove(l1.right(), l1.cy(), w, h);
-d.link(O, "up", a1, "left");
-d.link(a1, "right", a2, "up");
-var a3 = d.layout().setShapes(
-  d.rect("Interactive Testing"),
-  d.rect("Debugging"),
-  d.rect("Tee traffic & Analysis"),
-  d.rect("...")).cmove(l1.cx(), l1.bottom(), w * 1.5, h * 2).tile();
-d.links([a2], "down", a3.shapes(), "right");
-d.links(a3.shapes(), "left", [O], "down");
-
-var b1 = d.rect("Setup Experiment").cmove(l2.cx(), l2.top(), w, h);
-var b2 = d.rect("Run Experiment").cmove(l2.right(), l2.cy(), w, h);
-var b3 = d.rect("Collect Data").cmove(l2.cx(), l2.bottom(), w, h);
-d.link(O, "up", b1, "left");
-d.link(b1, "right", b2, "up");
-d.link(b2, "down", b3, "right");
-d.link(b3, "left", O, "down");
-
-// Since we no longer need the loops for location, make them bigger to look better.
-l1.cmove(l1.cx(), l1.cy(), l1.width() + 200, l1.height() + 50);
-l2.cmove(l2.cx(), l2.cy(), l2.width() + 250, l2.height() + 200);
-`;
-const INPUT_ELEMENT_CSS = '#input';
-const DRAW_AREA_SELECTOR = '#drawarea';
-// @ts-ignore
-const CODE_MIRROR_ELEMENT = CodeMirror(document.querySelector(INPUT_ELEMENT_CSS), {
-    value: DEFAULT_GRAPH,
-    mode: 'javascript',
-});
-// Very likely we don't need this forever since Renderer has a similar margin in place already.
-const SAVE_SVG_MARGIN = 0;
-function draw(useGrid = true) {
-    const renderer = new svg.SVGRenderer(document.querySelector(DRAW_AREA_SELECTOR));
-    renderer.useGrid = useGrid;
-    const graphData = getInputElement().getValue();
-    // `d` is the keyword used in the user provided code.
-    const d = new diagramlang.Drawer(renderer);
+function calculate() {
     try {
-        eval(graphData);
+        const allConfig = chouchou.parseConfigs();
+        const report = chouchou.compute(allConfig.priceConfigs, allConfig.numberRemainingConfigs);
+        chouchou.writeReport(report);
     }
-    catch (error) {
-        alert(error);
+    catch (err) {
+        alert(err);
     }
-    d.finalize();
-    const report = renderer.draw();
-    // Since drawing has no error, safe to update URL.
-    // const encodedGraphData = btoa(graphData);  // base64 encode without compression
-    if (graphData !== DEFAULT_GRAPH) {
-        const encodedGraphData = btoa(LZString.compressToBase64(graphData)); // with compression
-        window.history.pushState('updated', 'DiagramLab2', `${PAGE_PATH}?g=${encodedGraphData}`);
-    }
-    // Report mouse location when moving.
-    const svgElement = document.querySelector('#drawarea svg');
-    svgElement.removeEventListener('mousemove', reportLocationListener);
-    svgElement.addEventListener('mousemove', reportLocationListener, false);
-    return report;
-}
-function save() {
-    // References:
-    //   - https://levelup.gitconnected.com/draw-an-svg-to-canvas-and-download-it-as-image-in-javascript-f7f7713cf81f
-    //   - http://bl.ocks.org/biovisualize/8187844
-    const report = draw(/*useGrid*/ false);
-    const svgElement = document.querySelector('#drawarea svg');
-    // Now done within svgRender.
-    // svgElement.setAttribute(
-    //   'viewBox',
-    //   `${report.dimension.x - SAVE_SVG_MARGIN} 
-    //     ${report.dimension.y - SAVE_SVG_MARGIN}
-    //     ${report.dimension.width + SAVE_SVG_MARGIN * 2}
-    //     ${report.dimension.height + SAVE_SVG_MARGIN * 2}`);
-    const { width, height } = svgElement.getBBox();
-    var svgString = new XMLSerializer().serializeToString(svgElement);
-    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    let URL = window.URL || window.webkitURL || window;
-    let blobURL = URL.createObjectURL(blob);
-    const image = new Image();
-    image.onload = () => {
-        // Canvas references:
-        //   - https://stackoverflow.com/questions/38061836/blurry-svg-in-canvas
-        //   - https://stackoverflow.com/questions/24395076/canvas-generated-by-canvg-is-blurry-on-retina-screen
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d');
-        // In short:
-        //   - devicePixelRatio decises how things are scaled on monitor.
-        //   - to get a similar crisp feeling of the svg image, the canvas needs to be as large as viewport * scale factor.
-        var pixelRatio = window.devicePixelRatio || 1;
-        canvas.width = width;
-        canvas.height = height;
-        canvas.width *= pixelRatio;
-        canvas.height *= pixelRatio;
-        context.drawImage(image, 0, 0);
-        let png = canvas.toDataURL();
-        var link = document.createElement('a');
-        link.download = 'diagram.png';
-        link.style.opacity = "0";
-        document.querySelector('#save-action').append(link);
-        link.href = png;
-        link.click();
-        link.remove();
-    };
-    image.src = blobURL;
-}
-function reportLocationListener(evt) {
-    const svgElement = document.querySelector('#drawarea svg');
-    const pt = svgElement.createSVGPoint();
-    pt.x = evt.clientX;
-    pt.y = evt.clientY;
-    const { x, y } = pt.matrixTransform(svgElement.getScreenCTM().inverse());
-    document.querySelector('#report #location').innerText = `Coordinates: (${Math.floor(x)}, ${Math.floor(y)})`;
-}
-function getInputElement() {
-    return CODE_MIRROR_ELEMENT;
 }
 function main() {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const graphData = urlParams.get(GRAPH_URL_PARAM);
-    const inputElement = getInputElement();
-    if (graphData) {
-        // inputElement.value = atob(graphData);  // base64 without compression
-        inputElement.setValue(LZString.decompressFromBase64(atob(graphData))); // with compression
-    }
-    draw();
+    chouchou.dom.updateReference();
 }
 window.addEventListener('DOMContentLoaded', function () {
     main();
 });
+var Arrays;
+(function (Arrays) {
+    function splitArrayIntoChunk(array, chunkSize) {
+        const resultArray = [];
+        for (let i = 0; i < array.length; i += chunkSize) {
+            resultArray.push(array.slice(i, i + chunkSize));
+        }
+        return resultArray;
+    }
+    Arrays.splitArrayIntoChunk = splitArrayIntoChunk;
+})(Arrays || (Arrays = {}));
 var colors;
 (function (colors) {
     /**
@@ -229,29 +89,6 @@ var colors;
 })(colors || (colors = {}));
 var geometry;
 (function (geometry) {
-    let vector;
-    (function (vector) {
-        function add(vec1, vec2) {
-            return { x: vec1.x + vec2.x, y: vec1.y + vec2.y };
-        }
-        vector.add = add;
-        function sub(fromVec, byVec) {
-            return { x: fromVec.x - byVec.x, y: fromVec.y - byVec.y };
-        }
-        vector.sub = sub;
-        function mul(vec, scalar) {
-            return { x: vec.x * scalar, y: vec.y * scalar };
-        }
-        vector.mul = mul;
-        /**
-         * Returns a new vector that's the old vector rotated 90 deg
-         * clockwisely in canvas coordinates (postive y points down).
-         */
-        function rotateClockwiseBy90Deg(vec) {
-            return { x: -vec.y, y: vec.x };
-        }
-        vector.rotateClockwiseBy90Deg = rotateClockwiseBy90Deg;
-    })(vector = geometry.vector || (geometry.vector = {}));
     /**
      * Gets a middle point between two points.
      */
@@ -259,21 +96,6 @@ var geometry;
         return { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
     }
     geometry.getMiddlePoint = getMiddlePoint;
-    /**
-     * Gets a vector from fromPt to toPt.
-     */
-    function getVectorBetween(fromPt, toPt) {
-        return { x: toPt.x - fromPt.x, y: toPt.y - fromPt.y };
-    }
-    geometry.getVectorBetween = getVectorBetween;
-    /**
-     * Returns the point from linear interpolation between pt1 and pt2.
-     * When param == 0, it returns pt1, when param == 1, it returns pt2.
-     */
-    function linearInterpolate(pt1, pt2, param) {
-        return vector.add(vector.mul(pt1, (1 - param)), vector.mul(pt2, param));
-    }
-    geometry.linearInterpolate = linearInterpolate;
     /**
      * Finds the minimal bounding rect of two rects; r1 can use NaN values in which case r2 values are used.
      */
@@ -295,6 +117,17 @@ var geometry;
     }
     geometry.getMinimalCommonBoundingRect = getMinimalCommonBoundingRect;
 })(geometry || (geometry = {}));
+var Maths;
+(function (Maths) {
+    function sum(array) {
+        return array.reduce((partialSum, a) => partialSum + a, 0);
+    }
+    Maths.sum = sum;
+    function product(array) {
+        return array.reduce((partialSum, a) => partialSum * a, 1);
+    }
+    Maths.product = product;
+})(Maths || (Maths = {}));
 var Strings;
 (function (Strings) {
     // Returns if str contains subStr.
@@ -909,9 +742,8 @@ var svg;
         // Use these to override the connection points.
         fromConnectionPointOverride = undefined;
         toConnectionPointOverride = undefined;
-        // There are NOT used; adding here to match interface from SmartLinkSingleCurved.
+        // NOT used; adding here to match interface from SmartLinkSingleCurved.
         sharpness = 0;
-        ctrlPtsShiftFactor = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -934,15 +766,6 @@ var svg;
         toConnectionPointOverride = undefined;
         // Controls how "sharp" the turn is.
         sharpness = 0.9;
-        // If set, shift ctrl points by this factor multiple the length of the
-        // two control point, in direction that's 90 deg rotated from the
-        // vector pointing from start point to end point.
-        // This factor is used for example in case to draw links between
-        // two shapes with the same y value, which would be a flat arrow.
-        // But if the user wants to make it curved, they can use this factor.
-        // Setting it to 0.5 should give a circular-looking curve in this
-        // case.
-        ctrlPtsShiftFactor = 0;
         // @Override
         getPathCommand() {
             _smartReConnection(this);
@@ -998,13 +821,8 @@ var svg;
                 this.ctrl2.y = toP.y;
             }
             const mid = geometry.getMiddlePoint(this.from, this.to);
-            this.ctrl1 = geometry.linearInterpolate(mid, this.ctrl1, this.sharpness);
-            this.ctrl2 = geometry.linearInterpolate(mid, this.ctrl2, this.sharpness);
-            if (this.ctrlPtsShiftFactor) {
-                const shiftVec = geometry.vector.rotateClockwiseBy90Deg(geometry.getVectorBetween(this.from, this.to));
-                this.ctrl1 = geometry.vector.add(this.ctrl1, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
-                this.ctrl2 = geometry.vector.add(this.ctrl2, geometry.vector.mul(shiftVec, this.ctrlPtsShiftFactor));
-            }
+            this.ctrl2.x = this.ctrl2.x * this.sharpness + mid.x * (1 - this.sharpness);
+            this.ctrl2.y = this.ctrl2.y * this.sharpness + mid.y * (1 - this.sharpness);
         }
     }
     svg.SmartLinkSingleCurved = SmartLinkSingleCurved;
@@ -1031,308 +849,160 @@ var svg;
         }
     }
 })(svg || (svg = {})); // namespace svg
-function assert(value, expectedValue) {
-    if (value !== expectedValue) {
-        throw `${value} does not equal to expected value ${expectedValue}`;
-    }
-}
-var diagramlang;
-(function (diagramlang) {
-    const DEFAULT_RECT_WIDTH = 200;
-    const DEFAULT_RECT_HEIGHT = 100;
-    const DEFAULT_COLOR_PALETTE = colors.PALETTE_LUCID;
-    const DEFAULT_LINK_TYPE = 'curved_single_ctrl';
-    class GraphElementWrapper {
-    }
-    class ShapeWrapper {
-        getGraphElement() {
-            return this.getShape();
-        }
-        moveCorner(left, top, width, height) {
-            const shape = this.getShape();
-            this.maybeSetSize(width, height);
-            shape.x = left;
-            shape.y = top;
-            return this;
-        }
-        move = this.moveCorner;
-        moveCenter(x, y, width, height) {
-            const shape = this.getShape();
-            this.maybeSetSize(width, height);
-            shape.x = x - shape.width / 2;
-            shape.y = y - shape.height / 2;
-            return this;
-        }
-        cmove = this.moveCenter;
-        left() { return this.getShape().x; }
-        right() { return this.getShape().x + this.getShape().width; }
-        top() { return this.getShape().y; }
-        up = this.top;
-        bottom() { return this.getShape().y + this.getShape().height; }
-        down = this.bottom;
-        cx() { return this.getShape().x + this.getShape().width / 2; }
-        cy() { return this.getShape().y + this.getShape().height / 2; }
-        width() { return this.getShape().width; }
-        height() { return this.getShape().height; }
-        maybeSetSize(width, height) {
-            const shape = this.getShape();
-            if (width) {
-                shape.width = width;
-            }
-            if (height) {
-                shape.height = height;
-            }
-        }
-        setZ(z) {
-            this.getShape().zValue = z;
-            return this;
+var Tests;
+(function (Tests) {
+    function assertEq(value, expectedValue) {
+        if (value !== expectedValue) {
+            throw `${value} does not equal to expected value ${expectedValue}`;
         }
     }
-    // Wrapper of Rect focusing on UX.
-    class Rect extends ShapeWrapper {
-        rectElement;
-        constructor() {
-            super();
-            this.rectElement = new svg.Rect();
-        }
-        getShape() {
-            return this.rectElement;
-        }
-        text(text) {
-            this.rectElement.text = text;
-            return this;
-        }
-        // Sets location of the text, left/center, top/center.
-        textPos(left = false, top = false) {
-            this.rectElement.textAlignToCenter = !left;
-            this.rectElement.textVerticalAlignToCenter = !top;
-            return this;
-        }
-        padding(padding) {
-            this.rectElement.padding = padding;
-            return this;
-        }
-        textShift(shiftX, shiftY) {
-            this.rectElement.textShift = { x: shiftX, y: shiftY };
-            return this;
-        }
-        // Set style override on rect or on text.
-        style(style, onRect = true) {
-            if (onRect) {
-                this.rectElement.customRectCssStyle = svg.mergeCssStyles(this.rectElement.customRectCssStyle, style);
-            }
-            else {
-                this.rectElement.customTextCssStyle = svg.mergeCssStyles(this.rectElement.customTextCssStyle, style);
-            }
-            return this;
-        }
-        textStyle(style) {
-            return this.style(style, false);
-        }
-        // Quick style setters.
-        fontSize(fontSize) {
-            return this.textStyle({ 'font-size': fontSize });
-        }
-        textSize = this.fontSize;
-        // Set color on rect and on text.
-        color(color, palette_name, onRect = true) {
-            return this.style({ fill: this.getColor(color, palette_name) }, onRect);
-        }
-        textColor(color, palette_name) {
-            return this.color(color, palette_name, false);
-        }
-        // Remove border and make background color transparent.
-        textOnly() {
-            this.style({ stroke: 'none' });
-            this.color('rgba(0, 0, 0, 0)');
-            return this;
-        }
-        getColor(color, palette_name) {
-            if (palette_name === 'lucid') {
-                return colors.getColor(color, colors.PALETTE_LUCID);
-            }
-            else {
-                return colors.getColor(color, DEFAULT_COLOR_PALETTE);
-            }
+    Tests.assertEq = assertEq;
+    function assertAlmostEq(value, expectedValue, tolerance = 1e-7) {
+        if (Math.abs(value - expectedValue) > tolerance) {
+            throw `${value} does not almost equal to expected value ${expectedValue}`;
         }
     }
-    // Wrapper of Link focusing on UX.
-    class Link {
-        link;
-        constructor(type) {
-            if (type === 'curved_single_ctrl') {
-                this.link = new svg.SmartLinkSingleCurved();
+    Tests.assertAlmostEq = assertAlmostEq;
+})(Tests || (Tests = {}));
+var chouchou;
+(function (chouchou) {
+    let dom;
+    (function (dom) {
+        dom.numberOfGatchaConfigInput = document.querySelector('#number-gatcha-config');
+        dom.numberOfTierConfigInput = document.querySelector('#number-tier-config');
+        dom.calculationResultArea = document.querySelector('#calculation-result');
+        // Needs to be called after DOM is ready.
+        function updateReference() {
+            dom.numberOfGatchaConfigInput = document.querySelector('#number-gatcha-config');
+            dom.numberOfTierConfigInput = document.querySelector('#number-tier-config');
+            dom.calculationResultArea = document.querySelector('#calculation-result');
+        }
+        dom.updateReference = updateReference;
+    })(dom = chouchou.dom || (chouchou.dom = {}));
+    // Fills variables in `config` from config values.
+    function parseConfigs() {
+        const priceConfigs = [];
+        for (const rawConfig of parseCommaSeparatedConfigString(dom.numberOfGatchaConfigInput.value)) {
+            priceConfigs.push({
+                numberOfTickets: parseInt(rawConfig.key),
+                price: rawConfig.value,
+            });
+        }
+        const numberRemainingConfigs = [];
+        for (const rawConfig of parseCommaSeparatedConfigString(dom.numberOfTierConfigInput.value)) {
+            numberRemainingConfigs.push({
+                tier: rawConfig.key,
+                numberRemaining: rawConfig.value,
+            });
+        }
+        return { priceConfigs, numberRemainingConfigs };
+    }
+    chouchou.parseConfigs = parseConfigs;
+    function parseCommaSeparatedConfigString(config) {
+        const configResult = [];
+        for (const configFragment of config.split(',')) {
+            const frags = configFragment.trim().split(':');
+            configResult.push({ key: frags[0], value: parseInt(frags[1]) });
+        }
+        return configResult;
+    }
+    // Compute and generate report in texts.
+    function compute(priceConfigs, numberRemainingConfigs) {
+        const allReports = [];
+        allReports.push('<b>总体来说：</b>');
+        for (const priceConfig of priceConfigs) {
+            for (const sentence of computeSinglePriceConfig(priceConfig, numberRemainingConfigs, false)) {
+                allReports.push(sentence);
             }
-            else {
-                this.link = new svg.SmartLinkStraight();
+        }
+        allReports.push('<hr/>');
+        allReports.push('<b>细节：</b>');
+        for (const priceConfig of priceConfigs) {
+            for (const sentence of computeSinglePriceConfig(priceConfig, numberRemainingConfigs)) {
+                allReports.push(sentence);
             }
+            allReports.push('----------------------------------');
         }
-        getGraphElement() {
-            return this.link;
+        return allReports;
+    }
+    chouchou.compute = compute;
+    function computeSinglePriceConfig(priceConfig, numberRemainingConfigs, showDetails = true) {
+        let numTotalRemainingItems = Maths.sum(numberRemainingConfigs.map(c => c.numberRemaining));
+        let report = [
+            `一次抽${priceConfig.numberOfTickets}的话，抽中至少一个的中奖概率和成本`
+        ];
+        for (const itemTierConfig of numberRemainingConfigs) {
+            report.push();
+            const singleReportHeader = `>>> 对于${itemTierConfig.tier} <<< `;
+            const singleReportContent = [];
+            let cumulatedNotGetProb = 1;
+            let expectedCost = 0;
+            for (const [idx, prob] of computeProbGet(itemTierConfig.numberRemaining, numTotalRemainingItems, priceConfig.numberOfTickets).entries()) {
+                const numBuy = idx + 1;
+                const cost = priceConfig.price * numBuy;
+                singleReportContent.push(`${numBuy}次：${(prob * 100).toFixed(2)}%, $${cost}`);
+                expectedCost += cumulatedNotGetProb * prob * cost;
+                cumulatedNotGetProb *= (1 - prob);
+            }
+            const singleReportSummary = `总体期望支出：$${expectedCost.toFixed(0)}`;
+            let singleReport = `${singleReportHeader} <b>${singleReportSummary}</b>`;
+            if (showDetails) {
+                singleReport += `, 每次买的细节：${singleReportContent.join(', ')}`;
+            }
+            report.push(singleReport);
         }
-        text(text) {
-            this.link.text = text;
-            return this;
+        return report;
+    }
+    // Returns an array of probabilies for not being able to get an item in a
+    // sequence of gatcha, starting with 1 pull, and ending with prob 0.
+    function computeProbNotGet(numAvailable, total) {
+        if (numAvailable > total) {
+            throw new Error(`numAvailable(${numAvailable}) cannot be larger than total(${total})`);
         }
-        // Connect to shapes.
-        from(shapeWrapper, connectionDirection) {
-            this.link.fromShape = shapeWrapper.getShape();
-            this.link.fromDirection = connectionDirection;
-            return this;
+        if (numAvailable <= 0) {
+            return [1];
         }
-        to(shapeWrapper, connectionDirection) {
-            this.link.toShape = shapeWrapper.getShape();
-            this.link.toDirection = connectionDirection;
-            return this;
+        const results = [];
+        let remaining = total;
+        while (numAvailable <= remaining) {
+            results.push(1 - numAvailable / remaining);
+            remaining--;
         }
-        // If these are used, override connection points from `from` and `to` functions.
-        fromPoint(x, y, connectionDirection) {
-            this.link.fromConnectionPointOverride = { x, y };
-            this.link.fromDirection = connectionDirection;
-            return this;
-        }
-        fromP = this.fromPoint;
-        toPoint(x, y, connectionDirection) {
-            this.link.toConnectionPointOverride = { x, y };
-            this.link.toDirection = connectionDirection;
-            return this;
-        }
-        toP = this.toPoint;
-        /**
-         * Sets "sharpness", which defaults to 0.9, and setting it to 0 gives
-         * straight link. Othervalues are linear interpolated.
-         */
-        sharpness(sharpness) {
-            this.link.sharpness = sharpness;
-            return this;
-        }
-        /**
-         * Sets "shift" factor, which defaults to 0. When used, it pushes the
-         * curve towards the direction that's 90deg clockwisely rotated from
-         * the link vector (if it's straight).
-         * This should only be used in corner cases, for example you have
-         * rectA and rectB at the same y value, and you want to draw a link
-         * from rectA down to rectB down, the default opiton draws a horizontal
-         * link, and you can use this option to add curves to it.
-         */
-        bend(ctrlPtsShiftFactor) {
-            this.link.ctrlPtsShiftFactor = ctrlPtsShiftFactor;
-            return this;
-        }
-        // Link style.
-        dashed(isDashed = true) {
-            this.link.dashed = isDashed;
-            return this;
-        }
-        solid() {
-            return this.dashed(false);
+        return results;
+    }
+    chouchou.computeProbNotGet = computeProbNotGet;
+    // Returns an array of probabilities for being able to get at least one item
+    // in a sequence of gatcha, when pulls are batched.
+    function computeProbGet(numAvailable, total, numBatch) {
+        const notProbs = computeProbNotGet(numAvailable, total);
+        return Arrays.splitArrayIntoChunk(notProbs, numBatch).map(chunk => (1 - Maths.product(chunk)));
+    }
+    chouchou.computeProbGet = computeProbGet;
+    function writeReport(report) {
+        dom.calculationResultArea.innerHTML = '';
+        for (const sentence of report) {
+            const p = document.createElement('p');
+            p.innerHTML = sentence;
+            dom.calculationResultArea.appendChild(p);
         }
     }
-    // Wrapper of straight Link focusing on UX.
-    class StraightLink {
-        rectElement;
-        constructor() {
-            this.rectElement = new svg.Rect();
-        }
-        getGraphElement() {
-            return this.rectElement;
-        }
+    chouchou.writeReport = writeReport;
+})(chouchou || (chouchou = {}));
+var chouchouTest;
+(function (chouchouTest) {
+    function testComputations() {
+        let result;
+        result = chouchou.computeProbNotGet(2, 5);
+        Tests.assertAlmostEq(result[0], 3 / 5);
+        Tests.assertAlmostEq(result[1], 2 / 4);
+        Tests.assertAlmostEq(result[2], 1 / 3);
+        Tests.assertAlmostEq(result[3], 0 / 2);
+        result = chouchou.computeProbNotGet(0, 5);
+        Tests.assertEq(result.length, 1);
+        Tests.assertAlmostEq(result[0], 1);
+        result = chouchou.computeProbGet(1, 10, 5);
+        Tests.assertAlmostEq(result[0], 0.5);
+        Tests.assertAlmostEq(result[1], 1);
     }
-    // Helps to organize rect shapes.
-    class Layout extends ShapeWrapper {
-        // Used to compute layout, not displayed.
-        rectElement = new svg.Rect();
-        shapeList = [];
-        getShape() {
-            return this.rectElement;
-        }
-        // Set to compute layout for the given shapes.
-        setShapes(...shapes) {
-            this.shapeList = shapes;
-            return this;
-        }
-        getShapes() {
-            return this.shapeList;
-        }
-        shapes = this.getShapes;
-        // Arranges shapes in a "tile" layout.
-        tile(numOfShapesPerRow = 1, gapX = 5, gapY = 5) {
-            if (!this.shapeList.length) {
-                return this;
-            }
-            const numOfRows = Math.ceil(this.shapeList.length / numOfShapesPerRow);
-            const shapeWidth = (this.width() - (numOfShapesPerRow - 1) * gapX) / numOfShapesPerRow;
-            const shapeHeight = (this.height() - (numOfRows - 1) * gapY) / numOfRows;
-            for (const [idx, shape] of this.shapeList.entries()) {
-                const colIdx = idx % numOfShapesPerRow;
-                const rowIdx = Math.floor(idx / numOfShapesPerRow);
-                shape.move(this.left() + (gapX + shapeWidth) * colIdx, this.top() + (gapY + shapeHeight) * rowIdx, shapeWidth, shapeHeight);
-            }
-            return this;
-        }
-    }
-    class Drawer {
-        wrappers = [];
-        svgRenderer;
-        constructor(svgRenderer) {
-            this.svgRenderer = svgRenderer;
-        }
-        registerGraphElement(graphElement) {
-            this.wrappers.push(graphElement);
-            return graphElement;
-        }
-        // Manually set viewport / disables auto viewport.
-        viewport(left, top, width, height) {
-            this.svgRenderer.left = left;
-            this.svgRenderer.top = top;
-            this.svgRenderer.width = width;
-            this.svgRenderer.height = height;
-            this.svgRenderer.autoViewport = false;
-        }
-        // Sets viewport to auto.
-        autoViewport(margin = 5) {
-            this.svgRenderer.autoViewport = true;
-            this.svgRenderer.autoViewportMargin = margin;
-        }
-        rect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
-            return this.registerGraphElement(new Rect().text(text).move(left, top, width, height));
-        }
-        crect(text, left = 0, top = 0, width = DEFAULT_RECT_WIDTH, height = DEFAULT_RECT_HEIGHT) {
-            return this.registerGraphElement(new Rect().text(text).cmove(left, top, width, height));
-        }
-        // Link, default to a link with a single control point.
-        link(fromShape, fromDirection, toShape, toDirection, text, type = DEFAULT_LINK_TYPE) {
-            const link = new Link(type);
-            if (fromShape && fromDirection && toShape && toDirection) {
-                link.from(fromShape, fromDirection).to(toShape, toDirection);
-            }
-            if (text) {
-                link.text(text);
-            }
-            return this.registerGraphElement(link);
-        }
-        // Straight link.
-        slink(fromShape, fromDirection, toShape, toDirection, text) {
-            return this.link(fromShape, fromDirection, toShape, toDirection, text, 'straight');
-        }
-        // Create multiple links.
-        links(fromShapes, fromDirection, toShapes, toDirection, type = DEFAULT_LINK_TYPE) {
-            const links = [];
-            for (const fromShape of fromShapes) {
-                for (const toShape of toShapes) {
-                    links.push(this.link(fromShape, fromDirection, toShape, toDirection, '', type));
-                }
-            }
-            return links;
-        }
-        layout() {
-            return new Layout();
-        }
-        finalize() {
-            for (const elementWrapper of this.wrappers) {
-                this.svgRenderer.addGraphElement(elementWrapper.getGraphElement());
-            }
-        }
-    }
-    diagramlang.Drawer = Drawer;
-})(diagramlang || (diagramlang = {}));
+    chouchouTest.testComputations = testComputations;
+})(chouchouTest || (chouchouTest = {}));

@@ -4,5 +4,6 @@
         "target": "esnext",
         "outFile": "main.js",
         "strict": true,
+        "types": [],
     }
 }
