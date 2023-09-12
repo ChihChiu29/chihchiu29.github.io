@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.33
+// @version      1.35
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -97,8 +97,8 @@
         }, 15 /*Clicking too soon will go back*/, 60);
     } else if (hostname === 'mega.nz') {
         runUntil(function() {
-            // const button = document.querySelector('.js-megasync-download');
-            const button = document.querySelector('#nut');
+            const button = document.querySelector('.js-megasync-download');
+            // const button = document.querySelector('#nut');
             if (button) {
                 GM_log('Start download!');
                 button.click();
@@ -111,7 +111,8 @@
                 GM_log('Start download!');
                 form.submit();
             }
-        }, 5, 30);
+        // 15 sec to wait for the 5-sec count down, otherwise submit doesn't work.
+        }, 15, 30);
     } else if (contains(hostname, 'nsw2u') || contains(hostname, 'game-2u')) {
         runUntil(function() {
             // Requires other ad blocker to trigger this element.
