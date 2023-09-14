@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.35
+// @version      1.36
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -111,8 +111,8 @@
                 GM_log('Start download!');
                 form.submit();
             }
-        // 15 sec to wait for the 5-sec count down, otherwise submit doesn't work.
-        }, 15, 30);
+        // 35 sec to wait for the 5-sec count down, otherwise submit doesn't work.
+        }, 30, 90);
     } else if (contains(hostname, 'nsw2u') || contains(hostname, 'game-2u')) {
         runUntil(function() {
             // Requires other ad blocker to trigger this element.
