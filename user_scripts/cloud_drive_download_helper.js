@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.36
+// @version      1.37
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -96,14 +96,14 @@
             }
         }, 15 /*Clicking too soon will go back*/, 60);
     } else if (hostname === 'mega.nz') {
-        runUntil(function() {
-            const button = document.querySelector('.js-megasync-download');
-            // const button = document.querySelector('#nut');
-            if (button) {
-                GM_log('Start download!');
-                button.click();
-            }
-        }, 5, 30);
+        // runUntil(function() {
+        //     const button = document.querySelector('.js-megasync-download');
+        //     // const button = document.querySelector('#nut');
+        //     if (button) {
+        //         GM_log('Start download!');
+        //         button.click();
+        //     }
+        // }, 5, 30);
     } else if (hostname === 'download.megaup.net' || hostname === 'megaup.net') {
         runUntil(function() {
             const form = document.querySelector('form');
