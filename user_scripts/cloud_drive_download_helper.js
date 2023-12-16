@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.37
+// @version      1.38
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -13,6 +13,8 @@
 // @match        https://bluemediafile.sbs/*
 // @match        http://bluemediafile.site/*
 // @match        https://bluemediafile.site/*
+// @match        http://bluemediastorage.online/*
+// @match        https://bluemediastorage.online/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://game-2u.com/*
@@ -87,7 +89,7 @@
 
     const hostname = window.location.hostname;
     const pathname = window.location.pathname;
-    if (contains(hostname, 'bluemediafile')) {
+    if (contains(hostname, 'bluemediafile') || contains(hostname, 'bluemediastorage')) {
         runUntil(function() {
             const button = document.querySelector('#nut');
             if (button) {
