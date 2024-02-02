@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.41
+// @version      1.42
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -19,8 +19,8 @@
 // @match        https://bluemediastorage.online/*
 // @match        http://bluemediaurls.lol/*
 // @match        https://bluemediaurls.lol/*
-// @match        http://bluemediadownload.la/*
-// @match        https://bluemediadownload.la/*
+// @match        http://bluemediadownload.lat/*
+// @match        https://bluemediadownload.lat/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://game-2u.com/*
