@@ -229,16 +229,22 @@ let page = {
   },
 
   /* It seems you can pick date without opening the date picker. */
-  // getDatePicker: function () {
-  //   return document.querySelector('#date-picker');
-  // },
-  // openDatePicker: function () {
-  //   const datePicker = page.getDatePicker();
-  //   let expanded = datePicker.getAttribute('aria-expanded') === 'true';
-  //   if (!expanded) {
-  //     datePicker.click();
-  //   }
-  // },
+  getDatePicker: function () {
+    return document.querySelector('#date-picker');
+  },
+  openDatePicker: function () {
+    const datePicker = page.getDatePicker();
+    let expanded = datePicker.getAttribute('aria-expanded') === 'true';
+    if (!expanded) {
+      datePicker.click();
+    }
+  },
+  waitForDatePicker: function () {
+    return page.waitUntil(() => {
+      let elem = page.getDatePicker();
+      return elem;
+    });
+  },
 
   /*array*/ getAvailableDateElements: function () {
     return document.querySelectorAll('[data-cy="bt-cal-day"]:not([disabled])');
@@ -308,6 +314,8 @@ let page = {
   /* Execute actions that lead to the next page. */
   automate: async function () {
     try {
+      lib.log('Wait for page to load');
+      await page.waitForDatePicker();
       lib.log('Select random date');
       await page.pickRandomAvailableDateAndWait();
       lib.log('Select random time slot');
@@ -327,120 +335,19 @@ let page = {
   }
 };
 
-
-// (function () {
-//   GM_log('Welcome to InlineAppFiller!');
-
-
-
-
-//   function removeBodyListeners() {
-//     // Remove all event listeners on the page.
-//     const newBody = document.body.cloneNode(true);
-//     document.body.parentNode.replaceChild(newBody, document.body);
-//     GM_log('removed all listeners');
-//   }
-
-//   function sanitize() {
-//     const bodyHtml = document.body.innerHTML;
-//     const styleElements = [];
-//     for (const nn of document.head.childNodes) {
-//       if (nn.type === 'text/css') {
-//         styleElements.push(nn);
-//       }
-//     }
-//     document.open();
-//     document.write('<head></head>');
-//     document.write('<body></body>');
-//     document.close();
-
-//     for (const styleElem of styleElements) {
-//       document.head.appendChild(styleElem);
-//     }
-//     document.body.innerHTML = bodyHtml;
-//   }
-
-//   const hostname = window.location.hostname;
-//   const pathname = window.location.pathname;
-//   if (contains(hostname, 'bluemedia')) {
-//     runUntil(function () {
-//       const button = document.querySelector('#nut');
-//       if (button) {
-//         GM_log('Goodbye redirect page!');
-//         button.click();
-//       }
-//     }, 15 /*Clicking too soon will go back*/, 60);
-//   } else if (hostname === 'mega.nz') {
-//     // runUntil(function() {
-//     //     const button = document.querySelector('.js-megasync-download');
-//     //     // const button = document.querySelector('#nut');
-//     //     if (button) {
-//     //         GM_log('Start download!');
-//     //         button.click();
-//     //     }
-//     // }, 5, 30);
-//   } else if (hostname === 'download.megaup.net' || hostname === 'megaup.net') {
-//     runUntil(function () {
-//       const form = document.querySelector('form');
-//       if (form) {
-//         GM_log('Start download!');
-//         form.submit();
-//       }
-//       // 35 sec to wait for the 5-sec count down, otherwise submit doesn't work.
-//     }, 30, 90);
-//   } else if (contains(hostname, 'nsw2u') || contains(hostname, 'game-2u')) {
-//     runUntil(function () {
-//       // Requires other ad blocker to trigger this element.
-//       const elements = document.querySelectorAll('body > div');
-//       if (elements[0].id === 'page' && elements.length > 1) {
-//         elements[1].remove();
-//       }
-//     }, 2, 10);
-//   } else if (hostname === 'letsupload.io') {
-//     runUntil(function () {
-//       for (const button of document.querySelectorAll('button')) {
-//         if (button.innerText.toLowerCase().indexOf('download') >= 0) {
-//           GM_log('Start download!');
-//           button.click();
-//         }
-//       }
-//     }, 5, 30);
-//   } else if (hostname === 'igg-games.com') {
-//     // (2023-06-25) Doesn't seem to be necessary anymore.
-//     return;
-//     // Remove ads and spam.
-//     // The two "notification" to the top-right.
-//     runUntil(function () {
-//       const elem = document.querySelector('.notranslate');
-//       if (elem) {
-//         elem.remove();
-//       }
-//       removeIframes();
-//       sanitize();
-//     }, 5, 30);
-
-//     // For downloading.
-//     if (isRoot() || contains(pathname, 'page')) {
-//       return;
-//     }
-//     // For igg games, copy links to clipboard (use jdownloader).
-//     const links = [];
-//     for (const link of document.querySelectorAll('a')) {
-//       links.push(link.href);
-//     }
-//     GM_setClipboard(links.join('\n'));
-//   } else if (hostname === 'steamunlocked.net') {
-//     if (isRoot()) {
-//       return;
-//     }
-//     GM_setClipboard(window.location.href);
-//   } else if (hostname === 'www.ziperto.com') {
-//     runUntil(function () {
-//       removeIframes();
-//     }, 5, 30);
-//   }
-// })();
-
+// Testing
 // lib.runUntilSuccessful(() => { console.log(1); return true; }, 5, 15);
+// page.automate();
 
-page.automate();
+function main() {
+  const hostname = window.location.hostname;
+  const pathname = window.location.pathname;
+  if (lib.contains(pathname, BRANCH_ID_XY)) {
+    page.automate();
+  } else if (lib.contains(pathname, BRANCH_ID_XM)) {
+    // Testing.
+    // page.automate();
+  }
+}
+
+main();
