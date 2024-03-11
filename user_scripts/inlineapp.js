@@ -49,6 +49,8 @@ let babaInfo = {
 };
 let userInfo = testInfo;
 
+'https://inline.app/booking/-MeNcbDasiIykiow2Hfb:inline-live-2/-N3JQxh1vIZe9tECk0Pg/result'
+
 class SequenceActionThrottler {
   queue = [];
   delayBetweenActionsMs = 0;
@@ -306,9 +308,16 @@ let page = {
 
   /* Promise to wait for next "page". */
   clickSubmitButtonAndWait: function () {
-    /* Waits a bit longer as it can be quite slow. */
     return page.waitUntilElemReactedToClick(lib.clickRandomElement(
-      document.querySelectorAll('[data-cy="submit"]')), 10);
+      document.querySelectorAll('[data-cy="submit"]')));
+  },
+
+  /* Promise to wait for the page to change. */
+  waitForLeavingThePage: function () {
+    /* Waits a bit longer as it can be quite slow. */
+    return page.waitUntil(() => {
+      return !lib.contains(window.location.pathname, COMPANY_ID);
+    }, 10);
   },
 
   /* Execute actions that lead to the next page. */
@@ -328,7 +337,8 @@ let page = {
       await page.pickDiningPurposeAndWait();
       lib.log('Submit!');
       await page.clickSubmitButtonAndWait();
-      lib.log('yay!');
+      lib.log('Wait for confirmation...');
+      await page.waitForLeavingThePage();
     } catch (err) {
       location.reload();
     }
@@ -342,7 +352,7 @@ let page = {
 function main() {
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
-  if (lib.contains(pathname, BRANCH_ID_XY)) {
+  if (lib.contains(pathname, BRANCH_ID_ST)) {
     page.automate();
   } else if (lib.contains(pathname, BRANCH_ID_XM)) {
     // Testing.
