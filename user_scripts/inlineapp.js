@@ -158,16 +158,36 @@ let lib = {
 };
 
 let page = {
-  /* bool */ isDisabled: function (elem) {
-    return elem.getAttribute('disabled') === '';
+  /* bool */ hasReactedToClick: function (elem) {
+    if (!elem) {
+      return true;
+    } else if (elem.disabled) {
+      return true;
+    } else if (elem.getAttribute('disabled') === '') {
+      return true;
+    } else if (elem.clientWidth < 1 && elem.clientHeight < 1) {
+      return true;
+    } else {
+      for (cls of elem.classList) {
+        if (cls === 'selected') {
+          return true;
+        }
+      }
+    }
+    return false;
   },
 
-  /* Promise(success, failure) */
-  waitUntilDisabled: function (elem) {
+  /* An element reacts to click by:
+    (1) Having an attribute "disabled".
+    (2) Having a class "selected".
+    (3) Disappear or having 0 dimension.
+  Returns: Promise(success, failure) 
+  */
+  waitUntilElemReactedToClick: function (elem) {
     return new Promise((resolve, reject) => {
       lib.runUntilSuccessful(() => {
-        return page.isDisabled(elem);
-      }, 0.3, 10, resolve, reject);
+        return page.hasReactedToClick(elem);
+      }, 0.3, 5, resolve, reject);
     });
   },
 
@@ -192,7 +212,7 @@ let page = {
   },
 
   /* Promise */ pickRandomAvailableDateAndWait: function () {
-    return page.waitUntilDisabled(page.pickRandomAvailableDate());
+    return page.waitUntilElemReactedToClick(page.pickRandomAvailableDate());
   },
 
   getAvailableTimeslotElements: function /*array*/() {
@@ -217,19 +237,24 @@ let page = {
   },
 
   /* Promise */ pickRandomAvailableTimeslotAndWait: function () {
-    return page.waitUntilDisabled(page.pickRandomAvailableTimeslot());
+    return page.waitUntilElemReactedToClick(page.pickRandomAvailableTimeslot());
   },
 
-  /* element or undefined */ clickSelectDiningTimeButton: function () {
-    return lib.clickRandomElement(
-      document.querySelectorAll('[data-cy="book-now-action-button"]:not([disabled])'));
+  /* Promise to wait for next "page". */
+  clickSelectDiningTimeButtonAndWait: function () {
+    return page.waitUntilElemReactedToClick(lib.clickRandomElement(
+      document.querySelectorAll('[data-cy="book-now-action-button"]:not([disabled])')));
   },
 
   /* Execute actions that lead to the next page. */
-  automate: function () {
-    lib.runUntilSuccessful(page.pickRandomAvailableDate, 1, 30);
-    lib.runUntilSuccessful(page.pickRandomAvailableTimeslot, 1, 30);
-    lib.runUntilSuccessful(page.clickSelectDiningTimeButton, 1, 30);
+  automate: async function () {
+    lib.log('Select random date');
+    await page.pickRandomAvailableDateAndWait();
+    lib.log('Select random time slot');
+    await page.pickRandomAvailableTimeslotAndWait();
+    lib.log('Book it / move to next page');
+    await page.clickSelectDiningTimeButtonAndWait();
+    lib.log('yay!');
   }
 };
 
