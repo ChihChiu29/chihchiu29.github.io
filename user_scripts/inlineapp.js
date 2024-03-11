@@ -13,6 +13,13 @@
 // Useful:
 //  - nextSibling
 
+let COMPANY_ID = '-MeNcbDasiIykiow2Hfb';
+
+let BRANCH_ID_XY = "-NJv97D1S0vDwmdQR4lM";  // 信義店
+let BRANCH_ID_ST = "-N3JQxh1vIZe9tECk0Pg";  // 台北三創店
+let BRANCH_ID_XM = "-NLRXZWFIRJBhOSk1d_h"; // 西門店
+let BRANCH_ID_GX = "-N04NZLqRzkSAM-EjB-5";  // 高雄店
+
 let testInfo = {
   name: "羅言",
   phone: "+8860915123459",
@@ -201,6 +208,13 @@ let page = {
     return false;
   },
 
+  /* Promise that waits until the checker return true. */
+  waitUntil: function (checker, waitSec = 3) {
+    return new Promise((resolve, reject) => {
+      lib.runUntilSuccessful(checker, 0.3, waitSec, resolve, reject);
+    });
+  },
+
   /* An element reacts to click by:
     (1) Having an attribute "disabled" (date).
     (2) Having a class "selected" (timeslot).
@@ -209,10 +223,8 @@ let page = {
   Returns: Promise(success, failure) 
   */
   waitUntilElemReactedToClick: function (elem) {
-    return new Promise((resolve, reject) => {
-      lib.runUntilSuccessful(() => {
-        return page.hasReactedToClick(elem);
-      }, 0.3, 5, resolve, reject);
+    return page.waitUntil(() => {
+      return page.hasReactedToClick(elem);
     });
   },
 
@@ -271,6 +283,14 @@ let page = {
       document.querySelectorAll('[data-cy="book-now-action-button"]:not([disabled])')));
   },
 
+  /* Temp hack; should be done as part of clickSelectDiningTimeButtonAndWait */
+  waitForBookingPage: function () {
+    return page.waitUntil(() => {
+      let elem = document.querySelector('#name');
+      return elem && elem.value;
+    });
+  },
+
   /* Promise to wait for next "page". */
   pickDiningPurposeAndWait: function () {
     // Index 5 is the 6th checkbox (first one is the one about saving info).
@@ -278,20 +298,34 @@ let page = {
       document.querySelectorAll('[role="checkbox"]:nth-child(5)')));
   },
 
+  /* Promise to wait for next "page". */
+  clickSubmitButtonAndWait: function () {
+    /* Waits a bit longer as it can be quite slow. */
+    return page.waitUntilElemReactedToClick(lib.clickRandomElement(
+      document.querySelectorAll('[data-cy="submit"]')), 10);
+  },
+
   /* Execute actions that lead to the next page. */
   automate: async function () {
-    lib.log('Select random date');
-    await page.pickRandomAvailableDateAndWait();
-    lib.log('Select random time slot');
-    await page.pickRandomAvailableTimeslotAndWait();
-    lib.log('Book it / move to next page');
-    await page.clickSelectDiningTimeButtonAndWait();
-    lib.log('Pick a dining purpose');
-    await page.pickDiningPurposeAndWait();
-    lib.log('yay!');
+    try {
+      lib.log('Select random date');
+      await page.pickRandomAvailableDateAndWait();
+      lib.log('Select random time slot');
+      await page.pickRandomAvailableTimeslotAndWait();
+      lib.log('Book it / move to next page');
+      await page.clickSelectDiningTimeButtonAndWait();
+      lib.log('Wait for next page to fully appear');
+      await page.waitForBookingPage();
+      lib.log('Pick a dining purpose');
+      await page.pickDiningPurposeAndWait();
+      lib.log('Submit!');
+      await page.clickSubmitButtonAndWait();
+      lib.log('yay!');
+    } catch (err) {
+      location.reload();
+    }
   }
 };
-
 
 
 // (function () {
@@ -408,3 +442,5 @@ let page = {
 // })();
 
 // lib.runUntilSuccessful(() => { console.log(1); return true; }, 5, 15);
+
+page.automate();
