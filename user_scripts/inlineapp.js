@@ -168,7 +168,7 @@ let pickDateTimePage = {
   },
 
   pickRandomAvailableDate: function /*bool*/() {
-    return commonLib.clickRandomElement(getAvailableDateElements());
+    return commonLib.clickRandomElement(pickDateTimePage.getAvailableDateElements());
   },
 
   getAvailableTimeslotElements: function /*array*/() {
@@ -200,7 +200,9 @@ let pickDateTimePage = {
 
   /* Execute actions that lead to the next page. */
   automate: function () {
-
+    commonLib.runUntilSuccessful(pickDateTimePage.pickRandomAvailableDate, 1, 30);
+    commonLib.runUntilSuccessful(pickDateTimePage.pickRandomAvailableTimeslot, 1, 30);
+    commonLib.runUntilSuccessful(pickDateTimePage.clickSelectDiningTimeButton, 1, 30);
   }
 };
 
@@ -319,4 +321,4 @@ let pickDateTimePage = {
 //   }
 // })();
 
-commonLib.runUntilSuccessful(() => { console.log(1); return false; }, 3, 30);
+commonLib.runUntilSuccessful(() => { console.log(1); return true; }, 3, 30);
