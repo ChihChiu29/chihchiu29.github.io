@@ -33,7 +33,7 @@ class SequenceActionThrottler {
   constructor(delayMs, delayStartUntil = -1) {
     this.delayBetweenActionsMs = delayMs;
     if (delayStartUntil === -1) {
-      this.previousActionTime = commonLib.now() - delayMs;
+      this.previousActionTime = lib.now() - delayMs;
     } else {
       this.previousActionTime = delayStartUntil - delayMs;
     }
@@ -56,14 +56,14 @@ class SequenceActionThrottler {
     }
 
     const saveThis = this;
-    const delta = commonLib.now() - this.previousActionTime;
+    const delta = lib.now() - this.previousActionTime;
     if (delta > this.delayBetweenActionsMs) {
       const nextAction = this.queue.shift();
       if (nextAction) {
         // set first in case nextAction calls enqueue.
         saveThis.sheduled = true;
         nextAction();
-        saveThis.previousActionTime = commonLib.now();
+        saveThis.previousActionTime = lib.now();
         // Check if we can execute the next action already.
         saveThis.sheduled = false;
         saveThis.maybeExecuteNext();
@@ -77,7 +77,7 @@ class SequenceActionThrottler {
   }
 }
 
-let commonLib = {
+let lib = {
   log: function (content) {
     if (typeof GM_log !== 'undefined') {
       GM_log(content);
@@ -111,23 +111,29 @@ let commonLib = {
 
   fetchIgnoreError: function (url, option) {
     return fetch(url, content).catch((err) => {
-      commonLib.log(err);
+      lib.log(err);
     });
   },
 
   /* Runs a function periodically, until it returns true, or untilSec seconds passed. */
-  runUntilSuccessful: function (fn, intervalSec, untilSec) {
-    const startTime = commonLib.now();
+  runUntilSuccessful: function (fn, intervalSec, untilSec, successCallbackFn, timeoutCallbackFn) {
+    const startTime = lib.now();
     const scheduler = new SequenceActionThrottler(intervalSec * 1000);
 
     function action() {
-      commonLib.log(`Running periodic function ${fn}...`);
+      lib.log(`Running periodic function ${fn}...`);
       runResult = fn();
       if (runResult) {
-        commonLib.log('Run was successful');
+        lib.log('Run was successful');
+        if (successCallbackFn) {
+          successCallbackFn();
+        }
       } else {
-        if (commonLib.now() - startTime > untilSec * 1000) {
-          commonLib.log('Time\'s up; stop.');
+        if (lib.now() - startTime > untilSec * 1000) {
+          lib.log('Time\'s up; stop.');
+          if (timeoutCallbackFn) {
+            timeoutCallbackFn();
+          }
         } else {
           scheduler.enqueue(action);
         }
@@ -140,35 +146,53 @@ let commonLib = {
     return dataArray[Math.floor(Math.random() * dataArray.length)];
   },
 
-  clickRandomElement: function /*bool*/(elementArray) {
+  /* Returns the clicked element or undefined. */
+  clickRandomElement: function (elementArray) {
     if (elementArray.length > 0) {
-      let elem = commonLib.pickRandomInArray(elementArray);
+      let elem = lib.pickRandomInArray(elementArray);
       elem.click();
-      return true;
+      return elem;
     }
-    return false;
+    return undefined;
   },
 };
 
-let pickDateTimePage = {
-  getDatePicker: function () {
-    return document.querySelector('#date-picker');
+let page = {
+  /* bool */ isDisabled: function (elem) {
+    return elem.getAttribute('disabled') === '';
   },
 
-  openDatePicker: function () {
-    const datePicker = pickDateTimePage.getDatePicker();
-    let expanded = datePicker.getAttribute('aria-expanded') === 'true';
-    if (!expanded) {
-      datePicker.click();
-    }
+  /* Promise(success, failure) */
+  waitUntilDisabled: function (elem) {
+    return new Promise((resolve, reject) => {
+      lib.runUntilSuccessful(() => {
+        return page.isDisabled(elem);
+      }, 0.3, 10, resolve, reject);
+    });
   },
 
-  getAvailableDateElements: function /*array*/() {
+  /* It seems you can pick date without opening the date picker. */
+  // getDatePicker: function () {
+  //   return document.querySelector('#date-picker');
+  // },
+  // openDatePicker: function () {
+  //   const datePicker = page.getDatePicker();
+  //   let expanded = datePicker.getAttribute('aria-expanded') === 'true';
+  //   if (!expanded) {
+  //     datePicker.click();
+  //   }
+  // },
+
+  /*array*/ getAvailableDateElements: function () {
     return document.querySelectorAll('[data-cy="bt-cal-day"]:not([disabled])');
   },
 
-  pickRandomAvailableDate: function /*bool*/() {
-    return commonLib.clickRandomElement(pickDateTimePage.getAvailableDateElements());
+  /* element or undefined */ pickRandomAvailableDate: function () {
+    return lib.clickRandomElement(page.getAvailableDateElements());
+  },
+
+  /* Promise */ pickRandomAvailableDateAndWait: function () {
+    return page.waitUntilDisabled(page.pickRandomAvailableDate());
   },
 
   getAvailableTimeslotElements: function /*array*/() {
@@ -188,21 +212,24 @@ let pickDateTimePage = {
     return elements;
   },
 
-  pickRandomAvailableTimeslot: function /*bool*/() {
-    return commonLib.clickRandomElement(pickDateTimePage.getAvailableTimeslotElements());
+  /*bool*/ pickRandomAvailableTimeslot: function () {
+    return lib.clickRandomElement(page.getAvailableTimeslotElements());
   },
 
-  /* Returns if the click was successful. */
-  clickSelectDiningTimeButton: function () {
-    return commonLib.clickRandomElement(
+  /* Promise */ pickRandomAvailableTimeslotAndWait: function () {
+    return page.waitUntilDisabled(page.pickRandomAvailableTimeslot());
+  },
+
+  /* element or undefined */ clickSelectDiningTimeButton: function () {
+    return lib.clickRandomElement(
       document.querySelectorAll('[data-cy="book-now-action-button"]:not([disabled])'));
   },
 
   /* Execute actions that lead to the next page. */
   automate: function () {
-    commonLib.runUntilSuccessful(pickDateTimePage.pickRandomAvailableDate, 1, 30);
-    commonLib.runUntilSuccessful(pickDateTimePage.pickRandomAvailableTimeslot, 1, 30);
-    commonLib.runUntilSuccessful(pickDateTimePage.clickSelectDiningTimeButton, 1, 30);
+    lib.runUntilSuccessful(page.pickRandomAvailableDate, 1, 30);
+    lib.runUntilSuccessful(page.pickRandomAvailableTimeslot, 1, 30);
+    lib.runUntilSuccessful(page.clickSelectDiningTimeButton, 1, 30);
   }
 };
 
@@ -321,4 +348,4 @@ let pickDateTimePage = {
 //   }
 // })();
 
-commonLib.runUntilSuccessful(() => { console.log(1); return true; }, 3, 30);
+// lib.runUntilSuccessful(() => { console.log(1); return true; }, 5, 15);
