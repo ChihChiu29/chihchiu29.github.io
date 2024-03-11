@@ -15,9 +15,30 @@
 
 let testInfo = {
   name: "羅言",
-  phone: "+8860917123456",
+  phone: "+8860915123459",
   email: "4kmusicmake@gmail.com",
   gender: 1,
+};
+
+let hsuanInfo = {
+  name: "Hsuan Pao",
+  phone: "+8860916196678",
+  email: "shelly98982002@yahoo.com.tw",
+  gender: 1,
+};
+
+let chengguoInfo = {
+  name: "Pao Ta",
+  phone: "+8860958874478",
+  email: "needmanyfood1@gmail.com",
+  gender: 2,
+};
+
+let babaInfo = {
+  name: "鲍傑",
+  phone: "+8860916196678",
+  email: "powordisland@gmail.com",
+  gender: 2,
 };
 let userInfo = testInfo;
 
@@ -158,6 +179,7 @@ let lib = {
 };
 
 let page = {
+  /* TODO: it's better to split this function and make waitUntilElemReactedToClick to take a function as condition. */
   /* bool */ hasReactedToClick: function (elem) {
     if (!elem) {
       return true;
@@ -166,6 +188,8 @@ let page = {
     } else if (elem.getAttribute('disabled') === '') {
       return true;
     } else if (elem.clientWidth < 1 && elem.clientHeight < 1) {
+      return true;
+    } else if (elem.getAttribute('aria-checked') === 'true') {
       return true;
     } else {
       for (cls of elem.classList) {
@@ -178,9 +202,10 @@ let page = {
   },
 
   /* An element reacts to click by:
-    (1) Having an attribute "disabled".
-    (2) Having a class "selected".
-    (3) Disappear or having 0 dimension.
+    (1) Having an attribute "disabled" (date).
+    (2) Having a class "selected" (timeslot).
+    (3) Disappear or having 0 dimension (move to second page button).
+    (4) Having an attribute `aria-checked="true"`.
   Returns: Promise(success, failure) 
   */
   waitUntilElemReactedToClick: function (elem) {
@@ -246,6 +271,13 @@ let page = {
       document.querySelectorAll('[data-cy="book-now-action-button"]:not([disabled])')));
   },
 
+  /* Promise to wait for next "page". */
+  pickDiningPurposeAndWait: function () {
+    // Index 5 is the 6th checkbox (first one is the one about saving info).
+    return page.waitUntilElemReactedToClick(lib.clickRandomElement(
+      document.querySelectorAll('[role="checkbox"]:nth-child(5)')));
+  },
+
   /* Execute actions that lead to the next page. */
   automate: async function () {
     lib.log('Select random date');
@@ -254,6 +286,8 @@ let page = {
     await page.pickRandomAvailableTimeslotAndWait();
     lib.log('Book it / move to next page');
     await page.clickSelectDiningTimeButtonAndWait();
+    lib.log('Pick a dining purpose');
+    await page.pickDiningPurposeAndWait();
     lib.log('yay!');
   }
 };
