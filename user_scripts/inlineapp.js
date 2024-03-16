@@ -41,6 +41,13 @@ let chengguoInfo = {
   gender: 2,
 };
 
+let chengguoInfo2 = {
+  name: "鮑埕果",
+  phone: "+8860978941198",
+  email: "helloworldab101@gmail.com",
+  gender: 2,
+};
+
 let babaInfo = {
   name: "鲍傑",
   phone: "+8860916196678",
@@ -350,10 +357,23 @@ let page = {
 // page.automate();
 
 function main() {
+  lib.log('Welcome to Kirabase fighter!');
+
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
   if (lib.contains(pathname, BRANCH_ID_ST)) {
-    page.automate();
+    let datetime = new Date();
+    let hour = datetime.getHours();
+    let minute = datetime.getMinutes();
+    if (hour === 9 && minute < 4) {
+      page.automate();
+    }
+
+    // Schedule for page reload at next whole hour.
+    lib.log(`will reload after ${60 - minute} minutes`);
+    setTimeout(() => {
+      location.reload();
+    }, (60 - minute) * 60 * 1000);
   } else if (lib.contains(pathname, BRANCH_ID_XM)) {
     // Testing.
     // page.automate();
