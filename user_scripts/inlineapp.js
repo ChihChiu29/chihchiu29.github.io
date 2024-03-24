@@ -327,6 +327,10 @@ let page = {
     }, 10);
   },
 
+  /* bool */ isFullyBooked: function () {
+    return document.querySelector('[data-cy="book-now-full-button"]') !== null;
+  },
+
   /* Execute actions that lead to the next page. */
   automate: async function () {
     try {
@@ -365,8 +369,10 @@ function main() {
     let datetime = new Date();
     let hour = datetime.getHours();
     let minute = datetime.getMinutes();
-    if (hour === 9 && minute < 4) {
-      page.automate();
+    if (hour === 9 && minute < 6) {
+      if (!page.isFullyBooked()) {
+        page.automate();
+      }
     }
 
     // Schedule for page reload at next whole hour.
