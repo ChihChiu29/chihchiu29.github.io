@@ -217,11 +217,18 @@ let page = {
     return false;
   },
 
-  /* Promise that waits until the checker return true. */
-  waitUntil: function (checker, waitSec = 3) {
+  /* Promise that waits until the checker return true, or timesout. */
+  waitUntil: function (checker, timeoutSec = 3) {
     return new Promise((resolve, reject) => {
-      lib.runUntilSuccessful(checker, 0.3, waitSec, resolve, reject);
+      lib.runUntilSuccessful(checker, 0.3, timeoutSec, resolve, reject);
     });
+  },
+
+  sleep: function (sec) {
+    const startMs = lib.now();
+    return page.waitUntil(() => {
+      return (lib.now() - startMs) > sec * 1000;
+    }, sec + 1);
   },
 
   /* An element reacts to click by:
@@ -334,12 +341,17 @@ let page = {
   /* Execute actions that lead to the next page. */
   automate: async function () {
     try {
+      await page.sleep(3);
+
       lib.log('Wait for page to load');
       await page.waitForDatePicker();
       lib.log('Select random date');
       await page.pickRandomAvailableDateAndWait();
       lib.log('Select random time slot');
       await page.pickRandomAvailableTimeslotAndWait();
+
+      await page.sleep(3);
+
       lib.log('Book it / move to next page');
       await page.clickSelectDiningTimeButtonAndWait();
       lib.log('Wait for next page to fully appear');
@@ -351,7 +363,8 @@ let page = {
       lib.log('Wait for confirmation...');
       await page.waitForLeavingThePage();
     } catch (err) {
-      location.reload();
+      lib.log(err);
+      // location.reload();
     }
   }
 };
@@ -362,6 +375,7 @@ let page = {
 
 function main() {
   lib.log('Welcome to Kirabase fighter!');
+  lib.log('Version: 2024-03-26');
 
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
@@ -387,3 +401,7 @@ function main() {
 }
 
 main();
+
+
+// Test on any inline app page.
+// page.automate();
