@@ -20,6 +20,11 @@ let BRANCH_ID_ST = "-N3JQxh1vIZe9tECk0Pg";  // 台北三創店
 let BRANCH_ID_XM = "-NLRXZWFIRJBhOSk1d_h"; // 西門店
 let BRANCH_ID_GX = "-N04NZLqRzkSAM-EjB-5";  // 高雄店
 
+let DEBUG = {
+  NO_RELOAD: false,
+  RUN_ANY_PAGE: false,
+};
+
 let testInfo = {
   name: "羅言",
   phone: "+8860915123459",
@@ -183,14 +188,18 @@ let lib = {
     return dataArray[Math.floor(Math.random() * dataArray.length)];
   },
 
-  /* Returns the clicked element or undefined. */
-  clickRandomElement: function (elementArray) {
+  /* Returns the clicked element or throw (or swallow) error. */
+  clickRandomElement: function (elementArray, throwError = false) {
     if (elementArray.length > 0) {
       let elem = lib.pickRandomInArray(elementArray);
       elem.click();
       return elem;
     }
-    return undefined;
+    if (throwError) {
+      throw 'no element to click';
+    } else {
+      return undefined;
+    }
   },
 };
 
@@ -310,14 +319,14 @@ let page = {
     return page.waitUntil(() => {
       let elem = document.querySelector('#name');
       return elem && elem.value;
-    });
+    }, 8);
   },
 
   /* Promise to wait for next "page". */
   pickDiningPurposeAndWait: function () {
     // Index 5 is the 6th checkbox (first one is the one about saving info).
     return page.waitUntilElemReactedToClick(lib.clickRandomElement(
-      document.querySelectorAll('[role="checkbox"]:nth-child(5)')));
+      document.querySelectorAll('[role="checkbox"]:nth-child(5)'), false));
   },
 
   /* Promise to wait for next "page". */
@@ -335,13 +344,14 @@ let page = {
   },
 
   /* bool */ isFullyBooked: function () {
-    return document.querySelector('[data-cy="book-now-full-button"]') !== null;
+    // return document.querySelector('[data-cy="book-now-full-button"]') !== null;
+    return document.querySelector('[data-cy="booking-full-text"]') !== null;
   },
 
   /* Execute actions that lead to the next page. */
   automate: async function () {
     try {
-      await page.sleep(8);
+      await page.sleep(3);
 
       lib.log('Wait for page to load');
       await page.waitForDatePicker();
@@ -350,7 +360,7 @@ let page = {
       lib.log('Select random time slot');
       await page.pickRandomAvailableTimeslotAndWait();
 
-      await page.sleep(3);
+      await page.sleep(2);
 
       lib.log('Book it / move to next page');
       await page.clickSelectDiningTimeButtonAndWait();
@@ -359,15 +369,17 @@ let page = {
       lib.log('Pick a dining purpose');
       await page.pickDiningPurposeAndWait();
 
-      await page.sleep(3);
+      await page.sleep(2);
 
       lib.log('Submit!');
       await page.clickSubmitButtonAndWait();
       lib.log('Wait for confirmation...');
       await page.waitForLeavingThePage();
     } catch (err) {
-      // lib.log(err);
-      location.reload();
+      lib.log(err);
+      if (!DEBUG.NO_RELOAD) {
+        location.reload();
+      }
     }
   }
 };
@@ -407,4 +419,6 @@ main();
 
 
 // Test on any inline app page.
-// page.automate();
+if (DEBUG.RUN_ANY_PAGE) {
+  page.automate();
+}
