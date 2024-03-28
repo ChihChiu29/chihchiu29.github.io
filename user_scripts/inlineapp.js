@@ -341,7 +341,7 @@ let page = {
   /* Execute actions that lead to the next page. */
   automate: async function () {
     try {
-      await page.sleep(3);
+      await page.sleep(8);
 
       lib.log('Wait for page to load');
       await page.waitForDatePicker();
@@ -358,13 +358,16 @@ let page = {
       await page.waitForBookingPage();
       lib.log('Pick a dining purpose');
       await page.pickDiningPurposeAndWait();
+
+      await page.sleep(3);
+
       lib.log('Submit!');
       await page.clickSubmitButtonAndWait();
       lib.log('Wait for confirmation...');
       await page.waitForLeavingThePage();
     } catch (err) {
-      lib.log(err);
-      // location.reload();
+      // lib.log(err);
+      location.reload();
     }
   }
 };
