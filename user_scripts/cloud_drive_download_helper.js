@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.44
+// @version      1.45
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -37,6 +37,8 @@
 // @match        https://letsupload.io/*
 // @match        https://igg-games.com/*
 // @match        https://steamunlocked.net/*
+// @match        http://urlbluemedia.*/*
+// @match        https://urlbluemedia.*/*
 // @match        https://www.ziperto.com/*
 // @grant        GM_log
 // @grant        GM_setClipboard

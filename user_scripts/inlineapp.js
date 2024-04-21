@@ -20,10 +20,14 @@ let BRANCH_ID_ST = "-N3JQxh1vIZe9tECk0Pg";  // 台北三創店
 let BRANCH_ID_XM = "-NLRXZWFIRJBhOSk1d_h"; // 西門店
 let BRANCH_ID_GX = "-N04NZLqRzkSAM-EjB-5";  // 高雄店
 
+// ----- CONFIG -----
+VERSION = '2024-04-01';
 let DEBUG = {
-  NO_RELOAD: false,
-  RUN_ANY_PAGE: false,
+  NO_RELOAD: true,
+  RUN_ANY_PAGE: true,
+  NO_BOOKING: false,
 };
+// ----- CONFIG -----
 
 let testInfo = {
   name: "羅言",
@@ -189,7 +193,7 @@ let lib = {
   },
 
   /* Returns the clicked element or throw (or swallow) error. */
-  clickRandomElement: function (elementArray, throwError = false) {
+  clickRandomElement: function (elementArray, throwError = true) {
     if (elementArray.length > 0) {
       let elem = lib.pickRandomInArray(elementArray);
       elem.click();
@@ -355,8 +359,11 @@ let page = {
 
       lib.log('Wait for page to load');
       await page.waitForDatePicker();
-      lib.log('Select random date');
-      await page.pickRandomAvailableDateAndWait();
+
+      window.scrollTo(0, 300);
+
+      // lib.log('Select random date');
+      // await page.pickRandomAvailableDateAndWait();
       lib.log('Select random time slot');
       await page.pickRandomAvailableTimeslotAndWait();
 
@@ -371,10 +378,12 @@ let page = {
 
       await page.sleep(2);
 
-      lib.log('Submit!');
-      await page.clickSubmitButtonAndWait();
-      lib.log('Wait for confirmation...');
-      await page.waitForLeavingThePage();
+      if (!DEBUG.NO_BOOKING) {
+        lib.log('Submit!');
+        await page.clickSubmitButtonAndWait();
+        lib.log('Wait for confirmation...');
+        await page.waitForLeavingThePage();
+      }
     } catch (err) {
       lib.log(err);
       if (!DEBUG.NO_RELOAD) {
@@ -390,7 +399,7 @@ let page = {
 
 function main() {
   lib.log('Welcome to Kirabase fighter!');
-  lib.log('Version: 2024-03-26');
+  lib.log(`Version: ${VERSION}`);
 
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
