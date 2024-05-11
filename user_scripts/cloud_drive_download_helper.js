@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.48
+// @version      1.49
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -29,6 +29,7 @@
 // @match        https://bluemediadownload.*/*
 // @match        http://dl2.urlbluemedia.site/*
 // @match        https://dl2.urlbluemedia.site/*
+// @match        https://https://katfile.com/*
 // @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
 // @match        https://game-2u.com/*
@@ -184,6 +185,10 @@
     } else if (hostname === 'www.ziperto.com') {
         runUntil(function() {
             removeIframes();
+        }, 5, 30);
+    } else if (constains(hostname, 'katfile')) {
+        runUntil(function() {
+            document.querySelector('.recaptcha-checkbox-border').click();
         }, 5, 30);
     }
 })();
