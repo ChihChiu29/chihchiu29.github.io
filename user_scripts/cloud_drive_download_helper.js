@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.49
+// @version      1.50
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -29,16 +29,16 @@
 // @match        https://bluemediadownload.*/*
 // @match        http://dl2.urlbluemedia.site/*
 // @match        https://dl2.urlbluemedia.site/*
-// @match        https://https://katfile.com/*
-// @match        https://mega.nz/*
 // @match        https://download.megaup.net/*
+// @match        https://katfile.com/*
+// @match        https://mega.nz/*
 // @match        https://game-2u.com/*
 // @match        https://game-2u.net/*
+// @match        https://igg-games.com/*
+// @match        https://letsupload.io/*
 // @match        https://megaup.net/*
 // @match        https://nsw2u.com/*
 // @match        https://nsw2u.net/*
-// @match        https://letsupload.io/*
-// @match        https://igg-games.com/*
 // @match        https://steamunlocked.net/*
 // @match        http://urlbluemedia.*/*
 // @match        https://urlbluemedia.*/*
