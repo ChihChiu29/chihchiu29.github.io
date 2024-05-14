@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.50
+// @version      1.51
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -186,7 +186,7 @@
         runUntil(function() {
             removeIframes();
         }, 5, 30);
-    } else if (constains(hostname, 'katfile')) {
+    } else if (contains(hostname, 'katfile')) {
         runUntil(function() {
             document.querySelector('.recaptcha-checkbox-border').click();
         }, 5, 30);
