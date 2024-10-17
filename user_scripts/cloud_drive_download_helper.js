@@ -3,7 +3,7 @@
 // @author       Unknown
 // @description  Easy download
 // @namespace    unknown.unknown@github.io
-// @version      1.51
+// @version      1.52
 // @run-at       document-end
 // @match        http://bluemediafiles.com/*
 // @match        https://bluemediafiles.com/*
@@ -42,6 +42,8 @@
 // @match        https://steamunlocked.net/*
 // @match        http://urlbluemedia.*/*
 // @match        https://urlbluemedia.*/*
+// @match        http://urlbluemedia.shop/*
+// @match        https://urlbluemedia.shop/*
 // @match        http://urlbluemedia.store/*
 // @match        https://urlbluemedia.store/*
 // @match        http://urlbluemedia.shop/*
