@@ -10,7 +10,7 @@
 "use strict";
 
 // User configurable.
-const ROM_FILENAME = 'DoubleYakumanII.gb';
+const ROM_FILENAME = 'Kiwame2.gbc';
 const ENABLE_FAST_FORWARD = true;
 const ENABLE_REWIND = true;
 const ENABLE_PAUSE = false;
