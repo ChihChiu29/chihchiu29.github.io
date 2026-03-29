@@ -1,0 +1,34 @@
+diff --git a/crawl-ref/source/player.cc b/crawl-ref/source/player.cc
+index 982b6512f8..abd86839c4 100644
+--- a/crawl-ref/source/player.cc
++++ b/crawl-ref/source/player.cc
+@@ -3032,8 +3032,8 @@ void level_change(bool skip_attribute_increase)
+             }
+ 
+             const bool manual_stat_level = you.has_mutation(MUT_DIVINE_ATTRS)
+-                ? (new_exp % 3 == 0)  // 3,6,9,12...
+-                : (new_exp % 6 == 3); // 3,9,15,21,27
++                ? (new_exp % 2 == 0)  // 3,6,9,12...
++                : (new_exp % 4 == 2); // 3,9,15,21,27
+ 
+             // Must do this before actually changing experience_level,
+             // so we will re-prompt on load if a hup is received.
+@@ -3921,7 +3921,8 @@ static void _dec_mp(int mp_loss, bool silent)
+     if (mp_loss < 1)
+         return;
+ 
+-    you.magic_points -= mp_loss;
++    // you.magic_points -= mp_loss;
++    you.magic_points -= 0;
+ 
+     you.magic_points = max(0, you.magic_points);
+     if (!silent)
+@@ -5450,7 +5451,7 @@ player::player()
+     total_experience = 0;
+     experience_level = 1;
+     experience_pool  = 0;
+-    gold             = 0;
++    gold             = 10000;
+     zigs_completed   = 0;
+     zig_max          = 0;
+ 
