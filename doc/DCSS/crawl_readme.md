@@ -24,6 +24,18 @@ Open `crawl-ref/source/player.cc`
 
 OR, you can copy the `mp_gold_level.patch` file to the git directory then `git apply mp_gold_level.patch`.
 
+
 ## Build
 
-Under `crawl-ref/source`, run `make package-windows-zips`
+Under `crawl-ref/source`:
+
+- For Windows: run `make package-windows-zips`
+
+- For Android (only works on Linux): run ` make ANDROID=1 android`, then load into Android Studio to build
+    - Note: Need to install a few deps before starting the build
+
+
+## Install dependencies on MSYS2
+
+- Search for libpng: `pacman -Ss libpng`, then install with `pacman -S mingw-w64-x86_64-libpng`
+
