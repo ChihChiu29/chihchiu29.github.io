@@ -31,7 +31,7 @@ Under `crawl-ref/source`:
 
 - For Windows: run `make package-windows-zips`
 
-- For Android (only works on Linux): run ` make ANDROID=1 android`, then load into Android Studio to build
+- For Android (only works on Linux): run `make ANDROID=1 android`, then load into Android Studio to build
     - Note: Need to install a few deps before starting the build
 
 
