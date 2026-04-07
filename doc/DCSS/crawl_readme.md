@@ -1,8 +1,8 @@
 ## Compilation reference
 
-- General instruction: https://github.com/ChihChiu29/crawl/blob/master/crawl-ref/INSTALL.md#msys2-recommended
+- General instruction: https://github.com/crawl/crawl/blob/master/crawl-ref/INSTALL.md#msys2-recommended
 
-- For Android: https://github.com/ChihChiu29/crawl/blob/master/crawl-ref/docs/develop/android.txt
+- For Android: https://github.com/crawl/crawl/blob/master/crawl-ref/docs/develop/android.txt
 
 
 ## Preparation
