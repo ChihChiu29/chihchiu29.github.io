@@ -33,9 +33,20 @@ Under `crawl-ref/source`:
 
 - For Android (only works on Linux): run `make ANDROID=1 android`, then load into Android Studio to build
     - Note: Need to install a few deps before starting the build
+    
+- For Linux: download AppImage from https://github.com/linuxdeploy/linuxdeploy/releases then make it executable, then run `make TILES=y LINUXDEPLOY=/path/to/linuxdeploy.AppImage appimage`
 
 
 ## Install dependencies on MSYS2
 
 - Search for libpng: `pacman -Ss libpng`, then install with `pacman -S mingw-w64-x86_64-libpng`
 
+
+## Install dependencies on Linux
+
+Run:
+```
+sudo apt install libsdl2-image-dev libsdl2-mixer-dev libsdl2-dev \
+libfreetype6-dev libpng-dev fonts-dejavu-core \
+advancecomp pngcrush
+```
