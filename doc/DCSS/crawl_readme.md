@@ -4,6 +4,8 @@
 
 - For Android: https://github.com/crawl/crawl/blob/master/crawl-ref/docs/develop/android.txt
 
+- For webtile: https://github.com/crawl/crawl/blob/master/crawl-ref/source/webserver/README.md
+
 
 ## Preparation
 
@@ -24,6 +26,7 @@ Open `crawl-ref/source/player.cc`
 
 OR, you can copy the `mp_gold_level.patch` file to the git directory then `git apply mp_gold_level.patch`.
 
+You can also use `mp_gold_level_save.patch` file to patch it, which avoids deleting save file upon death.
 
 ## Build
 
@@ -35,6 +38,8 @@ Under `crawl-ref/source`:
     - Note: Need to install a few deps before starting the build
     
 - For Linux: download AppImage from https://github.com/linuxdeploy/linuxdeploy/releases then make it executable, then run `make TILES=y LINUXDEPLOY=/path/to/linuxdeploy.AppImage appimage`
+
+- For webtile (linux, macOS): `make WEBTILES=y`
 
 
 ## Install dependencies on MSYS2
