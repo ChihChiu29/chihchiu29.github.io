@@ -62,21 +62,24 @@ index 157579fc72..058a8602ca 100644
 -void delete_files();
 +void delete_files(bool keep_save = false);
 diff --git a/crawl-ref/source/player.cc b/crawl-ref/source/player.cc
-index 982b6512f8..abd86839c4 100644
+index 982b6512f8..8f68cee211 100644
 --- a/crawl-ref/source/player.cc
 +++ b/crawl-ref/source/player.cc
-@@ -3032,8 +3032,8 @@ void level_change(bool skip_attribute_increase)
+@@ -3031,9 +3031,10 @@ void level_change(bool skip_attribute_increase)
+                      new_exp);
              }
  
-             const bool manual_stat_level = you.has_mutation(MUT_DIVINE_ATTRS)
+-            const bool manual_stat_level = you.has_mutation(MUT_DIVINE_ATTRS)
 -                ? (new_exp % 3 == 0)  // 3,6,9,12...
 -                : (new_exp % 6 == 3); // 3,9,15,21,27
-+                ? (new_exp % 2 == 0)  // 3,6,9,12...
-+                : (new_exp % 4 == 2); // 3,9,15,21,27
++            const bool manual_stat_level = true;
++            // const bool manual_stat_level = you.has_mutation(MUT_DIVINE_ATTRS)
++            //    ? (new_exp % 3 == 0)  // 3,6,9,12...
++            //    : (new_exp % 6 == 3); // 3,9,15,21,27
  
              // Must do this before actually changing experience_level,
              // so we will re-prompt on load if a hup is received.
-@@ -3921,7 +3921,8 @@ static void _dec_mp(int mp_loss, bool silent)
+@@ -3921,7 +3922,8 @@ static void _dec_mp(int mp_loss, bool silent)
      if (mp_loss < 1)
          return;
  
@@ -86,7 +89,7 @@ index 982b6512f8..abd86839c4 100644
  
      you.magic_points = max(0, you.magic_points);
      if (!silent)
-@@ -5450,7 +5451,7 @@ player::player()
+@@ -5450,7 +5452,7 @@ player::player()
      total_experience = 0;
      experience_level = 1;
      experience_pool  = 0;
