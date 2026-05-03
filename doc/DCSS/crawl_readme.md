@@ -39,6 +39,8 @@ Under `crawl-ref/source`:
     
 - For Linux: download AppImage from https://github.com/linuxdeploy/linuxdeploy/releases then make it executable, then run `make TILES=y LINUXDEPLOY=/path/to/linuxdeploy.AppImage appimage`
 
+- For MacOS: install xcode and commandline tools, then `make -j4 TILES=y mac-app-tiles`. Can also use `make -j4 mac-app-console`.
+
 - For webtile (linux, macOS): `make WEBTILES=y`
 
 
