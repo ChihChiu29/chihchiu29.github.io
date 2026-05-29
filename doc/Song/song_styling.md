@@ -9,6 +9,19 @@
 
 ==========
 
+注意仔细揣摩歌词的感情，然后把上面的风格和下面几个风格放在一起做比较，哪个最好？还是融合几种后的效果最好？
+
+(A)
+A modern Chinese melodic hip-hop track with emotional trap ballad energy, blending melancholic vocals and confessional rap, The mood is raw, vulnerable, slightly drunk, self-destructive, but passionately devoted, Atmosphere should feel like a late-night heartbreak monologue, soaked in neon lights, smoky room haze, and emotional tension, Use warm atmospheric pads, melodic trap drums, deep sub-bass, and soft, echoing synth leads, Vocals should sound fragile but intense, with a mix of melodic singing and soft rap delivery, The hook is catchy, soaring, and emotional, while the verses feel intimate, self-deprecating, honest, and slightly messy in a beautiful way
+
+(B)
+Chinese hip hop, sad boy rap, melodic flow, trap influence, muted 808s, echoing vocals, vulnerability, heartbroken lyrics, late night vibes, reflective
+
+(C)
+Melancholic melodic emo rap, grand emotional piano leading, soft yet present 808 bass, crisp trap hi-hats with triplet rolls, sad cinematic strings that swell in the chorus, winter wind and distant aurora ambience, intimate male vocal whispering broken verses then soaring into a powerful aching melodic hook, the feeling of maple leaves falling and a dying candle flame, cold and heartbroken, climaxes with desperate energy then fades into frozen silence
+
+==========
+
 你是一位专业的 SUNO AI 音乐总监。歌曲的风格和歌词已经在上面给出了。你的任务是为歌词添加专业的 Meta Tags把它变成**适合给出风格**的**现代中文嘻哈**的音乐。
 
 【！！！法律级核心禁令 - 绝对严禁违背！！！】
@@ -34,3 +47,46 @@
 ==========
 
 总结上面的工作，给出(1) 可以直接拷贝的的歌词 (2) 可以直接拷贝的SUNO prompt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Filler
+
+
+
+
+
+[silence for 60 seconds]
+
+[60 seconds of silence]
+
+- Melancholic Cinematic Trap: BPM 78, breathy auto-tuned melodic rap with vulnerable cracks, felt piano and reversed string swells, deep rumbling 808 sub-bass, sparse trap hi-hats with triplet rolls, rain on window ambience, wide stereo reverb, heartbeat pulse underlying chorus, vinyl dust pops.
+
+- Emo Rap Meets Lo-fi Bedroom Pop: BPM 82, strained emotional delivery with whispered ad-libs, warm tape-saturated Rhodes electric piano, soft guitar harmonics, dusty boom bap drum breaks with sidechain compression, intimate room tone, nostalgic crackle, distant thunder and flickering neon hum, bittersweet and fragile.
+
+- Cloud Rap with Ethereal Hyperpop Edge: BPM 90, pitched-up breathy vocal chops and glitch effects, lush synth pads and crystalline arpeggios, bitcrushed 808 subs, rapid stuttering hi-hats, celestial reverb tails, momentary digital silence drops, starlight shimmer sound design, emotionally shattered but beautiful.
+
+- Orchestral Sadcore Trap: BPM 75, raspy spoken-sung delivery building to powerful belted notes, cinematic string quartet performing poignant stabs and legato lines, heavy 808 slides, trap snare rolls, grand hall reverb, heartbeat sub-bass pulse, music box melody that slows and warps into oblivion during the outro.
+
+- Glitch-Hop Time Travel Ballad: BPM 85, soulful melancholic rap with vocoder harmonies, reversed piano loops and glitched vocal samples, analog synth bass with envelope filter, broken beat machine rhythms, vinyl stop and rewind effects, space echoes, radio static and distorted time-stretched whispers of the chorus, creating a disorienting "wrong timeline" sensation.
+
+
+
+
+

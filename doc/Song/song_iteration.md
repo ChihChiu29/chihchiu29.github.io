@@ -133,6 +133,10 @@
 
 ## Filler
 
+
+
+
+
 [silence for 60 seconds]
 
 [60 seconds of silence]
@@ -146,10 +150,6 @@
 - Orchestral Sadcore Trap: BPM 75, raspy spoken-sung delivery building to powerful belted notes, cinematic string quartet performing poignant stabs and legato lines, heavy 808 slides, trap snare rolls, grand hall reverb, heartbeat sub-bass pulse, music box melody that slows and warps into oblivion during the outro.
 
 - Glitch-Hop Time Travel Ballad: BPM 85, soulful melancholic rap with vocoder harmonies, reversed piano loops and glitched vocal samples, analog synth bass with envelope filter, broken beat machine rhythms, vinyl stop and rewind effects, space echoes, radio static and distorted time-stretched whispers of the chorus, creating a disorienting "wrong timeline" sensation.
-
-
-
-
 
 
 
