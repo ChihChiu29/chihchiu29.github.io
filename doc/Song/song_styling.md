@@ -2,14 +2,18 @@
 
 ==========
 
-为下面的歌词构想5种最适合的说唱音乐风格的SUNO prompts，要仔细咀嚼歌词的意境再给出选择。
+为下面的歌词构想10种最适合的说唱嘻哈音乐风格的SUNO prompts，要仔细咀嚼歌词的意境再给出选择。
+风格要是**现代中文嘻哈说唱**，并且**要有好听的旋律**。
 
 歌词:
 
 
+
 ==========
 
-注意仔细揣摩歌词的感情，然后把上面的风格和下面几个风格放在一起做比较，哪个最好？还是融合几种后的效果最好？
+
+
+我有几组风格：
 
 (A)
 A modern Chinese melodic hip-hop track with emotional trap ballad energy, blending melancholic vocals and confessional rap, The mood is raw, vulnerable, slightly drunk, self-destructive, but passionately devoted, Atmosphere should feel like a late-night heartbreak monologue, soaked in neon lights, smoky room haze, and emotional tension, Use warm atmospheric pads, melodic trap drums, deep sub-bass, and soft, echoing synth leads, Vocals should sound fragile but intense, with a mix of melodic singing and soft rap delivery, The hook is catchy, soaring, and emotional, while the verses feel intimate, self-deprecating, honest, and slightly messy in a beautiful way
@@ -20,7 +24,66 @@ Chinese hip hop, sad boy rap, melodic flow, trap influence, muted 808s, echoing 
 (C)
 Melancholic melodic emo rap, grand emotional piano leading, soft yet present 808 bass, crisp trap hi-hats with triplet rolls, sad cinematic strings that swell in the chorus, winter wind and distant aurora ambience, intimate male vocal whispering broken verses then soaring into a powerful aching melodic hook, the feeling of maple leaves falling and a dying candle flame, cold and heartbroken, climaxes with desperate energy then fades into frozen silence
 
+(D)
+Minimalist C-Pop, Slim Male Vocals, Soft Falsetto, Androgynous voice, High-tenor, Intimate Whispering, Breathy Delivery, Extremely Sparse Arrangement, Sad Piano droplets, Deep Sub-pulse, Cold Atmospheric, No Belting, Suppressed Melancholy, 65 BPM
+
+(E)
+Korean R&B hiphop ballad, melancholic piano, trap beat, autotuned vocals, emotional rap verses, winter atmosphere, longing, heartbreak, cinematic strings
+
+(F)
+Chinese rap, emotional hip hop, melodic, innovative tune, ethereal flow, dreamy, atmospheric, mystical, poignant, introspective, subtle beat, vocal harmonies
+
+(G)
+Melancholic Chinese rap, ethereal pads, slow tempo, heartbroken vocals, echoing effects, nostalgic melodies, cinematic soundscape, lo-fi textures, trap beats, yearning
+
+(H)
+Mandopop ballad, gentle acoustic guitar, emotional vocals, dreamy atmosphere, subtle electronic elements, focus on longing and first impressions, tender and sweet
+
+(I)
+Alternative Chinese rap, experimental hip hop, lo-fi production, spoken word elements, atmospheric soundscapes, introspective lyrics, emotional vocal delivery, hazy textures, modern vibe
+
+(J)
+Ultra-dark ambient club deconstruction, suffocating quiet, immense empty spaces, near silence, Sub-bass drone as primary element, muffled minimal 808 hits, no hi-hats, no snares, no percussion presence, Whispered, close-mic ghostly male vocal, barely audible, resigned and detached delivery, Korean whisper rap with cold stillness, shadow imagery, empty room atmosphere, Half-time submerged weight, no explosive moments, only slow descents, Song structure concise for 3-4 minutes, Overall: intimate void, absolute darkness, controlled silence, Reference: Jackson Wang "BUCK" pushed into dark ambient minimalism
+
+(K)
+Mumble rap, laid-back, hazy, atmospheric, autotune heavy, repetitive hooks, hypnotic beats, luxurious lifestyle, self-assuredness, relaxed vibe
+
+(L)
+Luxury Trap, Heavy Bass, 808 Distorted, Cocky Vocals, Club Banger, High Energy, Modern Chinese Hip-hop, Designer Vibe
+
+(M)
+Aggressive trap beat with booming 808s, fast male rap flow, and ad-libs emphasizing luxury and untouchable status
+
+(N)
+Emo Trap, Melodic Rap, Cloud Rap, Melancholic, Dreamy, Lo-fi Piano, Atmospheric, Heavy Reverb, Deep 808 Bass, Crisp Hi-hats, Auto-tune Vocals, Moody, Sad Chill, Male vocals, Emotional, Rainy night, Ethereal, Broken doll aesthetic, Occasional glitches
+
+(O)
+Chinese Hip-hop, Boom Bap, Hardcore Rap, fast-paced rhythmic flow, heavy drum beats, energetic male vocals, underground vibe, energetic, street style, rhythmic percussion, intense delivery
+
+(P)
+Experimental Rap, Drunken flow, Loose timing, Murmured delivery, Slurred articulation, Shifting tempos within verses, Deep raspy male voice, Underground vibe, Punchy kick, Minimalist lo-fi beat, Dark moody synths, Complex rhythmic phrasing
+
+(Q)
+Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawls, Unpredictable flow, Murmured vocals, High-speed triplets, Sudden pauses, Deep bass, Dark underground vibe, Raw emotion, Intricate rhythmic patterns, 90-105 BPM
+
+
+注意仔细揣摩歌词的感情，然后把之前**你给的10组风格**和上面我给的风格放在一起做比较，给出：
+1. 总共27组风格，哪几个个最好？一个一个列出来讲解。
+2. 是否融合几种后的效果最好？
+比较以后，给出一组最强，最合适的SUNO prompt，不要超过800 characters。
+
+
 ==========
+
+
+你有把你之前的10组风格也拿来比较吗？？
+
+给出可以直接拷贝的最佳SUNO prompt，以及可以直接拷贝的你觉得最好的标注过的歌词
+
+
+==========
+
+
 
 你是一位专业的 SUNO AI 音乐总监。歌曲的风格和歌词已经在上面给出了。你的任务是为歌词添加专业的 Meta Tags把它变成**适合给出风格**的**现代中文嘻哈**的音乐。
 
