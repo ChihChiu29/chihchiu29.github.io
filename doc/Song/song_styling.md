@@ -79,6 +79,7 @@ Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawl
 你有把你之前的10组风格也拿来比较吗？？
 
 给出可以直接拷贝的最佳SUNO prompt，以及可以直接拷贝的你觉得最好的标注过的歌词
+**严禁修改歌词原文**
 
 
 ==========
@@ -130,6 +131,10 @@ Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawl
 
 
 ## Filler
+
+
+
+
 
 
 
