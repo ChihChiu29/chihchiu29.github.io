@@ -3,7 +3,7 @@
 ==========
 
 为下面的歌词构想10种最适合的说唱嘻哈音乐风格的SUNO prompts，要仔细咀嚼歌词的意境再给出选择。
-风格要是**现代中文嘻哈说唱**，并且**要有好听的旋律**。
+风格要是**现代中文嘻哈说唱**，并且**要有好听的hook**。
 
 歌词:
 
@@ -66,9 +66,12 @@ Experimental Rap, Drunken flow, Loose timing, Murmured delivery, Slurred articul
 (Q)
 Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawls, Unpredictable flow, Murmured vocals, High-speed triplets, Sudden pauses, Deep bass, Dark underground vibe, Raw emotion, Intricate rhythmic patterns, 90-105 BPM
 
+(R)
+Modern Rap, Trap elements, Boom Bap rhythm, Hype atmosphere, Male rapper, Deep gritty voice, Fast flow, Intricate rhyming, Echoing ad-libs, Cinematic background, Bass-heavy, Stage performance vibe
+
 
 注意仔细揣摩歌词的感情，然后把之前**你给的10组风格**和上面我给的风格放在一起做比较，给出：
-1. 总共27组风格，哪几个个最好？一个一个列出来讲解。
+1. 总共~30组风格，哪几个个最好？一个一个列出来讲解。
 2. 是否融合几种后的效果最好？
 比较以后，给出一组最强，最合适的SUNO prompt，不要超过800 characters。
 
@@ -78,7 +81,7 @@ Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawl
 
 你有把你之前的10组风格也拿来比较吗？？
 
-给出可以直接拷贝的最佳SUNO prompt，以及可以直接拷贝的你觉得最好的标注过的歌词
+给出可以直接拷贝的最佳SUNO prompt，以及可以直接拷贝的你觉得最好的标注过的歌词。注意不要在intro和outro里面加歌词，纯伴奏乐最好。
 **严禁修改歌词原文**
 
 
@@ -134,11 +137,11 @@ Alternative Rap, Dynamic cadence, Staccato bursts followed by long slurred drawl
 
 
 
+[END]
 
 
 
-
-
+[END]
 
 [silence for 60 seconds]
 
