@@ -82,6 +82,7 @@ Modern Rap, Trap elements, Boom Bap rhythm, Hype atmosphere, Male rapper, Deep g
 你有把你之前的10组风格也拿来比较吗？？
 
 给出可以直接拷贝的最佳SUNO prompt，以及可以直接拷贝的你觉得最好的标注过的歌词。注意不要在intro和outro里面加歌词，纯伴奏乐最好。
+
 **严禁修改歌词原文**
 
 
@@ -121,10 +122,15 @@ Modern Rap, Trap elements, Boom Bap rhythm, Hype atmosphere, Male rapper, Deep g
 
 
 
+==========
 
 
+把下面的歌词做成中文现在嘻哈歌。先把歌词分成段落并标记，比如verse之类的。
+标注要用英文，这是要给SUNO看的。每一段都要给风格标注。
+再给出整体SUNO prompt。
+给出的内容要可以直接拷贝的。
 
-
+==========
 
 
 
@@ -157,7 +163,9 @@ Modern Rap, Trap elements, Boom Bap rhythm, Hype atmosphere, Male rapper, Deep g
 
 - Glitch-Hop Time Travel Ballad: BPM 85, soulful melancholic rap with vocoder harmonies, reversed piano loops and glitched vocal samples, analog synth bass with envelope filter, broken beat machine rhythms, vinyl stop and rewind effects, space echoes, radio static and distorted time-stretched whispers of the chorus, creating a disorienting "wrong timeline" sensation.
 
+- Orchestral Sadcore Trap: BPM 75, raspy spoken-sung delivery building to powerful belted notes, cinematic string quartet performing poignant stabs and legato lines, heavy 808 slides, trap snare rolls, grand hall reverb, heartbeat sub-bass pulse, music box melody that slows and warps into oblivion during the outro.
 
+- Glitch-Hop Time Travel Ballad: BPM 85, soulful melancholic rap with vocoder harmonies, reversed piano loops and glitched vocal samples, analog synth bass with envelope filter, broken beat machine rhythms, vinyl stop and rewind effects, space echoes, radio static and distorted time-stretched whispers of the chorus, creating a disorienting "wrong timeline" sensation.
 
 
 
