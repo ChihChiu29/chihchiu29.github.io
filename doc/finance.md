@@ -24,3 +24,11 @@ Limited risk: Buy Call, Buy Put
 Potentially large risk: Sell Call, Sell Put
 
 For options: Long = bought, Short = sold
+
+
+Professional shorthand
+Traders often describe the resulting position instead of the order:
+Long Put	Bought a put and still own it
+Short Put	Sold a put and still owe the obligation
+Long Call	Bought a call and still own it
+Short Call	Sold a call and still owe the obligation

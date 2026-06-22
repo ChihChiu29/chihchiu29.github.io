@@ -11,6 +11,12 @@
 
 ==========
 
+为下面的歌词构想10种最适合的说唱嘻哈音乐风格的SUNO prompts，要仔细咀嚼歌词的意境再给出选择。
+
+歌词:
+
+==========
+
 
 
 我有几组风格：
@@ -140,6 +146,10 @@ Modern Rap, Trap elements, Boom Bap rhythm, Hype atmosphere, Male rapper, Deep g
 
 
 ## Filler
+
+
+
+
 
 
 
