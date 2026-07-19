@@ -24,6 +24,8 @@ Open `crawl-ref/source/player.cc`
 
 - Level up every 2 level, search for `== 27`, then change the line with `manual_stat_level`
 
+- Reduce armor cumbersome value: search for `player_armour_shield_spell_penalty` function, change the return value.
+
 OR, you can copy the `mp_gold_level.patch` file to the git directory then `git apply mp_gold_level.patch`.
 
 You can also use `mp_gold_level_save.patch` file to patch it, which avoids deleting save file upon death.
